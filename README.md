@@ -7,22 +7,44 @@ Fonctionne avec **Streamer.bot** + **XAMPP** + **OBS Studio**.
 
 ## Sommaire
 
-1. [Architecture](#architecture)
-2. [Prérequis](#prérequis)
-3. [Installation](#installation)
-4. [Configuration OBS](#configuration-obs)
-5. [Configuration Streamer.bot](#configuration-streamerbot)
-   - [Partie 1 — Créer l'action centrale](#partie-1--créer-laction-centrale)
-   - [Partie 2 — Créer une action par événement](#partie-2--créer-une-action-par-événement)
-   - [Partie 3 — Répéter pour chaque événement](#partie-3--répéter-pour-chaque-événement)
-   - [Partie 4 — Vérifier que tout fonctionne](#partie-4--vérifier-que-tout-fonctionne)
-6. [Format du fichier alert.json](#format-du-fichier-alertjson)
-7. [Référence des champs](#référence-des-champs)
-8. [Sons](#sons)
-9. [Mode test](#mode-test)
-10. [Personnalisation](#personnalisation)
-11. [Structure des fichiers](#structure-des-fichiers)
-12. [Dépannage](#dépannage)
+- [StreamAlerts](#streamalerts)
+  - [Sommaire](#sommaire)
+  - [Architecture](#architecture)
+  - [Prérequis](#prérequis)
+  - [Installation](#installation)
+  - [Configuration OBS](#configuration-obs)
+  - [Configuration Streamer.bot](#configuration-streamerbot)
+    - [Vue d'ensemble de la structure finale](#vue-densemble-de-la-structure-finale)
+    - [Partie 1 — Créer l'action centrale](#partie-1--créer-laction-centrale)
+      - [1.1 — Créer l'action](#11--créer-laction)
+      - [1.2 — Ajouter le script C#](#12--ajouter-le-script-c)
+    - [Partie 2 — Créer une action par événement](#partie-2--créer-une-action-par-événement)
+      - [2.1 — Créer l'action Follow](#21--créer-laction-follow)
+      - [2.2 — Ajouter le déclencheur Twitch](#22--ajouter-le-déclencheur-twitch)
+      - [2.3 — Ajouter le sous-action "Run Action"](#23--ajouter-le-sous-action-run-action)
+      - [2.4 — Résultat attendu](#24--résultat-attendu)
+    - [Partie 3 — Répéter pour chaque événement](#partie-3--répéter-pour-chaque-événement)
+    - [Partie 4 — Vérifier que tout fonctionne](#partie-4--vérifier-que-tout-fonctionne)
+      - [4.1 — Test depuis Streamer.bot](#41--test-depuis-streamerbot)
+      - [4.2 — Test en conditions réelles](#42--test-en-conditions-réelles)
+  - [Format du fichier alert.json](#format-du-fichier-alertjson)
+    - [Schéma complet](#schéma-complet)
+    - [Référence des champs](#référence-des-champs)
+    - [Types supportés](#types-supportés)
+  - [Sons](#sons)
+  - [Mode test](#mode-test)
+  - [Personnalisation](#personnalisation)
+    - [Durée d'affichage](#durée-daffichage)
+    - [Couleurs par type](#couleurs-par-type)
+    - [Position de l'overlay](#position-de-loverlay)
+    - [Largeur de la carte](#largeur-de-la-carte)
+  - [Structure des fichiers](#structure-des-fichiers)
+  - [Dépannage](#dépannage)
+    - [L'alerte ne s'affiche pas](#lalerte-ne-saffiche-pas)
+    - [L'alerte s'affiche une seule fois puis plus](#lalerte-saffiche-une-seule-fois-puis-plus)
+    - [Pas de son](#pas-de-son)
+    - [L'alerte est invisible dans OBS](#lalerte-est-invisible-dans-obs)
+    - [`backdrop-filter` ne fonctionne pas dans OBS](#backdrop-filter-ne-fonctionne-pas-dans-obs)
 
 ---
 
@@ -56,12 +78,12 @@ Le principe : Streamer.bot écrase un seul fichier JSON à chaque événement. L
 
 ## Prérequis
 
-| Outil | Version minimum | Rôle |
-|---|---|---|
-| [XAMPP](https://www.apachefriends.org/) | 8.x | Serveur HTTP local |
-| [OBS Studio](https://obsproject.com/) | 27+ | Browser Source |
-| [Streamer.bot](https://streamer.bot/) | 0.2+ | Réception des événements Twitch |
-| Navigateur moderne | Chromium 90+ | Pour les tests |
+| Outil                                   | Version minimum | Rôle                            |
+| --------------------------------------- | --------------- | ------------------------------- |
+| [XAMPP](https://www.apachefriends.org/) | 8.x             | Serveur HTTP local              |
+| [OBS Studio](https://obsproject.com/)   | 27+             | Browser Source                  |
+| [Streamer.bot](https://streamer.bot/)   | 0.2+            | Réception des événements Twitch |
+| Navigateur moderne                      | Chromium 90+    | Pour les tests                  |
 
 ---
 
@@ -85,13 +107,13 @@ Le principe : Streamer.bot écrase un seul fichier JSON à chaque événement. L
 1. Dans OBS, ajoute une **Source Navigateur** (Browser Source).
 2. Renseigne :
 
-   | Paramètre | Valeur |
-   |---|---|
-   | URL | `http://localhost/StreamAlerts/alerts/index.html` |
-   | Largeur | `1920` |
-   | Hauteur | `1080` |
-   | Arrière-plan transparent | ✅ coché |
-   | Actualiser le navigateur quand la scène devient active | ✅ coché |
+   | Paramètre                                              | Valeur                                            |
+   | ------------------------------------------------------ | ------------------------------------------------- |
+   | URL                                                    | `http://localhost/StreamAlerts/alerts/index.html` |
+   | Largeur                                                | `1920`                                            |
+   | Hauteur                                                | `1080`                                            |
+   | Arrière-plan transparent                               | ✅ coché                                          |
+   | Actualiser le navigateur quand la scène devient active | ✅ coché                                          |
 
 3. Place la source au-dessus de toutes tes autres sources dans ta scène.
 
@@ -179,19 +201,19 @@ Voici le tutoriel complet pour le **Follow**. Répète exactement les mêmes ét
 2. Navigue vers : **Core** → **Actions** → **Run Action**
 3. La fenêtre de configuration du sous-action s'ouvre :
 
-   | Champ | Valeur |
-   |---|---|
-   | **Action** | `[StreamAlerts] Écrire alerte` |
-   | **Run Immediately** | ✅ coché |
-   | **Wait for completion** | ✅ coché (optionnel) |
+   | Champ                   | Valeur                         |
+   | ----------------------- | ------------------------------ |
+   | **Action**              | `[StreamAlerts] Écrire alerte` |
+   | **Run Immediately**     | ✅ coché                       |
+   | **Wait for completion** | ✅ coché (optionnel)           |
 
 4. Cherche l'onglet ou la section **Arguments** dans cette même fenêtre.
 5. Clique sur **+** (ou **Add**) pour ajouter un argument :
 
-   | Champ | Valeur |
-   |---|---|
-   | **Name** | `alertType` |
-   | **Value** | `follow` |
+   | Champ     | Valeur      |
+   | --------- | ----------- |
+   | **Name**  | `alertType` |
+   | **Value** | `follow`    |
 
 6. Clique **OK** pour sauvegarder.
 
@@ -215,17 +237,17 @@ L'action `[StreamAlerts] Follow` doit ressembler à ça :
 
 Répète la **Partie 2** pour chacun des événements ci-dessous, en changeant uniquement le **nom de l'action**, le **déclencheur Twitch**, et la **valeur de `alertType`** :
 
-| Nom de l'action | Déclencheur Streamer.bot | `alertType` |
-|---|---|---|
-| `[StreamAlerts] Follow` | Twitch → Channel Events → **Follow** | `follow` |
-| `[StreamAlerts] Sub` | Twitch → Channel Events → **Subscribe** | `sub` |
-| `[StreamAlerts] Resub` | Twitch → Channel Events → **Re-Subscribe** | `resub` |
-| `[StreamAlerts] Gift Sub` | Twitch → Channel Events → **Gift Subscription** | `giftsub` |
-| `[StreamAlerts] Raid` | Twitch → Channel Events → **Raid** | `raid` |
-| `[StreamAlerts] Bits` | Twitch → Channel Events → **Cheer** | `bits` |
-| `[StreamAlerts] Donation` | StreamElements → **Tip** *(ou Streamlabs → Donation)* | `donation` |
+| Nom de l'action                 | Déclencheur Streamer.bot                               | `alertType`     |
+| ------------------------------- | ------------------------------------------------------ | --------------- |
+| `[StreamAlerts] Follow`         | Twitch → Channel Events → **Follow**                   | `follow`        |
+| `[StreamAlerts] Sub`            | Twitch → Channel Events → **Subscribe**                | `sub`           |
+| `[StreamAlerts] Resub`          | Twitch → Channel Events → **Re-Subscribe**             | `resub`         |
+| `[StreamAlerts] Gift Sub`       | Twitch → Channel Events → **Gift Subscription**        | `giftsub`       |
+| `[StreamAlerts] Raid`           | Twitch → Channel Events → **Raid**                     | `raid`          |
+| `[StreamAlerts] Bits`           | Twitch → Channel Events → **Cheer**                    | `bits`          |
+| `[StreamAlerts] Donation`       | StreamElements → **Tip** _(ou Streamlabs → Donation)_  | `donation`      |
 | `[StreamAlerts] Channel Points` | Twitch → Channel Events → **Channel Point Redemption** | `channelpoints` |
-| `[StreamAlerts] Hype Train` | Twitch → Channel Events → **Hype Train Start** | `hype_train` |
+| `[StreamAlerts] Hype Train`     | Twitch → Channel Events → **Hype Train Start**         | `hype_train`    |
 
 > **Note Channel Points :** le script récupère automatiquement `%rewardTitle%` comme message affiché sous le pseudo. Aucune configuration supplémentaire nécessaire.
 
@@ -242,6 +264,7 @@ Répète la **Partie 2** pour chacun des événements ci-dessous, en changeant u
 3. L'alerte doit apparaître dans ton overlay OBS dans les 500 ms.
 
 Si rien ne s'affiche :
+
 - Vérifie que XAMPP Apache est démarré.
 - Ouvre `http://localhost/StreamAlerts/alerts/data/alert.json` dans le navigateur : le contenu doit avoir changé.
 - Vérifie que le chemin dans `WriteAlert.cs` est correct.
@@ -266,45 +289,45 @@ alerts/data/alert.json
 
 ```json
 {
-  "type":      "string  — type d'alerte (voir liste ci-dessous)",
-  "user":      "string  — pseudo Twitch de l'utilisateur",
-  "message":   "string  — message personnalisé (optionnel, remplace le message par défaut)",
-  "avatar":    "string  — URL de l'avatar (optionnel, laisse vide si indisponible)",
-  "sound":     "string  — nom du fichier son dans assets/sounds/ (ex: follow.mp3)",
-  "amount":    "number  — montant : bits, euros, viewers, nombre de subs",
-  "months":    "number  — nombre de mois (resub uniquement)",
-  "tier":      "string  — palier d'abonnement : 'Tier 1', 'Tier 2', 'Tier 3'",
+  "type": "string  — type d'alerte (voir liste ci-dessous)",
+  "user": "string  — pseudo Twitch de l'utilisateur",
+  "message": "string  — message personnalisé (optionnel, remplace le message par défaut)",
+  "avatar": "string  — URL de l'avatar (optionnel, laisse vide si indisponible)",
+  "sound": "string  — nom du fichier son dans assets/sounds/ (ex: follow.mp3)",
+  "amount": "number  — montant : bits, euros, viewers, nombre de subs",
+  "months": "number  — nombre de mois (resub uniquement)",
+  "tier": "string  — palier d'abonnement : 'Tier 1', 'Tier 2', 'Tier 3'",
   "timestamp": "number  — timestamp Unix en secondes — DOIT changer à chaque alerte"
 }
 ```
 
 ### Référence des champs
 
-| Champ | Type | Obligatoire | Description |
-|---|---|---|---|
-| `type` | string | Oui | Type de l'alerte (voir types supportés) |
-| `user` | string | Oui | Pseudo affiché en grand sur la carte |
-| `message` | string | Non | Texte sous le pseudo. Si vide, un message par défaut est généré |
-| `avatar` | string | Non | URL d'image (HTTP/HTTPS). Si vide ou erreur de chargement, ignoré |
-| `sound` | string | Non | Fichier `.mp3` dans `assets/sounds/`. Si vide, pas de son |
-| `amount` | number | Selon type | Bits, euros, viewers, nombre de gift subs |
-| `months` | number | Resub uniquement | Nombre total de mois abonnés |
-| `tier` | string | Non | `Tier 1` / `Tier 2` / `Tier 3` |
-| `timestamp` | number | Oui | Timestamp Unix (secondes). **Doit être unique à chaque alerte** |
+| Champ       | Type   | Obligatoire      | Description                                                       |
+| ----------- | ------ | ---------------- | ----------------------------------------------------------------- |
+| `type`      | string | Oui              | Type de l'alerte (voir types supportés)                           |
+| `user`      | string | Oui              | Pseudo affiché en grand sur la carte                              |
+| `message`   | string | Non              | Texte sous le pseudo. Si vide, un message par défaut est généré   |
+| `avatar`    | string | Non              | URL d'image (HTTP/HTTPS). Si vide ou erreur de chargement, ignoré |
+| `sound`     | string | Non              | Fichier `.mp3` dans `assets/sounds/`. Si vide, pas de son         |
+| `amount`    | number | Selon type       | Bits, euros, viewers, nombre de gift subs                         |
+| `months`    | number | Resub uniquement | Nombre total de mois abonnés                                      |
+| `tier`      | string | Non              | `Tier 1` / `Tier 2` / `Tier 3`                                    |
+| `timestamp` | number | Oui              | Timestamp Unix (secondes). **Doit être unique à chaque alerte**   |
 
 ### Types supportés
 
-| Valeur `type` | Événement | Couleur |
-|---|---|---|
-| `follow` | Nouveau follow | Violet `#9B59B6` |
-| `sub` | Nouveau sub | Or `#F1C40F` |
-| `resub` | Resub | Orange `#E67E22` |
-| `giftsub` | Gift sub | Rose `#E91E8C` |
-| `raid` | Raid entrant | Rouge `#E74C3C` |
-| `bits` | Envoi de bits | Cyan `#00BCD4` |
-| `donation` | Donation | Vert `#2ECC71` |
-| `channelpoints` | Channel points | Bleu `#3498DB` |
-| `hype_train` | Hype train | Arc-en-ciel animé |
+| Valeur `type`   | Événement      | Couleur           |
+| --------------- | -------------- | ----------------- |
+| `follow`        | Nouveau follow | Violet `#9B59B6`  |
+| `sub`           | Nouveau sub    | Or `#F1C40F`      |
+| `resub`         | Resub          | Orange `#E67E22`  |
+| `giftsub`       | Gift sub       | Rose `#E91E8C`    |
+| `raid`          | Raid entrant   | Rouge `#E74C3C`   |
+| `bits`          | Envoi de bits  | Cyan `#00BCD4`    |
+| `donation`      | Donation       | Vert `#2ECC71`    |
+| `channelpoints` | Channel points | Bleu `#3498DB`    |
+| `hype_train`    | Hype train     | Arc-en-ciel animé |
 
 ---
 
@@ -358,9 +381,9 @@ Tous les réglages visuels se font dans `alerts/style.css` via les variables CSS
 Dans `alerts/script.js` :
 
 ```js
-const DISPLAY_DURATION = 5500;  // ms avant que la sortie commence
-const EXIT_DURATION    = 700;   // ms pour l'animation de sortie
-const POLL_INTERVAL    = 500;   // ms entre chaque lecture du JSON
+const DISPLAY_DURATION = 5500; // ms avant que la sortie commence
+const EXIT_DURATION = 700; // ms pour l'animation de sortie
+const POLL_INTERVAL = 500; // ms entre chaque lecture du JSON
 ```
 
 ### Couleurs par type
@@ -380,12 +403,13 @@ Dans `alerts/style.css`, modifie `#alert-container` :
 
 ```css
 #alert-container {
-  bottom: 64px;   /* distance depuis le bas */
-  left: 50%;      /* centré horizontalement */
+  bottom: 64px; /* distance depuis le bas */
+  left: 50%; /* centré horizontalement */
 }
 ```
 
 Pour placer en haut à gauche par exemple :
+
 ```css
 #alert-container {
   bottom: auto;
@@ -399,6 +423,7 @@ Pour placer en haut à gauche par exemple :
 ### Largeur de la carte
 
 Dans `alerts/style.css` :
+
 ```css
 .alert-card {
   width: 520px;
