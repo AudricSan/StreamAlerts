@@ -1,18 +1,18 @@
 {
   "alerts": {
-    "bottom"          : 64,
-    "left"            : "",
-    "width"           : "",
+    "bottom"          : 500,
+    "left"            : 450,
+    "width"           : 600,
     "displayDuration" : 5500
   },
 
   "chat": {
-    "bottom"      : 80,
-    "right"       : 24,
-    "width"       : 380,
-    "maxHeight"   : 660,
-    "msgLifetime" : 30000,
-    "maxMessages" : 14,
+    "bottom"      : 60,
+    "right"       : 53,
+    "width"       : 360,
+    "maxHeight"   : 1500,
+    "msgLifetime" : 999999999,
+    "maxMessages" : 27,
     "websocket"         : "ws://127.0.0.1:8080",
     "websocketPassword" : ""
   },
