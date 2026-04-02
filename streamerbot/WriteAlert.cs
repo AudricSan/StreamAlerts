@@ -17,7 +17,7 @@ public class CPHInline
 {
     // Chemin vers le fichier lu par l'overlay OBS
     const string FILE_PATH =
-        @"D:\audri\Xamp\htdocs\StreamAlerts\alerts\data\alert.json";
+        @"D:\audri\Xamp\htdocs\StreamAlerts\overlay\data\alert.json";
 
     public bool Execute()
     {

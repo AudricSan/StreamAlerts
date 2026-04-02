@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=1920, height=1080">
+  <title>StreamAlerts — Overlay OBS</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Nunito:wght@400;600;700;800;900&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+  <!-- ═══════════════════════════════════════════════════
+       ZONE : Alertes Twitch — bas centre
+       Données : data/alert.json
+  ════════════════════════════════════════════════════ -->
+  <div id="zone-alerts">
+    <div id="alert-container"></div>
+  </div>
+
+  <!-- ═══════════════════════════════════════════════════
+       ZONE : Chat overlay — droite
+       Données : data/chat.json  (futur)
+  ════════════════════════════════════════════════════ -->
+  <!-- <div id="zone-chat"></div> -->
+
+  <!-- ═══════════════════════════════════════════════════
+       ZONE : Objectif / Goal tracker — haut centre
+       Données : data/goal.json  (futur)
+  ════════════════════════════════════════════════════ -->
+  <!-- <div id="zone-goal"></div> -->
+
+  <!-- ═══════════════════════════════════════════════════
+       ZONE : Musique en cours — bas gauche
+       Données : data/nowplaying.json  (futur)
+  ════════════════════════════════════════════════════ -->
+  <!-- <div id="zone-nowplaying"></div> -->
+
+  <!-- ═══════════════════════════════════════════════════
+       ZONE : Compteur d'événements — haut gauche
+       Données : data/counter.json  (futur)
+  ════════════════════════════════════════════════════ -->
+  <!-- <div id="zone-counter"></div> -->
+
+  <!-- Indicateur de test (non visible dans OBS) -->
+  <div id="test-hint">Appuie sur <kbd>T</kbd> pour tester les alertes</div>
+
+  <!-- ── Composants actifs ── -->
+  <script src="components/alerts.js"></script>
+
+  <!-- Composants futurs — décommenter quand le fichier est créé -->
+  <!-- <script src="components/chat.js"></script>       -->
+  <!-- <script src="components/goals.js"></script>      -->
+  <!-- <script src="components/nowplaying.js"></script> -->
+  <!-- <script src="components/counter.js"></script>    -->
+
+  <!-- Point d'entrée — initialise tous les composants -->
+  <script src="script.js"></script>
+
+</body>
+</html>

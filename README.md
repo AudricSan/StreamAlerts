@@ -62,14 +62,17 @@ Streamer.bot
   │                         lit les variables Twitch automatiquement
   │                         écrit alerts/data/alert.json
   ▼
-alerts/data/alert.json   ←── écrasé à chaque événement
+overlay/data/alert.json  ←── écrasé à chaque événement
   │
   │  polling toutes les 500 ms (fetch + cache-buster)
   ▼
-alerts/index.html        ←── overlay HTML/CSS/JS
-  │  file d'attente, animations, sons
+overlay/index.html       ←── UNE SEULE page, tous les composants
+  │  ├── components/alerts.js       (actif)
+  │  ├── components/chat.js         (futur)
+  │  ├── components/goals.js        (futur)
+  │  └── components/nowplaying.js   (futur)
   ▼
-OBS Browser Source       ←── fond transparent, 1920×1080
+OBS Browser Source       ←── 1 seule instance, fond transparent, 1920×1080
 ```
 
 Le principe : Streamer.bot écrase un seul fichier JSON à chaque événement. L'overlay détecte le nouveau `timestamp` et met l'alerte en file d'attente. Le script C# est partagé — une seule action centrale, une valeur d'argument différente par événement.
@@ -95,7 +98,7 @@ Le principe : Streamer.bot écrase un seul fichier JSON à chaque événement. L
 2. **Démarrer Apache** dans le panneau XAMPP.
 
 3. **Vérifier** en ouvrant dans ton navigateur :
-   `http://localhost/StreamAlerts/alerts/index.html`
+   `http://localhost/StreamAlerts/overlay/index.html`
    Tu dois voir la page avec l'indicateur "Appuie sur T pour tester".
 
 4. Appuie sur **T** pour vérifier que les alertes s'affichent correctement.
@@ -109,7 +112,7 @@ Le principe : Streamer.bot écrase un seul fichier JSON à chaque événement. L
 
    | Paramètre                                              | Valeur                                            |
    | ------------------------------------------------------ | ------------------------------------------------- |
-   | URL                                                    | `http://localhost/StreamAlerts/alerts/index.html` |
+   | URL                                                    | `http://localhost/StreamAlerts/overlay/index.html` |
    | Largeur                                                | `1920`                                            |
    | Hauteur                                                | `1080`                                            |
    | Arrière-plan transparent                               | ✅ coché                                          |
@@ -266,7 +269,7 @@ Répète la **Partie 2** pour chacun des événements ci-dessous, en changeant u
 Si rien ne s'affiche :
 
 - Vérifie que XAMPP Apache est démarré.
-- Ouvre `http://localhost/StreamAlerts/alerts/data/alert.json` dans le navigateur : le contenu doit avoir changé.
+- Ouvre `http://localhost/StreamAlerts/overlay/data/alert.json` dans le navigateur : le contenu doit avoir changé.
 - Vérifie que le chemin dans `WriteAlert.cs` est correct.
 
 #### 4.2 — Test en conditions réelles
@@ -360,7 +363,7 @@ Le volume par défaut est `0.8` (modifiable dans `script.js`, constante `audio.v
 
 ## Mode test
 
-Ouvre `http://localhost/StreamAlerts/alerts/index.html` dans ton navigateur et appuie sur la touche **T**.
+Ouvre `http://localhost/StreamAlerts/overlay/index.html` dans ton navigateur et appuie sur la touche **T**.
 
 Chaque appui déclenche l'alerte suivante dans ce cycle :
 
@@ -436,31 +439,30 @@ Dans `alerts/style.css` :
 
 ```
 StreamAlerts/
-├── README.md                        ← ce fichier
+├── README.md
 ├── streamerbot/
 │   └── WriteAlert.cs                ← script C# à coller dans Streamer.bot
-├── alerts/
-│   ├── index.html                   ← URL à mettre dans OBS
-│   ├── style.css                    ← design, couleurs, animations
-│   ├── script.js                    ← logique, polling, file d'attente
-│   ├── assets/
-│   │   ├── sounds/                  ← fichiers .mp3 des alertes
-│   │   ├── videos/                  ← vidéos (usage futur)
-│   │   ├── images/                  ← images, GIFs
-│   │   └── fonts/                   ← polices locales (si hors ligne)
-│   └── data/
-│       ├── alert.json               ← écrit par Streamer.bot
-│       ├── queue.json               ← réservé (usage futur)
-│       └── examples/                ← JSONs d'exemple par type
-│           ├── follow.json
-│           ├── sub.json
-│           ├── resub.json
-│           ├── giftsub.json
-│           ├── raid.json
-│           ├── bits.json
-│           ├── donation.json
-│           ├── channelpoints.json
-│           └── hype_train.json
+└── overlay/                         ← UN SEUL Browser Source OBS
+    ├── index.html                   ← URL OBS : /StreamAlerts/overlay/index.html
+    ├── style.css                    ← styles globaux + tous les composants
+    ├── script.js                    ← point d'entrée, initialise les composants
+    ├── components/                  ← un fichier JS par composant overlay
+    │   ├── alerts.js                ← alertes Twitch (actif)
+    │   ├── chat.js                  ← chat overlay        (futur)
+    │   ├── goals.js                 ← objectif/goal bar   (futur)
+    │   ├── nowplaying.js            ← musique en cours    (futur)
+    │   └── counter.js               ← compteur d'events  (futur)
+    ├── assets/
+    │   ├── sounds/                  ← fichiers .mp3
+    │   ├── images/                  ← images, GIFs
+    │   ├── videos/                  ← vidéos
+    │   └── fonts/                   ← polices locales (hors ligne)
+    └── data/                        ← un fichier JSON par composant
+        ├── alert.json               ← écrit par Streamer.bot
+        ├── chat.json                ← futur
+        ├── goal.json                ← futur
+        ├── nowplaying.json          ← futur
+        └── examples/               ← JSONs d'exemple
 ```
 
 ---
@@ -470,7 +472,7 @@ StreamAlerts/
 ### L'alerte ne s'affiche pas
 
 1. Vérifie que XAMPP Apache est bien démarré.
-2. Ouvre `http://localhost/StreamAlerts/alerts/data/alert.json` dans ton navigateur — tu dois voir le JSON.
+2. Ouvre `http://localhost/StreamAlerts/overlay/data/alert.json` dans ton navigateur — tu dois voir le JSON.
 3. Vérifie que le `timestamp` change bien à chaque événement dans Streamer.bot.
 4. Vérifie que la valeur `type` correspond exactement à l'un des types supportés.
 

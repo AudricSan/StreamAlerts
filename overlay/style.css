@@ -1,16 +1,18 @@
 /* ============================================================
-   STREAM ALERTS OVERLAY — style.css
+   StreamAlerts — style.css
+   Styles globaux + tous les composants de l'overlay OBS
    Compatible OBS Browser Source (1920×1080, fond transparent)
    ============================================================ */
 
-/* === RESET & ROOT === */
+/* === RESET & VARIABLES GLOBALES === */
+
 :root {
-  --alert-color: #9B59B6;
-  --alert-color-rgb: 155, 89, 182;
-  --card-bg: rgba(10, 10, 20, 0.93);
-  --card-border: rgba(255, 255, 255, 0.06);
   --font-display: 'Bebas Neue', cursive;
-  --font-body: 'Nunito', sans-serif;
+  --font-body:    'Nunito', sans-serif;
+
+  /* Couleur active (surchargée par chaque carte d'alerte) */
+  --alert-color:     #9B59B6;
+  --alert-color-rgb: 155, 89, 182;
 }
 
 *, *::before, *::after {
@@ -27,79 +29,128 @@ html, body {
   font-family: var(--font-body);
 }
 
-/* === CONTENEUR DES ALERTES === */
-#alert-container {
+/* ============================================================
+   ZONES DE L'OVERLAY
+   Chaque zone est positionnée de façon fixe sur le canvas.
+   Les composants s'affichent à l'intérieur de leur zone.
+   ============================================================ */
+
+/* ── Zone : Alertes (bas centre) ── */
+#zone-alerts {
   position: fixed;
   bottom: 64px;
   left: 50%;
   transform: translateX(-50%);
+  width: 560px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  pointer-events: none;
+}
+
+/* ── Zone : Chat (droite) — futur ── */
+/*
+#zone-chat {
+  position: fixed;
+  top: 80px;
+  right: 20px;
+  width: 340px;
+  height: 860px;
+  pointer-events: none;
+}
+*/
+
+/* ── Zone : Objectif (haut centre) — futur ── */
+/*
+#zone-goal {
+  position: fixed;
+  top: 20px;
+  left: 50%;
+  transform: translateX(-50%);
+  pointer-events: none;
+}
+*/
+
+/* ── Zone : Musique (bas gauche) — futur ── */
+/*
+#zone-nowplaying {
+  position: fixed;
+  bottom: 20px;
+  left: 20px;
+  width: 400px;
+  pointer-events: none;
+}
+*/
+
+/* ── Zone : Compteur (haut gauche) — futur ── */
+/*
+#zone-counter {
+  position: fixed;
+  top: 20px;
+  left: 20px;
+  pointer-events: none;
+}
+*/
+
+/* ============================================================
+   COMPOSANT : ALERTES
+   ============================================================ */
+
+/* Conteneur interne (scroll de la file d'attente) */
+#alert-container {
   display: flex;
   flex-direction: column-reverse;
   align-items: center;
   gap: 10px;
-  pointer-events: none;
-  width: 560px;
+  width: 100%;
 }
 
-/* === CARTE D'ALERTE === */
+/* ── Carte d'alerte ── */
 .alert-card {
   position: relative;
   width: 520px;
-  background: var(--card-bg);
-  border: 1px solid var(--card-border);
+  background: rgba(10, 10, 20, 0.93);
+  border: 1px solid rgba(255, 255, 255, 0.06);
   border-left: none;
   border-radius: 6px;
   overflow: hidden;
   backdrop-filter: blur(20px) saturate(160%);
   -webkit-backdrop-filter: blur(20px) saturate(160%);
 
-  /* État initial : invisible, décalé vers le bas */
   opacity: 0;
   transform: translateY(28px) scale(0.96);
   will-change: opacity, transform;
-
   transition:
-    opacity 0.55s cubic-bezier(0.34, 1.56, 0.64, 1),
+    opacity   0.55s cubic-bezier(0.34, 1.56, 0.64, 1),
     transform 0.55s cubic-bezier(0.34, 1.56, 0.64, 1);
 }
 
-/* Entrée */
 .alert-card.visible {
   opacity: 1;
   transform: translateY(0) scale(1);
 }
 
-/* Sortie */
 .alert-card.exiting {
   opacity: 0;
   transform: translateY(-18px) scale(0.97);
   transition:
-    opacity 0.6s cubic-bezier(0.25, 0.46, 0.45, 0.94),
+    opacity   0.6s cubic-bezier(0.25, 0.46, 0.45, 0.94),
     transform 0.6s cubic-bezier(0.25, 0.46, 0.45, 0.94);
 }
 
-/* === BARRE ACCENT GAUCHE === */
+/* Barre accent gauche */
 .alert-accent-bar {
   position: absolute;
-  left: 0;
-  top: 0;
-  bottom: 0;
+  left: 0; top: 0; bottom: 0;
   width: 4px;
   background: var(--alert-color);
   border-radius: 6px 0 0 6px;
 }
 
-/* Hype Train : arc-en-ciel animé */
 .alert-card.hype_train .alert-accent-bar {
-  background: linear-gradient(
-    180deg,
-    #ff0066 0%,
-    #ff6600 20%,
-    #ffcc00 40%,
-    #00ff88 60%,
-    #0099ff 80%,
-    #aa00ff 100%
-  );
+  background: linear-gradient(180deg,
+    #ff0066 0%, #ff6600 20%, #ffcc00 40%,
+    #00ff88 60%, #0099ff 80%, #aa00ff 100%);
   background-size: 100% 400%;
   animation: accentRainbow 1.8s linear infinite;
 }
@@ -109,34 +160,26 @@ html, body {
   100% { background-position: 0% 100%; }
 }
 
-/* === TRAIT EN HAUT DE CARTE (lueur de couleur) === */
+/* Trait lumineux haut */
 .alert-card::before {
   content: '';
   position: absolute;
-  top: 0;
-  left: 4px;
-  right: 0;
+  top: 0; left: 4px; right: 0;
   height: 1px;
-  background: linear-gradient(
-    90deg,
+  background: linear-gradient(90deg,
     rgba(var(--alert-color-rgb), 0.6) 0%,
     rgba(var(--alert-color-rgb), 0.1) 60%,
-    transparent 100%
-  );
+    transparent 100%);
   pointer-events: none;
 }
 
-/* === SHIMMER (balayage lumineux à l'entrée) === */
+/* Shimmer à l'entrée */
 .alert-card::after {
   content: '';
   position: absolute;
   inset: 0;
-  background: linear-gradient(
-    105deg,
-    transparent 30%,
-    rgba(255, 255, 255, 0.055) 50%,
-    transparent 70%
-  );
+  background: linear-gradient(105deg,
+    transparent 30%, rgba(255,255,255,0.055) 50%, transparent 70%);
   transform: translateX(-120%);
   pointer-events: none;
 }
@@ -150,7 +193,7 @@ html, body {
   to   { transform: translateX(120%); }
 }
 
-/* === INTÉRIEUR DE LA CARTE === */
+/* Intérieur */
 .alert-inner {
   display: flex;
   align-items: center;
@@ -158,7 +201,7 @@ html, body {
   padding: 16px 18px 16px 22px;
 }
 
-/* === ICÔNE === */
+/* Icône */
 .alert-icon {
   font-size: 2.2rem;
   line-height: 1;
@@ -167,7 +210,6 @@ html, body {
   user-select: none;
 }
 
-/* Hype Train : icône qui rebondit */
 .alert-card.hype_train .alert-icon {
   animation: iconBounce 0.5s ease-in-out infinite alternate;
 }
@@ -177,7 +219,7 @@ html, body {
   to   { transform: translateY(-4px); }
 }
 
-/* === TEXTE === */
+/* Texte */
 .alert-text {
   flex: 1;
   min-width: 0;
@@ -191,12 +233,11 @@ html, body {
   text-transform: uppercase;
   color: rgba(var(--alert-color-rgb), 1);
   margin-bottom: 1px;
-  opacity: 0.95;
 }
 
-/* Hype Train : label arc-en-ciel */
 .alert-card.hype_train .alert-type-label {
-  background: linear-gradient(90deg, #ff0066, #ff6600, #ffcc00, #00ff88, #0099ff, #aa00ff);
+  background: linear-gradient(90deg,
+    #ff0066, #ff6600, #ffcc00, #00ff88, #0099ff, #aa00ff);
   background-size: 200% auto;
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
@@ -216,9 +257,9 @@ html, body {
   text-overflow: ellipsis;
 }
 
-/* Hype Train : username arc-en-ciel */
 .alert-card.hype_train .alert-username {
-  background: linear-gradient(90deg, #ff0066, #ff6600, #ffcc00, #00ff88, #0099ff, #aa00ff, #ff0066);
+  background: linear-gradient(90deg,
+    #ff0066, #ff6600, #ffcc00, #00ff88, #0099ff, #aa00ff, #ff0066);
   background-size: 200% auto;
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
@@ -241,10 +282,9 @@ html, body {
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
-  line-height: 1.3;
 }
 
-/* === BADGE MONTANT (bits / donation / raid / giftsub) === */
+/* Badge montant */
 .alert-badge {
   font-family: var(--font-display);
   font-size: 1.35rem;
@@ -259,7 +299,7 @@ html, body {
   line-height: 1;
 }
 
-/* === AVATAR === */
+/* Avatar */
 .alert-avatar {
   width: 42px;
   height: 42px;
@@ -269,7 +309,32 @@ html, body {
   flex-shrink: 0;
 }
 
-/* === HINT DE TEST (visible uniquement dans le navigateur) === */
+/* ============================================================
+   COMPOSANT : CHAT  — futur
+   (décommenter et compléter quand components/chat.js est créé)
+   ============================================================ */
+/*
+.chat-message { ... }
+*/
+
+/* ============================================================
+   COMPOSANT : OBJECTIF — futur
+   ============================================================ */
+/*
+.goal-bar { ... }
+*/
+
+/* ============================================================
+   COMPOSANT : MUSIQUE — futur
+   ============================================================ */
+/*
+.nowplaying-card { ... }
+*/
+
+/* ============================================================
+   UTILITAIRE : Hint de test
+   (visible uniquement dans le navigateur, pas dans OBS)
+   ============================================================ */
 #test-hint {
   position: fixed;
   bottom: 12px;
