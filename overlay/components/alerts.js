@@ -13,9 +13,11 @@ const Alerts = (() => {
 
   // ── CONSTANTES ──────────────────────────────────────────────
 
-  const POLL_INTERVAL    = 500;   // ms entre chaque lecture du JSON
-  const DISPLAY_DURATION = 5500;  // ms avant que la sortie commence
-  const EXIT_DURATION    = 700;   // ms pour l'animation de sortie
+  const POLL_INTERVAL            = 500;  // ms entre chaque lecture du JSON
+  const EXIT_DURATION            = 700;  // ms pour l'animation de sortie
+  const DISPLAY_DURATION_DEFAULT = 5500; // ms — surchargeable via config.json
+
+  let displayDuration = DISPLAY_DURATION_DEFAULT;
 
   const CONFIGS = {
     follow: {
@@ -92,6 +94,7 @@ const Alerts = (() => {
   let queue         = [];
   let playing       = false;
   let lastTimestamp = 0;
+  let initialized   = false; // true après le premier poll
   let testIndex     = 0;
 
   // ── POLLING ─────────────────────────────────────────────────
@@ -103,10 +106,17 @@ const Alerts = (() => {
 
       const data = await res.json();
 
+      if (!data || typeof data.timestamp !== 'number' || data.timestamp <= 0) return;
+
+      if (!initialized) {
+        // Premier poll : mémoriser le timestamp sans afficher l'alerte.
+        // Évite de rejouer la dernière alerte au rechargement de la page.
+        lastTimestamp = data.timestamp;
+        initialized   = true;
+        return;
+      }
+
       if (
-        data &&
-        typeof data.timestamp === 'number' &&
-        data.timestamp > 0 &&
         data.timestamp !== lastTimestamp &&
         data.type &&
         CONFIGS[data.type]
@@ -217,7 +227,7 @@ const Alerts = (() => {
         card.classList.remove('visible');
         card.classList.add('exiting');
         setTimeout(() => { card.remove(); resolve(); }, EXIT_DURATION);
-      }, DISPLAY_DURATION);
+      }, displayDuration);
     });
   }
 
@@ -254,8 +264,9 @@ const Alerts = (() => {
 
   // ── INIT (appelé par script.js) ──────────────────────────────
 
-  function init() {
+  function init(cfg = {}) {
     container = document.getElementById('alert-container');
+    if (cfg.displayDuration != null) displayDuration = cfg.displayDuration;
     setInterval(poll, POLL_INTERVAL);
     document.addEventListener('keydown', onKeyDown);
   }
