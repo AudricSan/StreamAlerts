@@ -15,9 +15,13 @@ using System.IO;
 
 public class CPHInline
 {
-    // Chemin vers le fichier lu par l'overlay OBS
+    // Chemins vers les fichiers lus par l'overlay OBS
     const string FILE_PATH =
         @"D:\audri\Xamp\htdocs\StreamAlerts\overlay\data\alert.json";
+    const string LAST_FOLLOWER_PATH =
+        @"D:\audri\Xamp\htdocs\StreamAlerts\overlay\data\last_follower.json";
+    const string LAST_SUBSCRIBER_PATH =
+        @"D:\audri\Xamp\htdocs\StreamAlerts\overlay\data\last_subscriber.json";
 
     public bool Execute()
     {
@@ -62,6 +66,33 @@ public class CPHInline
             "}";
 
         File.WriteAllText(FILE_PATH, json, System.Text.Encoding.UTF8);
+
+        // ── Persistance du dernier follow ─────────────────────────
+        if (alertType == "follow")
+        {
+            string followJson =
+                "{\n" +
+                $"  \"user\": \"{J(user)}\",\n" +
+                $"  \"avatar\": \"{J(avatar)}\",\n" +
+                $"  \"timestamp\": {ts}\n" +
+                "}";
+            File.WriteAllText(LAST_FOLLOWER_PATH, followJson, System.Text.Encoding.UTF8);
+        }
+
+        // ── Persistance du dernier sub (sub / resub / giftsub) ────
+        if (alertType == "sub" || alertType == "resub" || alertType == "giftsub")
+        {
+            string subJson =
+                "{\n" +
+                $"  \"user\": \"{J(user)}\",\n" +
+                $"  \"avatar\": \"{J(avatar)}\",\n" +
+                $"  \"tier\": \"{J(tier)}\",\n" +
+                $"  \"months\": {months},\n" +
+                $"  \"timestamp\": {ts}\n" +
+                "}";
+            File.WriteAllText(LAST_SUBSCRIBER_PATH, subJson, System.Text.Encoding.UTF8);
+        }
+
         return true;
     }
 

@@ -4,10 +4,19 @@
    Compatible OBS Browser Source (1920×1080, fond transparent)
    ============================================================ */
 
+/* === POLICE LOCALE === */
+
+@font-face {
+  font-family: 'Regular Brush Personal Use Only';
+  src: url('overlay/assets/fonts/Regular Brush Personal Use Only.ttf') format('truetype');
+  font-weight: normal;
+  font-style: normal;
+}
+
 /* === RESET & VARIABLES GLOBALES === */
 
 :root {
-  --font-display: 'Bebas Neue', cursive;
+  --font-display: 'Regular Brush Personal Use Only', cursive;
   --font-body:    'Nunito', sans-serif;
 
   /* Couleur active (surchargée par chaque carte d'alerte) */
@@ -63,7 +72,16 @@ html, body {
 /* ── Zones futures — position via data/config.json ── */
 #zone-goal,
 #zone-nowplaying,
-#zone-counter {
+#zone-counter,
+#zone-subtrain,
+#zone-queue {
+  position: fixed;
+  pointer-events: none;
+}
+
+/* ── Zones : Dernier follow / Dernier sub ── */
+#zone-last-follower,
+#zone-last-subscriber {
   position: fixed;
   pointer-events: none;
 }
@@ -85,13 +103,15 @@ html, body {
 .alert-card {
   position: relative;
   width: 520px;
-  background: rgba(10, 10, 20, 0.93);
-  border: 1px solid rgba(255, 255, 255, 0.06);
+  background-color: rgba(47, 47, 47, 0.92);
+  background-image: url("data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' width='200' height='100'><path d='M0,25 C40,8 100,42 150,22 C175,12 190,28 200,25' fill='none' stroke='%23fff' stroke-opacity='0.07' stroke-width='1'/><path d='M0,55 C35,72 95,38 145,55 C172,64 190,48 200,55' fill='none' stroke='%23fff' stroke-opacity='0.05' stroke-width='1'/><path d='M0,85 C42,68 98,102 150,82 C175,72 190,88 200,85' fill='none' stroke='%23fff' stroke-opacity='0.07' stroke-width='1'/></svg>");
+  background-repeat: repeat;
+  border: 1px solid rgba(255, 255, 255, 0.08);
   border-left: none;
   border-radius: 6px;
   overflow: hidden;
-  backdrop-filter: blur(20px) saturate(160%);
-  -webkit-backdrop-filter: blur(20px) saturate(160%);
+  backdrop-filter: blur(20px) saturate(140%);
+  -webkit-backdrop-filter: blur(20px) saturate(140%);
 
   opacity: 0;
   transform: translateY(28px) scale(0.96);
@@ -296,7 +316,7 @@ html, body {
   flex-wrap: wrap;
   gap: 0 4px;
   padding: 5px 10px 5px 9px;
-  background: rgba(5, 5, 15, 0.7);
+  background: rgba(40, 40, 40, 0.72);
   border-radius: 4px;
   border-left: 2px solid var(--msg-color, #9B59B6);
   font-family: var(--font-body);
@@ -370,11 +390,449 @@ html, body {
 }
 
 /* ============================================================
-   COMPOSANT : OBJECTIF — futur
+   COMPOSANT : LAST EVENTS (Dernier follow / Dernier sub)
    ============================================================ */
-/*
-.goal-bar { ... }
-*/
+
+.last-event-card {
+  position: relative;
+  background-color: rgba(47, 47, 47, 0.90);
+  background-image: url("data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' width='200' height='100'><path d='M0,25 C40,8 100,42 150,22 C175,12 190,28 200,25' fill='none' stroke='%23fff' stroke-opacity='0.07' stroke-width='1'/><path d='M0,55 C35,72 95,38 145,55 C172,64 190,48 200,55' fill='none' stroke='%23fff' stroke-opacity='0.05' stroke-width='1'/><path d='M0,85 C42,68 98,102 150,82 C175,72 190,88 200,85' fill='none' stroke='%23fff' stroke-opacity='0.07' stroke-width='1'/></svg>");
+  background-repeat: repeat;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-left: none;
+  border-radius: 6px;
+  overflow: hidden;
+  backdrop-filter: blur(14px) saturate(140%);
+  -webkit-backdrop-filter: blur(14px) saturate(140%);
+  box-shadow:
+    0 0 0 1px rgba(var(--le-color-rgb), 0.10),
+    0 8px 24px rgba(0, 0, 0, 0.50);
+}
+
+/* Barre accent gauche */
+.last-event-accent {
+  position: absolute;
+  left: 0; top: 0; bottom: 0;
+  width: 4px;
+  background: var(--le-color);
+  border-radius: 6px 0 0 6px;
+}
+
+.last-event-inner {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 9px 14px 9px 18px;
+}
+
+.last-event-avatar {
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 2px solid rgba(var(--le-color-rgb), 0.40);
+  flex-shrink: 0;
+}
+
+.last-event-text {
+  flex: 1;
+  min-width: 0;
+}
+
+.last-event-label {
+  font-family: var(--font-body);
+  font-size: 0.52rem;
+  font-weight: 900;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: rgba(var(--le-color-rgb), 0.9);
+  margin-bottom: 1px;
+}
+
+.last-event-username {
+  font-family: var(--font-display);
+  font-size: 1.4rem;
+  letter-spacing: 0.04em;
+  color: #ffffff;
+  line-height: 1.1;
+  text-shadow: 0 0 16px rgba(var(--le-color-rgb), 0.4);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.last-event-sub {
+  font-family: var(--font-body);
+  font-size: 0.72rem;
+  font-weight: 600;
+  color: rgba(255, 255, 255, 0.50);
+  margin-top: 1px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* ============================================================
+   COMPOSANT : GOAL TRACKER
+   ============================================================ */
+
+.goal-card {
+  position: relative;
+  background-color: rgba(47, 47, 47, 0.92);
+  background-image: url("data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' width='200' height='100'><path d='M0,25 C40,8 100,42 150,22 C175,12 190,28 200,25' fill='none' stroke='%23fff' stroke-opacity='0.07' stroke-width='1'/><path d='M0,55 C35,72 95,38 145,55 C172,64 190,48 200,55' fill='none' stroke='%23fff' stroke-opacity='0.05' stroke-width='1'/><path d='M0,85 C42,68 98,102 150,82 C175,72 190,88 200,85' fill='none' stroke='%23fff' stroke-opacity='0.07' stroke-width='1'/></svg>");
+  background-repeat: repeat;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-left: none;
+  border-radius: 6px;
+  overflow: hidden;
+  backdrop-filter: blur(14px) saturate(140%);
+  -webkit-backdrop-filter: blur(14px) saturate(140%);
+  box-shadow:
+    0 0 0 1px rgba(var(--goal-color-rgb), 0.10),
+    0 8px 24px rgba(0, 0, 0, 0.50);
+}
+
+.goal-accent {
+  position: absolute;
+  left: 0; top: 0; bottom: 0;
+  width: 4px;
+  background: var(--goal-color);
+  border-radius: 6px 0 0 6px;
+}
+
+.goal-inner {
+  padding: 11px 16px 13px 20px;
+}
+
+.goal-header {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  margin-bottom: 8px;
+}
+
+.goal-label {
+  font-family: var(--font-body);
+  font-size: 0.57rem;
+  font-weight: 900;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: rgba(var(--goal-color-rgb), 0.9);
+}
+
+.goal-count {
+  font-family: var(--font-display);
+  font-size: 1.25rem;
+  color: #ffffff;
+  line-height: 1;
+}
+
+.goal-sep {
+  font-family: var(--font-body);
+  font-size: 0.85rem;
+  color: rgba(255, 255, 255, 0.35);
+  margin: 0 4px;
+}
+
+.goal-bar-track {
+  height: 6px;
+  background: rgba(255, 255, 255, 0.10);
+  border-radius: 3px;
+  overflow: hidden;
+}
+
+.goal-bar-fill {
+  height: 100%;
+  background: linear-gradient(90deg,
+    rgba(var(--goal-color-rgb), 0.65),
+    var(--goal-color));
+  border-radius: 3px;
+  transition: width 0.9s cubic-bezier(0.34, 1.56, 0.64, 1);
+  box-shadow: 0 0 10px rgba(var(--goal-color-rgb), 0.55);
+}
+
+/* ============================================================
+   COMPOSANT : SUB TRAIN
+   ============================================================ */
+
+.subtrain-card {
+  position: relative;
+  background-color: rgba(47, 47, 47, 0.92);
+  background-image: url("data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' width='200' height='100'><path d='M0,25 C40,8 100,42 150,22 C175,12 190,28 200,25' fill='none' stroke='%23fff' stroke-opacity='0.07' stroke-width='1'/><path d='M0,55 C35,72 95,38 145,55 C172,64 190,48 200,55' fill='none' stroke='%23fff' stroke-opacity='0.05' stroke-width='1'/><path d='M0,85 C42,68 98,102 150,82 C175,72 190,88 200,85' fill='none' stroke='%23fff' stroke-opacity='0.07' stroke-width='1'/></svg>");
+  background-repeat: repeat;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-left: none;
+  border-radius: 6px;
+  overflow: hidden;
+  backdrop-filter: blur(14px) saturate(140%);
+  -webkit-backdrop-filter: blur(14px) saturate(140%);
+  box-shadow:
+    0 0 0 1px rgba(255, 160, 0, 0.15),
+    0 8px 24px rgba(0, 0, 0, 0.50);
+}
+
+.subtrain-accent {
+  position: absolute;
+  left: 0; top: 0; bottom: 0;
+  width: 4px;
+  background: linear-gradient(180deg, #ff6b00, #ffcc00);
+  border-radius: 6px 0 0 6px;
+}
+
+.subtrain-inner {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 14px 8px 18px;
+}
+
+.subtrain-icon {
+  font-size: 1.7rem;
+  line-height: 1;
+  animation: subtrain-chug 0.45s linear infinite alternate;
+}
+
+@keyframes subtrain-chug {
+  from { transform: translateX(0); }
+  to   { transform: translateX(3px); }
+}
+
+.subtrain-text {
+  flex: 1;
+}
+
+.subtrain-label {
+  font-family: var(--font-body);
+  font-size: 0.53rem;
+  font-weight: 900;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: rgba(255, 160, 0, 0.9);
+}
+
+.subtrain-count {
+  font-family: var(--font-display);
+  font-size: 1.8rem;
+  color: #ffffff;
+  line-height: 1;
+  text-shadow: 0 0 18px rgba(255, 160, 0, 0.55);
+}
+
+.subtrain-last {
+  font-family: var(--font-body);
+  font-size: 0.7rem;
+  font-weight: 600;
+  color: rgba(255, 255, 255, 0.40);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 90px;
+}
+
+.subtrain-bar-track {
+  height: 4px;
+  background: rgba(255, 255, 255, 0.10);
+}
+
+.subtrain-bar-fill {
+  height: 100%;
+  background: linear-gradient(90deg, #ff6b00, #ffcc00);
+  transition: width 0.08s linear;
+  box-shadow: 0 0 8px rgba(255, 160, 0, 0.45);
+}
+
+/* ============================================================
+   COMPOSANT : NOW PLAYING
+   ============================================================ */
+
+.nowplaying-card {
+  position: relative;
+  background-color: rgba(47, 47, 47, 0.90);
+  background-image: url("data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' width='200' height='100'><path d='M0,25 C40,8 100,42 150,22 C175,12 190,28 200,25' fill='none' stroke='%23fff' stroke-opacity='0.07' stroke-width='1'/><path d='M0,55 C35,72 95,38 145,55 C172,64 190,48 200,55' fill='none' stroke='%23fff' stroke-opacity='0.05' stroke-width='1'/><path d='M0,85 C42,68 98,102 150,82 C175,72 190,88 200,85' fill='none' stroke='%23fff' stroke-opacity='0.07' stroke-width='1'/></svg>");
+  background-repeat: repeat;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-left: none;
+  border-radius: 6px;
+  overflow: hidden;
+  backdrop-filter: blur(14px) saturate(140%);
+  -webkit-backdrop-filter: blur(14px) saturate(140%);
+  box-shadow:
+    0 0 0 1px rgba(0, 188, 212, 0.10),
+    0 8px 24px rgba(0, 0, 0, 0.50);
+}
+
+.nowplaying-accent {
+  position: absolute;
+  left: 0; top: 0; bottom: 0;
+  width: 4px;
+  background: #00BCD4;
+  border-radius: 6px 0 0 6px;
+}
+
+.nowplaying-inner {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 9px 14px 9px 18px;
+}
+
+.nowplaying-icon {
+  font-size: 1.3rem;
+  flex-shrink: 0;
+  animation: music-pulse 1.3s ease-in-out infinite alternate;
+}
+
+@keyframes music-pulse {
+  from { transform: scale(1); }
+  to   { transform: scale(1.18); }
+}
+
+.nowplaying-text {
+  flex: 1;
+  min-width: 0;
+}
+
+.nowplaying-label {
+  font-family: var(--font-body);
+  font-size: 0.52rem;
+  font-weight: 900;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: rgba(0, 188, 212, 0.9);
+  margin-bottom: 1px;
+}
+
+.nowplaying-title {
+  font-family: var(--font-display);
+  font-size: 1.15rem;
+  color: #ffffff;
+  line-height: 1.1;
+  text-shadow: 0 0 16px rgba(0, 188, 212, 0.4);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.nowplaying-artist {
+  font-family: var(--font-body);
+  font-size: 0.72rem;
+  font-weight: 600;
+  color: rgba(255, 255, 255, 0.50);
+  margin-top: 1px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* ============================================================
+   COMPOSANT : QUEUE VIEWERS
+   ============================================================ */
+
+.queue-card {
+  position: relative;
+  background-color: rgba(47, 47, 47, 0.90);
+  background-image: url("data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' width='200' height='100'><path d='M0,25 C40,8 100,42 150,22 C175,12 190,28 200,25' fill='none' stroke='%23fff' stroke-opacity='0.07' stroke-width='1'/><path d='M0,55 C35,72 95,38 145,55 C172,64 190,48 200,55' fill='none' stroke='%23fff' stroke-opacity='0.05' stroke-width='1'/><path d='M0,85 C42,68 98,102 150,82 C175,72 190,88 200,85' fill='none' stroke='%23fff' stroke-opacity='0.07' stroke-width='1'/></svg>");
+  background-repeat: repeat;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 6px;
+  overflow: hidden;
+  backdrop-filter: blur(14px) saturate(140%);
+  -webkit-backdrop-filter: blur(14px) saturate(140%);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.50);
+}
+
+.queue-header {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  padding: 8px 12px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+.queue-title {
+  font-family: var(--font-body);
+  font-size: 0.56rem;
+  font-weight: 900;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: rgba(255, 255, 255, 0.55);
+  flex: 1;
+}
+
+.queue-badge {
+  font-family: var(--font-body);
+  font-size: 0.48rem;
+  font-weight: 900;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  padding: 2px 6px;
+  border-radius: 3px;
+}
+
+.queue-open {
+  background: rgba(46, 204, 113, 0.18);
+  color: #2ECC71;
+  border: 1px solid rgba(46, 204, 113, 0.28);
+}
+
+.queue-closed {
+  background: rgba(231, 76, 60, 0.18);
+  color: #E74C3C;
+  border: 1px solid rgba(231, 76, 60, 0.28);
+}
+
+.queue-total {
+  font-family: var(--font-display);
+  font-size: 1rem;
+  color: rgba(255, 255, 255, 0.55);
+  line-height: 1;
+}
+
+.queue-list {
+  padding: 4px 0;
+}
+
+.queue-entry {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 4px 12px;
+}
+
+.queue-pos {
+  font-family: var(--font-body);
+  font-size: 0.65rem;
+  font-weight: 700;
+  color: rgba(255, 255, 255, 0.30);
+  width: 16px;
+  text-align: right;
+  flex-shrink: 0;
+}
+
+.queue-user {
+  font-family: var(--font-display);
+  font-size: 0.95rem;
+  color: rgba(255, 255, 255, 0.85);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.queue-first .queue-pos  { color: #F1C40F; }
+.queue-first .queue-user {
+  color: #F1C40F;
+  text-shadow: 0 0 12px rgba(241, 196, 15, 0.35);
+}
+
+.queue-empty,
+.queue-more {
+  padding: 6px 12px;
+  font-family: var(--font-body);
+  font-size: 0.68rem;
+  font-weight: 600;
+  color: rgba(255, 255, 255, 0.28);
+  text-align: center;
+}
 
 /* ============================================================
    COMPOSANT : MUSIQUE — futur

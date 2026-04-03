@@ -1,0 +1,10 @@
+{
+  "alerts":         true,
+  "chat":           true,
+  "lastFollower":   true,
+  "lastSubscriber": true,
+  "goal":           true,
+  "subtrain":       true,
+  "nowplaying":     true,
+  "queue":          true
+}

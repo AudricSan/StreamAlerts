@@ -149,6 +149,27 @@ const Chat = (() => {
   function addMessage(data, remainingLifetime) {
     if (!data.message || !data.user) return;
 
+    // Commandes modérateur/broadcaster uniquement
+    if (data.isMod || data.isBroadcaster) {
+      const cmd = data.message.trim();
+
+      // !clear — vider le chat
+      if (cmd.toLowerCase() === '!clear') {
+        clearAll();
+        return;
+      }
+
+      // !show / !hide / !toggle <composant>
+      const visMatch = cmd.match(/^!(show|hide|toggle)\s+(\S+)/i);
+      if (visMatch) {
+        window.StreamAlerts?.handleVisibilityCmd(
+          visMatch[1].toLowerCase(),
+          visMatch[2].toLowerCase()
+        );
+        return; // ne pas afficher la commande dans le chat
+      }
+    }
+
     // Supprimer le plus ancien si on atteint la limite
     const existing = container.querySelectorAll('.chat-msg');
     if (existing.length >= maxMessages) {
@@ -195,6 +216,14 @@ const Chat = (() => {
       el.style.marginTop = '0';
     });
     setTimeout(() => el.remove(), EXPIRE_ANIM);
+  }
+
+  // ── CLEAR CHAT ───────────────────────────────────────────────
+  // Appelé par /clear Twitch (WebSocket) ou !clear d'un modérateur
+
+  function clearAll() {
+    Array.from(container.querySelectorAll('.chat-msg')).forEach(el => removeMessage(el, true));
+    try { localStorage.removeItem(LS_KEY); } catch (_) {}
   }
 
   // ── API WEBSOCKET STREAMER.BOT ───────────────────────────────
@@ -250,6 +279,12 @@ const Chat = (() => {
           return;
         }
 
+        // ── Événement ClearChat (/clear Twitch natif) ──
+        if (src === 'Twitch' && (type === 'ClearChat' || type === 'ChatCleared')) {
+          clearAll();
+          return;
+        }
+
         // ── Événement ChatMessage ──
         if (src === 'Twitch' && type === 'ChatMessage') {
           const m = msg.data?.message;
@@ -280,7 +315,7 @@ const Chat = (() => {
       ws.send(JSON.stringify({
         request: 'Subscribe',
         id:      'sub-chat',
-        events:  { Twitch: ['ChatMessage'] },
+        events:  { Twitch: ['ChatMessage', 'ClearChat', 'ChatCleared'] },
       }));
     }
 

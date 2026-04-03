@@ -1,0 +1,1365 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>StreamAlerts — Config</title>
+  <style>
+
+    *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+
+    :root {
+      --bg:        #181818;
+      --surf:      #232323;
+      --surf2:     #2c2c2c;
+      --border:    rgba(255,255,255,0.07);
+      --text:      #e4e4e4;
+      --muted:     rgba(255,255,255,0.38);
+      --accent:    #9B59B6;
+      --accent-bg: rgba(155,89,182,0.14);
+      --green:     #2ECC71;
+      --green-bg:  rgba(46,204,113,0.14);
+      --red:       #E74C3C;
+      --red-bg:    rgba(231,76,60,0.14);
+      --orange:    #E67E22;
+      --yellow:    #F1C40F;
+    }
+
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: -apple-system, 'Segoe UI', sans-serif;
+      font-size: 13px;
+      line-height: 1.4;
+      min-height: 100vh;
+    }
+
+    /* ── Header ── */
+    header {
+      padding: 12px 14px 0;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    header h1 {
+      font-size: 13px;
+      font-weight: 700;
+      color: var(--accent);
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+    }
+
+    header .dot {
+      width: 7px; height: 7px;
+      border-radius: 50%;
+      background: var(--green);
+      box-shadow: 0 0 6px var(--green);
+      animation: pulse 2s ease-in-out infinite;
+    }
+
+    @keyframes pulse {
+      0%,100% { opacity: 1; }
+      50%      { opacity: 0.4; }
+    }
+
+    /* ── Tabs ── */
+    nav {
+      display: flex;
+      gap: 2px;
+      padding: 10px 10px 0;
+    }
+
+    .tab {
+      flex: 1;
+      padding: 7px 2px;
+      background: var(--surf);
+      border: 1px solid var(--border);
+      border-bottom: none;
+      border-radius: 5px 5px 0 0;
+      color: var(--muted);
+      font-size: 10px;
+      font-weight: 700;
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+      cursor: pointer;
+      transition: color 0.15s, background 0.15s;
+    }
+
+    .tab:hover { color: var(--text); }
+
+    .tab.active {
+      background: var(--surf2);
+      color: var(--accent);
+      border-color: var(--border);
+    }
+
+    /* ── Content ── */
+    main {
+      background: var(--surf2);
+      border: 1px solid var(--border);
+      border-radius: 0 0 6px 6px;
+      margin: 0 10px;
+      padding: 14px;
+    }
+
+    section { display: flex; flex-direction: column; gap: 12px; }
+    section[hidden] { display: none; }
+
+    /* ── Form elements ── */
+    label {
+      display: block;
+      font-size: 10px;
+      font-weight: 700;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: var(--muted);
+      margin-bottom: 4px;
+    }
+
+    input[type=text],
+    input[type=number],
+    input[type=password],
+    select {
+      width: 100%;
+      padding: 7px 10px;
+      background: var(--surf);
+      border: 1px solid var(--border);
+      border-radius: 4px;
+      color: var(--text);
+      font-size: 13px;
+      outline: none;
+      transition: border-color 0.15s;
+    }
+
+    input:focus, select:focus { border-color: var(--accent); }
+
+    select option { background: var(--surf2); }
+
+    .row {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 8px;
+    }
+
+    /* ── Buttons ── */
+    button {
+      cursor: pointer;
+      border: none;
+      border-radius: 4px;
+      font-size: 12px;
+      font-weight: 700;
+      letter-spacing: 0.05em;
+      padding: 8px 12px;
+      transition: opacity 0.15s, transform 0.1s;
+    }
+
+    button:active { transform: scale(0.97); }
+
+    .btn-primary  { background: var(--accent);   color: #fff; }
+    .btn-green    { background: var(--green);     color: #fff; }
+    .btn-red      { background: var(--red);       color: #fff; }
+    .btn-ghost    { background: var(--surf); border: 1px solid var(--border); color: var(--text); }
+    .btn-block    { width: 100%; }
+
+    button:disabled { opacity: 0.4; cursor: default; }
+
+    .btn-row {
+      display: flex;
+      gap: 7px;
+    }
+
+    .btn-row button { flex: 1; }
+
+    .btn-incr-group {
+      display: flex;
+      gap: 5px;
+    }
+
+    .btn-incr-group button {
+      flex: 1;
+      background: var(--accent-bg);
+      color: var(--accent);
+      border: 1px solid rgba(155,89,182,0.22);
+      font-size: 13px;
+      padding: 7px;
+    }
+
+    /* ── Progress bar ── */
+    .progress-wrap {
+      background: var(--surf);
+      border: 1px solid var(--border);
+      border-radius: 5px;
+      padding: 10px 12px;
+    }
+
+    .progress-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: baseline;
+      margin-bottom: 7px;
+    }
+
+    .progress-label {
+      font-size: 11px;
+      font-weight: 700;
+      color: var(--accent);
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+    }
+
+    .progress-count {
+      font-size: 14px;
+      font-weight: 700;
+      color: var(--text);
+    }
+
+    .progress-track {
+      height: 6px;
+      background: rgba(255,255,255,0.08);
+      border-radius: 3px;
+      overflow: hidden;
+    }
+
+    .progress-fill {
+      height: 100%;
+      background: linear-gradient(90deg, rgba(155,89,182,0.7), var(--accent));
+      border-radius: 3px;
+      transition: width 0.6s cubic-bezier(0.34,1.56,0.64,1);
+      box-shadow: 0 0 8px rgba(155,89,182,0.45);
+    }
+
+    /* ── Queue tab ── */
+    .queue-toggle {
+      width: 100%;
+      padding: 10px;
+      font-size: 13px;
+      border-radius: 5px;
+      font-weight: 800;
+      letter-spacing: 0.08em;
+    }
+
+    .queue-toggle.open  { background: var(--green-bg); color: var(--green); border: 1px solid rgba(46,204,113,0.25); }
+    .queue-toggle.closed{ background: var(--red-bg);   color: var(--red);   border: 1px solid rgba(231,76,60,0.25); }
+
+    .add-row { display: flex; gap: 6px; }
+    .add-row input { flex: 1; }
+    .add-row button { flex-shrink: 0; padding: 7px 14px; background: var(--accent); color: #fff; }
+
+    .queue-list {
+      display: flex;
+      flex-direction: column;
+      gap: 3px;
+      max-height: 280px;
+      overflow-y: auto;
+    }
+
+    .queue-list::-webkit-scrollbar { width: 4px; }
+    .queue-list::-webkit-scrollbar-track { background: transparent; }
+    .queue-list::-webkit-scrollbar-thumb { background: var(--surf); border-radius: 2px; }
+
+    .queue-entry {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 6px 10px;
+      background: var(--surf);
+      border-radius: 4px;
+      border: 1px solid var(--border);
+    }
+
+    .queue-entry .pos { font-size: 11px; font-weight: 700; color: var(--muted); width: 16px; text-align: right; flex-shrink: 0; }
+    .queue-entry:first-child .pos { color: var(--yellow); }
+    .queue-entry .name { flex: 1; font-weight: 600; }
+    .queue-entry:first-child .name { color: var(--yellow); }
+    .queue-entry .rm { background: none; color: var(--muted); font-size: 15px; padding: 0 4px; line-height: 1; transition: color 0.15s; }
+    .queue-entry .rm:hover { color: var(--red); }
+
+    .queue-empty { text-align: center; color: var(--muted); padding: 16px 0; font-size: 12px; }
+
+    /* ── Now playing ── */
+    .np-active-indicator {
+      display: flex;
+      align-items: center;
+      gap: 7px;
+      padding: 8px 12px;
+      border-radius: 4px;
+      border: 1px solid var(--border);
+      background: var(--surf);
+      font-size: 12px;
+      font-weight: 600;
+    }
+
+    .np-active-indicator .dot-np { width: 7px; height: 7px; border-radius: 50%; flex-shrink: 0; }
+    .np-active-indicator.on .dot-np { background: var(--green); box-shadow: 0 0 6px var(--green); animation: pulse 1.5s ease-in-out infinite; }
+    .np-active-indicator.off .dot-np { background: var(--muted); }
+
+    /* ── Separator / section ── */
+    .sep { height: 1px; background: var(--border); margin: 2px 0; }
+
+    .section-head {
+      font-size: 9px;
+      font-weight: 800;
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+      color: var(--muted);
+      padding: 2px 0 0;
+    }
+
+    /* ══════════════════════════════════════════
+       LAYOUT TAB
+    ══════════════════════════════════════════ */
+
+    /* Grille visibilité */
+    .vis-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 5px;
+    }
+
+    .vis-btn {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 7px 10px;
+      border-radius: 4px;
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: 0.03em;
+      cursor: pointer;
+      transition: all 0.15s;
+      border: 1px solid transparent;
+      text-align: left;
+    }
+
+    .vis-btn.vis-on {
+      background: var(--green-bg);
+      color: var(--green);
+      border-color: rgba(46,204,113,0.25);
+    }
+
+    .vis-btn.vis-off {
+      background: rgba(255,255,255,0.04);
+      color: var(--muted);
+      border-color: var(--border);
+    }
+
+    .vis-icon { font-style: normal; flex-shrink: 0; }
+
+    /* Grille composants */
+    .comp-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 5px;
+    }
+
+    .comp-btn {
+      padding: 8px 10px;
+      background: var(--surf);
+      border: 1px solid var(--border);
+      color: var(--muted);
+      border-radius: 5px;
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: 0.03em;
+      cursor: pointer;
+      transition: all 0.15s;
+      text-align: left;
+    }
+
+    .comp-btn:hover { color: var(--text); border-color: rgba(255,255,255,0.15); }
+
+    .comp-btn.active {
+      background: var(--accent-bg);
+      color: var(--accent);
+      border-color: rgba(155,89,182,0.35);
+    }
+
+    /* Éditeur */
+    .pos-editor {
+      background: var(--surf);
+      border: 1px solid var(--border);
+      border-radius: 5px;
+      padding: 12px;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    .pos-editor[hidden] { display: none; }
+
+    /* Header éditeur : titre + toggle actif */
+    .editor-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .pos-editor-title {
+      font-size: 12px;
+      font-weight: 800;
+      letter-spacing: 0.06em;
+      color: var(--accent);
+    }
+
+    /* Toggle switch */
+    .toggle-switch {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      cursor: pointer;
+      user-select: none;
+    }
+
+    .toggle-switch input { display: none; }
+
+    .toggle-track {
+      width: 32px; height: 17px;
+      background: rgba(255,255,255,0.15);
+      border-radius: 9px;
+      position: relative;
+      transition: background 0.2s;
+      flex-shrink: 0;
+    }
+
+    .toggle-track::after {
+      content: '';
+      position: absolute;
+      width: 13px; height: 13px;
+      background: #fff;
+      border-radius: 50%;
+      top: 2px; left: 2px;
+      transition: left 0.2s;
+    }
+
+    .toggle-switch input:checked + .toggle-track { background: var(--green); }
+    .toggle-switch input:checked + .toggle-track::after { left: 17px; }
+
+    .toggle-label-text {
+      font-size: 10px;
+      font-weight: 700;
+      letter-spacing: 0.06em;
+      color: var(--muted);
+    }
+
+    .toggle-switch input:checked ~ .toggle-label-text { color: var(--green); }
+
+    /* Groupe ancre */
+    .anchor-row { display: flex; flex-direction: column; gap: 5px; }
+    .anchor-row > label { margin-bottom: 0; }
+
+    .anchor-controls { display: flex; gap: 5px; align-items: center; }
+
+    .anchor-toggle {
+      display: flex;
+      border-radius: 4px;
+      overflow: hidden;
+      border: 1px solid var(--border);
+      flex-shrink: 0;
+    }
+
+    .anchor-toggle button {
+      padding: 6px 9px;
+      background: var(--surf2);
+      color: var(--muted);
+      border: none;
+      border-radius: 0;
+      font-size: 10px;
+      font-weight: 700;
+      letter-spacing: 0.04em;
+      transition: background 0.15s, color 0.15s;
+    }
+
+    .anchor-toggle button.active { background: var(--accent); color: #fff; }
+    .anchor-toggle button:active { transform: none; }
+
+    .anchor-val { flex: 1; display: flex; align-items: center; gap: 5px; }
+    .anchor-val input { flex: 1; padding: 6px 8px; font-size: 13px; }
+    .anchor-val span { font-size: 11px; color: var(--muted); flex-shrink: 0; }
+
+    /* Opacité */
+    .opacity-row { display: flex; flex-direction: column; gap: 6px; }
+    .opacity-row > label { margin-bottom: 0; }
+
+    input[type=range] {
+      width: 100%;
+      height: 5px;
+      -webkit-appearance: none;
+      appearance: none;
+      background: rgba(255,255,255,0.1);
+      border-radius: 3px;
+      outline: none;
+      cursor: pointer;
+    }
+
+    input[type=range]::-webkit-slider-thumb {
+      -webkit-appearance: none;
+      width: 14px; height: 14px;
+      background: var(--accent);
+      border-radius: 50%;
+      box-shadow: 0 0 5px rgba(155,89,182,0.5);
+    }
+
+    /* Canvas hint */
+    .canvas-hint {
+      font-size: 10px;
+      color: var(--muted);
+      text-align: center;
+    }
+
+    /* Toast ── */
+    #toast {
+      position: fixed;
+      bottom: 16px;
+      left: 50%;
+      transform: translateX(-50%) translateY(12px);
+      background: var(--surf2);
+      border: 1px solid var(--border);
+      border-radius: 5px;
+      padding: 8px 16px;
+      font-size: 12px;
+      font-weight: 600;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.2s, transform 0.2s;
+      white-space: nowrap;
+    }
+
+    #toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+    #toast.ok   { border-color: rgba(46,204,113,0.4); color: var(--green); }
+    #toast.err  { border-color: rgba(231,76,60,0.4);  color: var(--red); }
+
+  </style>
+</head>
+<body>
+
+<header>
+  <div class="dot"></div>
+  <h1>StreamAlerts Config</h1>
+</header>
+
+<nav>
+  <button class="tab active" data-tab="goal">🎯 Goal</button>
+  <button class="tab" data-tab="queue">👥 Queue</button>
+  <button class="tab" data-tab="music">🎵 Music</button>
+  <button class="tab" data-tab="layout">📐 Layout</button>
+  <button class="tab" data-tab="cfg">⚙️ Config</button>
+</nav>
+
+<main>
+
+  <!-- ══ TAB : GOAL ══════════════════════════════════════════ -->
+  <section id="tab-goal">
+
+    <div class="progress-wrap">
+      <div class="progress-header">
+        <span class="progress-label" id="goal-label-disp">—</span>
+        <span class="progress-count" id="goal-count-disp">0 / 0</span>
+      </div>
+      <div class="progress-track">
+        <div class="progress-fill" id="goal-bar" style="width:0%"></div>
+      </div>
+    </div>
+
+    <div>
+      <label>Label</label>
+      <input type="text" id="goal-label" placeholder="Objectif subs">
+    </div>
+
+    <div class="row">
+      <div>
+        <label>Actuel</label>
+        <input type="number" id="goal-current" min="0" value="0">
+      </div>
+      <div>
+        <label>Objectif</label>
+        <input type="number" id="goal-target" min="1" value="100">
+      </div>
+    </div>
+
+    <div>
+      <label>Type</label>
+      <select id="goal-type">
+        <option value="sub">Subs</option>
+        <option value="follow">Follows</option>
+        <option value="bits">Bits</option>
+        <option value="donation">Dons</option>
+        <option value="custom">Personnalisé</option>
+      </select>
+    </div>
+
+    <div>
+      <label>Incrément rapide</label>
+      <div class="btn-incr-group">
+        <button onclick="incrementGoal(1)">+1</button>
+        <button onclick="incrementGoal(5)">+5</button>
+        <button onclick="incrementGoal(10)">+10</button>
+        <button onclick="incrementGoal(25)">+25</button>
+      </div>
+    </div>
+
+    <div class="btn-row">
+      <button class="btn-primary" onclick="saveGoal()">Sauvegarder</button>
+      <button class="btn-ghost" onclick="resetGoal()">Reset à 0</button>
+    </div>
+
+  </section>
+
+  <!-- ══ TAB : QUEUE ═════════════════════════════════════════ -->
+  <section id="tab-queue" hidden>
+
+    <button class="queue-toggle closed" id="queue-toggle" onclick="toggleQueue()">
+      ⏸ QUEUE FERMÉE
+    </button>
+
+    <div>
+      <label>Ajouter manuellement</label>
+      <div class="add-row">
+        <input type="text" id="queue-input" placeholder="Pseudo..." onkeydown="if(event.key==='Enter')addToQueue()">
+        <button onclick="addToQueue()">Ajouter</button>
+      </div>
+    </div>
+
+    <div>
+      <label id="queue-count-label">File d'attente — 0 joueur</label>
+      <div class="queue-list" id="queue-list">
+        <div class="queue-empty">File vide</div>
+      </div>
+    </div>
+
+    <button class="btn-ghost btn-block" onclick="clearQueue()">🗑 Vider la queue</button>
+
+  </section>
+
+  <!-- ══ TAB : MUSIQUE ════════════════════════════════════════ -->
+  <section id="tab-music" hidden>
+
+    <div class="np-active-indicator off" id="np-indicator">
+      <div class="dot-np"></div>
+      <span id="np-status-text">Masqué</span>
+    </div>
+
+    <div>
+      <label>Titre</label>
+      <input type="text" id="np-title" placeholder="Nom de la chanson">
+    </div>
+
+    <div>
+      <label>Artiste</label>
+      <input type="text" id="np-artist" placeholder="Nom de l'artiste">
+    </div>
+
+    <div class="btn-row">
+      <button class="btn-green" onclick="saveNowPlaying(true)">▶ Afficher</button>
+      <button class="btn-ghost" onclick="saveNowPlaying(false)">⏹ Masquer</button>
+    </div>
+
+  </section>
+
+  <!-- ══ TAB : LAYOUT ════════════════════════════════════════ -->
+  <section id="tab-layout" hidden>
+
+    <!-- Visibilité rapide -->
+    <div>
+      <label>Visibilité</label>
+      <div class="vis-grid" id="vis-grid"></div>
+    </div>
+
+    <div class="sep"></div>
+
+    <!-- Éditeur position / taille / paramètres -->
+    <div>
+      <label>Modifier un composant</label>
+      <div class="comp-grid" id="comp-grid"></div>
+    </div>
+
+    <div class="pos-editor" id="pos-editor" hidden>
+
+      <!-- Titre + toggle actif/inactif -->
+      <div class="editor-header">
+        <div class="pos-editor-title" id="pos-editor-title">—</div>
+        <label class="toggle-switch">
+          <input type="checkbox" id="pos-enabled" checked>
+          <span class="toggle-track"></span>
+          <span class="toggle-label-text">ACTIF</span>
+        </label>
+      </div>
+
+      <div class="sep"></div>
+      <div class="section-head">Position</div>
+
+      <!-- Horizontal -->
+      <div class="anchor-row">
+        <label>Horizontal</label>
+        <div class="anchor-controls">
+          <div class="anchor-toggle">
+            <button id="h-left-btn"  onclick="setHAnchor('left')">◄ Gauche</button>
+            <button id="h-right-btn" onclick="setHAnchor('right')">Droite ►</button>
+          </div>
+          <div class="anchor-val">
+            <input type="number" id="pos-h-val" min="0" max="1920" placeholder="—">
+            <span>px</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Vertical -->
+      <div class="anchor-row">
+        <label>Vertical</label>
+        <div class="anchor-controls">
+          <div class="anchor-toggle">
+            <button id="v-top-btn"    onclick="setVAnchor('top')">▲ Haut</button>
+            <button id="v-bottom-btn" onclick="setVAnchor('bottom')">Bas ▼</button>
+          </div>
+          <div class="anchor-val">
+            <input type="number" id="pos-v-val" min="0" max="1080" placeholder="—">
+            <span>px</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Largeur -->
+      <div class="anchor-row">
+        <label>Largeur</label>
+        <div class="anchor-val">
+          <input type="number" id="pos-width" min="50" max="1920" placeholder="auto">
+          <span>px</span>
+        </div>
+      </div>
+
+      <!-- Hauteur max — chat uniquement -->
+      <div class="anchor-row" id="pos-maxheight-row" hidden>
+        <label>Hauteur maximale</label>
+        <div class="anchor-val">
+          <input type="number" id="pos-maxheight" min="100" max="1080" placeholder="—">
+          <span>px</span>
+        </div>
+      </div>
+
+      <p class="canvas-hint">Canvas OBS : 1920 × 1080 px</p>
+
+      <div class="sep"></div>
+      <div class="section-head">Apparence</div>
+
+      <!-- Opacité -->
+      <div class="opacity-row">
+        <label>Opacité — <span id="opacity-val">100</span>%</label>
+        <input type="range" id="pos-opacity" min="0" max="100" value="100"
+          oninput="document.getElementById('opacity-val').textContent=this.value">
+      </div>
+
+      <!-- Paramètres spécifiques (injectés dynamiquement) -->
+      <div id="pos-extras-section" hidden>
+        <div class="sep"></div>
+        <div class="section-head" style="margin-bottom:8px">Paramètres</div>
+        <div id="pos-extras" style="display:flex;flex-direction:column;gap:10px;"></div>
+      </div>
+
+      <!-- Boutons -->
+      <div class="btn-row" style="margin-top:2px">
+        <button class="btn-ghost" onclick="testComponent()">🧪 Tester</button>
+        <button class="btn-primary" onclick="savePosition()">✓ Appliquer</button>
+      </div>
+
+    </div>
+
+  </section>
+
+  <!-- ══ TAB : CONFIG ════════════════════════════════════════ -->
+  <section id="tab-cfg" hidden>
+
+    <div>
+      <label>Durée des alertes (ms)</label>
+      <input type="number" id="cfg-alert-dur" min="1000" step="500" value="5500">
+    </div>
+
+    <div>
+      <label>Durée du sub train (secondes)</label>
+      <input type="number" id="cfg-train-dur" min="10" step="5" value="60">
+    </div>
+
+    <div class="sep"></div>
+
+    <div>
+      <label>Last Follower — affiché</label>
+      <div id="cfg-last-follower" style="padding:6px 10px;background:var(--surf);border-radius:4px;font-weight:600;">—</div>
+    </div>
+
+    <div>
+      <label>Last Subscriber — affiché</label>
+      <div id="cfg-last-subscriber" style="padding:6px 10px;background:var(--surf);border-radius:4px;font-weight:600;">—</div>
+    </div>
+
+    <div class="sep"></div>
+
+    <button class="btn-primary btn-block" onclick="saveConfig()">Sauvegarder la config</button>
+
+  </section>
+
+</main>
+
+<div id="toast"></div>
+
+<script>
+'use strict';
+
+const API = './api.php';
+const ts  = () => Math.floor(Date.now() / 1000);
+
+// ════════════════════════════════════════════════════════════
+//  VISIBILITÉ
+// ════════════════════════════════════════════════════════════
+
+let visData = {};
+let visPollTimer = null;
+
+function buildVisGrid() {
+  document.getElementById('vis-grid').innerHTML = ZONES.map(z => `
+    <button class="vis-btn vis-on" id="vis-btn-${z.cfgKey}" onclick="toggleVisibility('${z.cfgKey}')">
+      <span>${z.label}</span>
+      <span class="vis-icon" id="vis-icon-${z.cfgKey}">👁</span>
+    </button>
+  `).join('');
+}
+
+async function loadVisibility() {
+  try { visData = await apiRead('visibility'); } catch (_) { visData = {}; }
+  renderVisGrid();
+}
+
+function renderVisGrid() {
+  ZONES.forEach(z => {
+    const btn  = document.getElementById('vis-btn-'  + z.cfgKey);
+    const icon = document.getElementById('vis-icon-' + z.cfgKey);
+    if (!btn || !icon) return;
+    const on = visData[z.cfgKey] !== false;
+    btn.className    = 'vis-btn ' + (on ? 'vis-on' : 'vis-off');
+    icon.textContent = on ? '👁' : '🚫';
+  });
+}
+
+async function toggleVisibility(cfgKey) {
+  try {
+    const vis    = await apiRead('visibility');
+    const wasOn  = vis[cfgKey] !== false;
+    vis[cfgKey]  = !wasOn;
+    await apiWrite('visibility', vis);
+    visData = vis;
+    renderVisGrid();
+    const z = ZONES.find(z => z.cfgKey === cfgKey);
+    toast(vis[cfgKey] ? `👁 ${z?.label} affiché` : `🚫 ${z?.label} masqué`);
+  } catch (e) { toast('Erreur', 'err'); }
+}
+
+// ════════════════════════════════════════════════════════════
+//  DÉFINITION DES ZONES
+// ════════════════════════════════════════════════════════════
+
+const ZONES = [
+  {
+    cfgKey: 'alerts', label: '🔔 Alertes', dataFile: 'alert',
+    extras: [
+      { id: 'displayDuration', label: 'Durée d\'affichage (ms)', type: 'number', min: 500, step: 500, placeholder: '5500' },
+    ],
+    testData: () => ({ type: 'follow', user: 'TestUser', message: '', timestamp: ts() }),
+  },
+  {
+    cfgKey: 'chat', label: '💬 Chat', hasMaxHeight: true, dataFile: 'chat',
+    extras: [
+      { id: 'websocket',         label: 'URL WebSocket',               type: 'text',   placeholder: 'ws://127.0.0.1:8080' },
+      { id: 'websocketPassword', label: 'Mot de passe WebSocket',      type: 'password', placeholder: '...' },
+      { id: 'maxMessages',       label: 'Messages max affichés',       type: 'number', min: 1, max: 100, placeholder: '27' },
+      { id: 'msgLifetime',       label: 'Durée de vie msg (s, vide=∞)', type: 'number', min: 0, placeholder: '' },
+    ],
+    testData: () => ({ user: 'TestUser', color: '#9B59B6', message: 'Bonjour le chat ! 👋', isMod: false, timestamp: ts() }),
+  },
+  {
+    cfgKey: 'lastFollower', label: '👤 Last Follow', dataFile: 'last_follower', extras: [],
+    testData: () => ({ user: 'TestFollower', avatar: '', timestamp: ts() }),
+  },
+  {
+    cfgKey: 'lastSubscriber', label: '⭐ Last Sub', dataFile: 'last_subscriber', extras: [],
+    testData: () => ({ user: 'TestSub', avatar: '', tier: 'Tier 1', months: 3, timestamp: ts() }),
+  },
+  {
+    cfgKey: 'goal', label: '🎯 Goal', dataFile: 'goal', extras: [],
+    testData: () => ({ label: 'Test Goal', current: 65, target: 100, type: 'sub', timestamp: ts() }),
+  },
+  {
+    cfgKey: 'subtrain', label: '🚂 Sub Train', dataFile: 'subtrain',
+    extras: [
+      { id: 'duration', label: 'Durée du train (s)', type: 'number', min: 10, step: 5, placeholder: '60' },
+    ],
+    testData: () => ({ count: 5, user: 'TestSub', expiresAt: Date.now() + 60000, timestamp: ts() }),
+  },
+  {
+    cfgKey: 'nowplaying', label: '🎵 Musique', dataFile: 'nowplaying', extras: [],
+    testData: () => ({ title: 'Test Song', artist: 'Test Artist', active: true, timestamp: ts() }),
+  },
+  {
+    cfgKey: 'queue', label: '👥 Queue', dataFile: 'queue',
+    extras: [
+      { id: 'maxVisible', label: 'Lignes max (overlay)', type: 'number', min: 1, max: 20, placeholder: '8' },
+    ],
+    testData: () => ({ isOpen: true, entries: [{user:'GamerPro99'},{user:'FanAcharné'},{user:'SubFidèle'},{user:'NewVenu'}], timestamp: ts() }),
+  },
+];
+
+// ── API ──────────────────────────────────────────────────────
+
+async function apiRead(file) {
+  const r = await fetch(`${API}?action=read&file=${file}&t=${Date.now()}`);
+  if (!r.ok) throw new Error('Lecture impossible');
+  return r.json();
+}
+
+async function apiWrite(file, data) {
+  const r = await fetch(`${API}?action=write&file=${file}`, {
+    method:  'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body:    JSON.stringify(data),
+  });
+  if (!r.ok) throw new Error('Écriture impossible');
+  return r.json();
+}
+
+// ── Toast ─────────────────────────────────────────────────────
+
+let toastTimer;
+function toast(msg, type = 'ok') {
+  const el = document.getElementById('toast');
+  el.textContent = msg;
+  el.className = `show ${type}`;
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => { el.className = ''; }, 2200);
+}
+
+// ── Tabs ──────────────────────────────────────────────────────
+
+let activeTab = 'goal';
+let queuePollTimer = null;
+
+document.querySelectorAll('.tab').forEach(btn => {
+  btn.addEventListener('click', () => {
+    document.querySelectorAll('.tab').forEach(b => b.classList.remove('active'));
+    document.querySelectorAll('section').forEach(s => s.hidden = true);
+    btn.classList.add('active');
+    activeTab = btn.dataset.tab;
+    document.getElementById('tab-' + activeTab).hidden = false;
+
+    clearInterval(queuePollTimer);
+    if      (activeTab === 'queue')  { loadQueue(); queuePollTimer = setInterval(loadQueue, 2000); }
+    else if (activeTab === 'goal')   loadGoal();
+    else if (activeTab === 'music')  loadNowPlaying();
+    else if (activeTab === 'cfg')    loadConfig();
+    else if (activeTab === 'layout') {
+      loadLayout();
+      loadVisibility();
+      clearInterval(visPollTimer);
+      visPollTimer = setInterval(loadVisibility, 2000);
+    }
+  });
+});
+
+// ════════════════════════════════════════════════════════════
+//  GOAL
+// ════════════════════════════════════════════════════════════
+
+async function loadGoal() {
+  try {
+    const d = await apiRead('goal');
+    document.getElementById('goal-label').value   = d.label   || '';
+    document.getElementById('goal-current').value = d.current ?? 0;
+    document.getElementById('goal-target').value  = d.target  ?? 100;
+    document.getElementById('goal-type').value    = d.type    || 'sub';
+    updateGoalDisplay(d);
+  } catch (_) {}
+}
+
+function updateGoalDisplay(d) {
+  const current = +d.current || 0;
+  const target  = +d.target  || 1;
+  const pct     = Math.round(Math.min(1, current / target) * 100);
+  document.getElementById('goal-label-disp').textContent = d.label || 'OBJECTIF';
+  document.getElementById('goal-count-disp').textContent = `${current} / ${target}`;
+  document.getElementById('goal-bar').style.width = pct + '%';
+}
+
+async function saveGoal() {
+  try {
+    const d = {
+      label:     document.getElementById('goal-label').value.trim() || 'Objectif subs',
+      current:   +document.getElementById('goal-current').value || 0,
+      target:    +document.getElementById('goal-target').value  || 100,
+      type:      document.getElementById('goal-type').value,
+      timestamp: ts(),
+    };
+    await apiWrite('goal', d);
+    updateGoalDisplay(d);
+    toast('✓ Goal sauvegardé');
+  } catch (e) { toast('Erreur : ' + e.message, 'err'); }
+}
+
+async function incrementGoal(n) {
+  try {
+    const d = await apiRead('goal');
+    d.current   = (+d.current || 0) + n;
+    d.timestamp = ts();
+    document.getElementById('goal-current').value = d.current;
+    await apiWrite('goal', d);
+    updateGoalDisplay(d);
+    toast(`+${n} → ${d.current}/${d.target}`);
+  } catch (e) { toast('Erreur', 'err'); }
+}
+
+async function resetGoal() {
+  try {
+    const d = await apiRead('goal');
+    d.current   = 0;
+    d.timestamp = ts();
+    document.getElementById('goal-current').value = 0;
+    await apiWrite('goal', d);
+    updateGoalDisplay(d);
+    toast('✓ Goal remis à zéro');
+  } catch (e) { toast('Erreur', 'err'); }
+}
+
+// ════════════════════════════════════════════════════════════
+//  QUEUE
+// ════════════════════════════════════════════════════════════
+
+let queueData = { isOpen: false, entries: [], timestamp: 0 };
+
+async function loadQueue() {
+  try { queueData = await apiRead('queue'); renderQueue(); } catch (_) {}
+}
+
+function renderQueue() {
+  const d = queueData;
+  const toggle = document.getElementById('queue-toggle');
+  if (d.isOpen) {
+    toggle.textContent = '▶ QUEUE OUVERTE — cliquer pour fermer';
+    toggle.className   = 'queue-toggle open';
+  } else {
+    toggle.textContent = '⏸ QUEUE FERMÉE — cliquer pour ouvrir';
+    toggle.className   = 'queue-toggle closed';
+  }
+
+  const n = (d.entries || []).length;
+  document.getElementById('queue-count-label').textContent =
+    `File d'attente — ${n} joueur${n > 1 ? 's' : ''}`;
+
+  const list = document.getElementById('queue-list');
+  if (n === 0) { list.innerHTML = '<div class="queue-empty">File vide</div>'; return; }
+
+  list.innerHTML = d.entries.map((e, i) => `
+    <div class="queue-entry">
+      <span class="pos">${i + 1}</span>
+      <span class="name">${esc(e.user)}</span>
+      <button class="rm" onclick="removeFromQueue(${i})" title="Retirer">×</button>
+    </div>
+  `).join('');
+}
+
+async function toggleQueue() {
+  try {
+    const d = await apiRead('queue');
+    d.isOpen = !d.isOpen; d.timestamp = ts(); queueData = d;
+    await apiWrite('queue', d); renderQueue();
+    toast(d.isOpen ? '✓ Queue ouverte' : '✓ Queue fermée');
+  } catch (e) { toast('Erreur', 'err'); }
+}
+
+async function addToQueue() {
+  const input = document.getElementById('queue-input');
+  const user  = input.value.trim();
+  if (!user) return;
+  try {
+    const d = await apiRead('queue');
+    if ((d.entries || []).some(e => e.user.toLowerCase() === user.toLowerCase())) {
+      toast(`${user} est déjà dans la queue`, 'err'); return;
+    }
+    d.entries = d.entries || [];
+    d.entries.push({ user });
+    d.timestamp = ts(); queueData = d;
+    await apiWrite('queue', d); input.value = ''; renderQueue();
+    toast(`✓ ${user} ajouté`);
+  } catch (e) { toast('Erreur', 'err'); }
+}
+
+async function removeFromQueue(idx) {
+  try {
+    const d = await apiRead('queue');
+    const removed = d.entries.splice(idx, 1)[0];
+    d.timestamp = ts(); queueData = d;
+    await apiWrite('queue', d); renderQueue();
+    if (removed) toast(`✓ ${removed.user} retiré`);
+  } catch (e) { toast('Erreur', 'err'); }
+}
+
+async function clearQueue() {
+  if (!confirm('Vider toute la queue ?')) return;
+  try {
+    const d = await apiRead('queue');
+    d.entries = []; d.timestamp = ts(); queueData = d;
+    await apiWrite('queue', d); renderQueue(); toast('✓ Queue vidée');
+  } catch (e) { toast('Erreur', 'err'); }
+}
+
+// ════════════════════════════════════════════════════════════
+//  NOW PLAYING
+// ════════════════════════════════════════════════════════════
+
+async function loadNowPlaying() {
+  try {
+    const d = await apiRead('nowplaying');
+    document.getElementById('np-title').value  = d.title  || '';
+    document.getElementById('np-artist').value = d.artist || '';
+    const on  = d.active && d.title;
+    const ind = document.getElementById('np-indicator');
+    ind.className = 'np-active-indicator ' + (on ? 'on' : 'off');
+    document.getElementById('np-status-text').textContent = on ? `En cours : ${d.title}` : 'Masqué';
+  } catch (_) {}
+}
+
+async function saveNowPlaying(active) {
+  try {
+    const title  = document.getElementById('np-title').value.trim();
+    const artist = document.getElementById('np-artist').value.trim();
+    const d = { title, artist, active: active && title !== '', timestamp: ts() };
+    await apiWrite('nowplaying', d);
+    await loadNowPlaying();
+    toast(active && title ? `▶ ${title}` : '⏹ Masqué');
+  } catch (e) { toast('Erreur', 'err'); }
+}
+
+// ════════════════════════════════════════════════════════════
+//  LAYOUT — Positions, taille, apparence, paramètres
+// ════════════════════════════════════════════════════════════
+
+let layoutCfg   = {};
+let currentZone = null;
+let hAnchor     = 'left';
+let vAnchor     = 'bottom';
+
+function buildCompGrid() {
+  document.getElementById('comp-grid').innerHTML = ZONES.map(z =>
+    `<button class="comp-btn" data-key="${z.cfgKey}" onclick="selectZone('${z.cfgKey}')">${z.label}</button>`
+  ).join('');
+}
+
+async function loadLayout() {
+  try { layoutCfg = await apiRead('config'); } catch (_) { layoutCfg = {}; }
+  buildCompGrid();
+  buildVisGrid();
+  if (currentZone) selectZone(currentZone.cfgKey);
+}
+
+function selectZone(cfgKey) {
+  currentZone = ZONES.find(z => z.cfgKey === cfgKey);
+  if (!currentZone) return;
+
+  document.querySelectorAll('.comp-btn').forEach(b =>
+    b.classList.toggle('active', b.dataset.key === cfgKey));
+
+  const zc = layoutCfg[cfgKey] || {};
+
+  // Enabled
+  document.getElementById('pos-enabled').checked = zc.enabled !== false;
+
+  // Ancre horizontale
+  if (zc.right != null) { hAnchor = 'right'; document.getElementById('pos-h-val').value = zc.right; }
+  else                  { hAnchor = 'left';  document.getElementById('pos-h-val').value = zc.left  ?? ''; }
+
+  // Ancre verticale
+  if (zc.top != null) { vAnchor = 'top';    document.getElementById('pos-v-val').value = zc.top;    }
+  else                { vAnchor = 'bottom'; document.getElementById('pos-v-val').value = zc.bottom ?? ''; }
+
+  // Largeur
+  document.getElementById('pos-width').value = zc.width ?? '';
+
+  // Hauteur max (chat uniquement)
+  const mhRow = document.getElementById('pos-maxheight-row');
+  mhRow.hidden = !currentZone.hasMaxHeight;
+  if (currentZone.hasMaxHeight) document.getElementById('pos-maxheight').value = zc.maxHeight ?? '';
+
+  // Opacité
+  const op = zc.opacity ?? 100;
+  document.getElementById('pos-opacity').value = op;
+  document.getElementById('opacity-val').textContent = op;
+
+  // Paramètres spécifiques
+  buildExtras(currentZone, zc);
+
+  updateAnchorButtons();
+  document.getElementById('pos-editor-title').textContent = currentZone.label;
+  document.getElementById('pos-editor').hidden = false;
+}
+
+function setHAnchor(s) { hAnchor = s; updateAnchorButtons(); }
+function setVAnchor(s) { vAnchor = s; updateAnchorButtons(); }
+
+function updateAnchorButtons() {
+  document.getElementById('h-left-btn').classList.toggle('active',  hAnchor === 'left');
+  document.getElementById('h-right-btn').classList.toggle('active', hAnchor === 'right');
+  document.getElementById('v-top-btn').classList.toggle('active',    vAnchor === 'top');
+  document.getElementById('v-bottom-btn').classList.toggle('active', vAnchor === 'bottom');
+}
+
+// ── Paramètres spécifiques ───────────────────────────────────
+
+function buildExtras(zone, zc) {
+  const section   = document.getElementById('pos-extras-section');
+  const container = document.getElementById('pos-extras');
+  const extras    = zone.extras || [];
+
+  if (extras.length === 0) { section.hidden = true; return; }
+
+  section.hidden = false;
+  container.innerHTML = extras.map(ex => {
+    const val = getExtraVal(ex, zc);
+    const inputAttrs = [
+      `type="${ex.type}"`,
+      `id="extra-${ex.id}"`,
+      ex.min  != null ? `min="${ex.min}"`   : '',
+      ex.max  != null ? `max="${ex.max}"`   : '',
+      ex.step != null ? `step="${ex.step}"` : '',
+      `placeholder="${ex.placeholder ?? ''}"`,
+      `value="${esc(String(val ?? ''))}"`,
+    ].filter(Boolean).join(' ');
+
+    return `
+      <div>
+        <label>${ex.label}</label>
+        <input ${inputAttrs}>
+      </div>
+    `;
+  }).join('');
+}
+
+function getExtraVal(ex, zc) {
+  if (ex.id === 'msgLifetime') {
+    const ms = zc.msgLifetime;
+    return (ms == null || ms >= 86400000) ? '' : Math.round(ms / 1000);
+  }
+  return zc[ex.id] ?? '';
+}
+
+// ── Sauvegarde position ──────────────────────────────────────
+
+async function savePosition() {
+  if (!currentZone) return;
+  const cfgKey = currentZone.cfgKey;
+  const section = { ...(layoutCfg[cfgKey] || {}) };
+
+  // Enabled
+  section.enabled = document.getElementById('pos-enabled').checked;
+
+  // Horizontal
+  delete section.left; delete section.right;
+  const hVal = document.getElementById('pos-h-val').value.trim();
+  if (hVal !== '') section[hAnchor] = +hVal;
+
+  // Vertical
+  delete section.top; delete section.bottom;
+  const vVal = document.getElementById('pos-v-val').value.trim();
+  if (vVal !== '') section[vAnchor] = +vVal;
+
+  // Largeur
+  delete section.width;
+  const wVal = document.getElementById('pos-width').value.trim();
+  if (wVal !== '') section.width = +wVal;
+
+  // Hauteur max
+  if (currentZone.hasMaxHeight) {
+    delete section.maxHeight;
+    const mhVal = document.getElementById('pos-maxheight').value.trim();
+    if (mhVal !== '') section.maxHeight = +mhVal;
+  }
+
+  // Opacité
+  section.opacity = +document.getElementById('pos-opacity').value;
+
+  // Paramètres spécifiques
+  (currentZone.extras || []).forEach(ex => {
+    const input = document.getElementById('extra-' + ex.id);
+    if (!input) return;
+    const raw = input.value.trim();
+
+    // msgLifetime : affiché en secondes, stocké en ms
+    if (ex.id === 'msgLifetime') {
+      section.msgLifetime = (raw === '' || +raw <= 0) ? 999999999 : +raw * 1000;
+      return;
+    }
+
+    if (raw === '') { delete section[ex.id]; }
+    else { section[ex.id] = ex.type === 'number' ? +raw : raw; }
+  });
+
+  layoutCfg[cfgKey] = section;
+
+  try {
+    await apiWrite('config', layoutCfg);
+    toast(`✓ ${currentZone.label} appliqué`);
+  } catch (e) { toast('Erreur : ' + e.message, 'err'); }
+}
+
+// ── Test composant ───────────────────────────────────────────
+
+async function testComponent() {
+  if (!currentZone) return;
+  try {
+    await apiWrite(currentZone.dataFile, currentZone.testData());
+    toast(`🧪 Test ${currentZone.label}`);
+  } catch (e) { toast('Erreur test', 'err'); }
+}
+
+// ════════════════════════════════════════════════════════════
+//  CONFIG
+// ════════════════════════════════════════════════════════════
+
+async function loadConfig() {
+  try {
+    const cfg = await apiRead('config');
+    document.getElementById('cfg-alert-dur').value = cfg.alerts?.displayDuration ?? 5500;
+    document.getElementById('cfg-train-dur').value = cfg.subtrain?.duration      ?? 60;
+  } catch (_) {}
+
+  try {
+    const lf = await apiRead('last_follower');
+    document.getElementById('cfg-last-follower').textContent = lf.user || '—';
+  } catch (_) {}
+
+  try {
+    const ls = await apiRead('last_subscriber');
+    const s  = [ls.user, ls.tier, ls.months ? `${ls.months} mois` : ''].filter(Boolean).join(' · ');
+    document.getElementById('cfg-last-subscriber').textContent = s || '—';
+  } catch (_) {}
+}
+
+async function saveConfig() {
+  try {
+    const cfg = await apiRead('config');
+    cfg.alerts              = cfg.alerts   || {};
+    cfg.subtrain            = cfg.subtrain || {};
+    cfg.alerts.displayDuration = +document.getElementById('cfg-alert-dur').value || 5500;
+    cfg.subtrain.duration      = +document.getElementById('cfg-train-dur').value  || 60;
+    await apiWrite('config', cfg);
+    toast('✓ Config sauvegardée');
+  } catch (e) { toast('Erreur', 'err'); }
+}
+
+// ── Utilitaires ───────────────────────────────────────────────
+
+function esc(v) {
+  if (v == null) return '';
+  return String(v).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
+// ── Init ─────────────────────────────────────────────────────
+
+loadGoal();
+</script>
+
+</body>
+</html>

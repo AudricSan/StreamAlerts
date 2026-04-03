@@ -7,13 +7,32 @@
      1. Chargement de data/config.json
      2. Application des positions/tailles sur chaque zone
      3. Initialisation des composants actifs
+     4. Polling de data/visibility.json (show/hide runtime)
 
-   Pour ajouter un composant :
-     1. Crée  components/moncomposant.js  (expose window.MonComposant)
-     2. Ajoute <script src="components/moncomposant.js"> dans index.html
-     3. Ajoute sa section dans data/config.json
-     4. Appelle applyZone() + MonComposant.init() ci-dessous
+   Commandes chat (modérateur/broadcaster) :
+     !show   <composant>   — afficher
+     !hide   <composant>   — masquer
+     !toggle <composant>   — basculer
+   Détectées dans chat.js → window.StreamAlerts.handleVisibilityCmd()
    ============================================================ */
+
+// ── Correspondance cfgKey → zone HTML + alias commandes ──────
+
+const ZONE_MAP = {
+  alerts:         { id: 'zone-alerts',         aliases: ['alerts','alertes','alerte','alert'] },
+  chat:           { id: 'zone-chat',            aliases: ['chat'] },
+  lastFollower:   { id: 'zone-last-follower',   aliases: ['follower','follow','lastfollow','lastfollower'] },
+  lastSubscriber: { id: 'zone-last-subscriber', aliases: ['sub','subscriber','lastsub','lastsubscriber','abonne'] },
+  goal:           { id: 'zone-goal',            aliases: ['goal','objectif'] },
+  subtrain:       { id: 'zone-subtrain',        aliases: ['train','subtrain'] },
+  nowplaying:     { id: 'zone-nowplaying',      aliases: ['music','musique','nowplaying','chanson'] },
+  queue:          { id: 'zone-queue',           aliases: ['queue','file'] },
+};
+
+// Table alias → cfgKey (utilisée par handleVisibilityCmd)
+const ALIAS_MAP = {};
+Object.entries(ZONE_MAP).forEach(([key, {aliases}]) =>
+  aliases.forEach(a => { ALIAS_MAP[a] = key; }));
 
 document.addEventListener('DOMContentLoaded', async () => {
 
@@ -21,20 +40,28 @@ document.addEventListener('DOMContentLoaded', async () => {
   const cfg = await loadConfig();
 
   // ── 2. Positionnement des zones ──────────────────────────────
-  applyZone('zone-alerts',     cfg.alerts);
-  applyZone('zone-chat',       cfg.chat);
-  applyZone('zone-goal',       cfg.goal);
-  applyZone('zone-nowplaying', cfg.nowplaying);
-  applyZone('zone-counter',    cfg.counter);
+  applyZone('zone-alerts',          cfg.alerts);
+  applyZone('zone-chat',            cfg.chat);
+  applyZone('zone-last-follower',   cfg.lastFollower);
+  applyZone('zone-last-subscriber', cfg.lastSubscriber);
+  applyZone('zone-goal',            cfg.goal);
+  applyZone('zone-subtrain',        cfg.subtrain);
+  applyZone('zone-nowplaying',      cfg.nowplaying);
+  applyZone('zone-queue',           cfg.queue);
+  applyZone('zone-counter',         cfg.counter);
 
   // ── 3. Composants actifs ─────────────────────────────────────
-  Alerts.init(cfg.alerts     || {});
-  Chat.init(cfg.chat         || {});
+  if (cfg.alerts?.enabled     !== false) Alerts.init(cfg.alerts         || {});
+  if (cfg.chat?.enabled       !== false) Chat.init(cfg.chat             || {});
+  if (cfg.goal?.enabled       !== false) Goals.init(cfg.goal            || {});
+  if (cfg.subtrain?.enabled   !== false) SubTrain.init(cfg.subtrain     || {});
+  if (cfg.nowplaying?.enabled !== false) NowPlaying.init(cfg.nowplaying || {});
+  if (cfg.queue?.enabled      !== false) Queue.init(cfg.queue           || {});
+  LastEvents.init(); // enabled géré via applyZone (hidden si disabled)
 
-  // Composants futurs — décommenter quand le fichier est créé :
-  // Goals.init(cfg.goal        || {});
-  // NowPlaying.init(cfg.nowplaying || {});
-  // Counter.init(cfg.counter   || {});
+  // ── 4. Visibilité dynamique ──────────────────────────────────
+  await pollVisibility();
+  setInterval(pollVisibility, 1500);
 
 });
 
@@ -53,9 +80,8 @@ async function loadConfig() {
 //
 //  Propriétés de position (px) : top · bottom · left · right
 //  Propriétés de taille   (px) : width · height · maxHeight
-//
-//  Exemple dans config.json :
-//    "alerts": { "bottom": 64, "left": 700, "width": 520 }
+//  Opacité                     : opacity (0-100)
+//  Désactivation permanente    : enabled: false
 
 function applyZone(id, cfg) {
   const el = document.getElementById(id);
@@ -64,11 +90,68 @@ function applyZone(id, cfg) {
   const PX_PROPS = ['top', 'bottom', 'left', 'right', 'width', 'height', 'maxHeight'];
   PX_PROPS.forEach(prop => {
     if (cfg[prop] == null) return;
-    // maxHeight → max-height
     const cssProp = prop.replace(/([A-Z])/g, c => `-${c.toLowerCase()}`);
     const val = cfg[prop];
-    // Nombre  → ajoute px   (ex: 64 → "64px")
-    // Chaîne  → passe tel quel  (ex: "auto", "50%", "0")
     el.style[cssProp] = typeof val === 'number' ? `${val}px` : String(val);
   });
+
+  // Opacité (0-100 → 0-1)
+  if (cfg.opacity != null) el.style.opacity = cfg.opacity / 100;
+
+  // Désactivation permanente (enabled: false) — non surchargeable par visibility.json
+  if (cfg.enabled === false) {
+    el.hidden = true;
+    el.dataset.disabled = '1';
+  }
 }
+
+// ── Visibilité dynamique (data/visibility.json) ──────────────
+
+function applyVisibility(vis) {
+  Object.entries(ZONE_MAP).forEach(([key, {id}]) => {
+    const el = document.getElementById(id);
+    if (!el || el.dataset.disabled) return; // jamais surcharger un disabled permanent
+    if (vis[key] !== undefined) el.hidden = (vis[key] === false);
+  });
+}
+
+async function pollVisibility() {
+  try {
+    const res = await fetch(`data/visibility.json?t=${Date.now()}`);
+    if (!res.ok) return;
+    applyVisibility(await res.json());
+  } catch (_) {}
+}
+
+// ── Interface globale — utilisée par chat.js ─────────────────
+//
+//  Appelée quand un modérateur tape !show / !hide / !toggle dans le chat.
+//  Met à jour visibility.json via l'API puis applique immédiatement.
+
+window.StreamAlerts = {
+
+  async handleVisibilityCmd(action, name) {
+    const cfgKey = ALIAS_MAP[name.toLowerCase()];
+    if (!cfgKey) return;
+
+    try {
+      const res = await fetch(`data/visibility.json?t=${Date.now()}`);
+      const vis  = res.ok ? await res.json() : {};
+
+      const current = vis[cfgKey] !== false;
+      if      (action === 'show')   vis[cfgKey] = true;
+      else if (action === 'hide')   vis[cfgKey] = false;
+      else                          vis[cfgKey] = !current; // toggle
+
+      applyVisibility(vis);
+
+      // Persiste la modification dans le fichier
+      await fetch('../config/api.php?action=write&file=visibility', {
+        method:  'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body:    JSON.stringify(vis),
+      });
+    } catch (_) {}
+  },
+
+};
