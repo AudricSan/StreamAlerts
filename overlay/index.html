@@ -62,13 +62,55 @@
   <div id="zone-queue"></div>
 
   <!-- ═══════════════════════════════════════════════════
-       ZONE : Compteur d'événements — futur
-       Données : data/counter.json
+       ZONE : Spectateurs en direct
+       Données : data/viewers.json
   ════════════════════════════════════════════════════ -->
-  <!-- <div id="zone-counter"></div> -->
+  <div id="zone-viewers"></div>
+
+  <!-- ═══════════════════════════════════════════════════
+       ZONE : Uptime / Durée du stream
+       Données : data/uptime.json
+  ════════════════════════════════════════════════════ -->
+  <div id="zone-uptime"></div>
+
+  <!-- ═══════════════════════════════════════════════════
+       ZONE : Statistiques de session
+       Données : data/session.json
+  ════════════════════════════════════════════════════ -->
+  <div id="zone-session"></div>
+
+  <!-- ═══════════════════════════════════════════════════
+       ZONE : Compte à rebours
+       Données : data/countdown.json
+  ════════════════════════════════════════════════════ -->
+  <div id="zone-countdown"></div>
+
+  <!-- ═══════════════════════════════════════════════════
+       ZONE : Classement / Leaderboard
+       Données : data/leaderboard.json
+  ════════════════════════════════════════════════════ -->
+  <div id="zone-leaderboard"></div>
+
+  <!-- ═══════════════════════════════════════════════════
+       ZONE : Sondage Twitch (Poll)
+       Données : data/poll.json
+  ════════════════════════════════════════════════════ -->
+  <div id="zone-poll"></div>
+
+  <!-- ═══════════════════════════════════════════════════
+       ZONE : Prédiction Twitch
+       Données : data/prediction.json
+  ════════════════════════════════════════════════════ -->
+  <div id="zone-prediction"></div>
+
+  <!-- ═══════════════════════════════════════════════════
+       ZONE : Hype Train (temps réel)
+       Données : data/hypetrain.json
+  ════════════════════════════════════════════════════ -->
+  <div id="zone-hypetrain"></div>
 
   <!-- Indicateur de test (non visible dans OBS) -->
-  <div id="test-hint"><kbd>T</kbd> alertes &nbsp;·&nbsp; <kbd>C</kbd> chat &nbsp;·&nbsp; <kbd>L</kbd> last &nbsp;·&nbsp; <kbd>G</kbd> goal &nbsp;·&nbsp; <kbd>S</kbd> train &nbsp;·&nbsp; <kbd>N</kbd> music &nbsp;·&nbsp; <kbd>U</kbd> queue</div>
+  <div id="test-hint"><kbd>T</kbd> alertes &nbsp;·&nbsp; <kbd>C</kbd> chat &nbsp;·&nbsp; <kbd>L</kbd> last &nbsp;·&nbsp; <kbd>G</kbd> goal &nbsp;·&nbsp; <kbd>S</kbd> train &nbsp;·&nbsp; <kbd>N</kbd> music &nbsp;·&nbsp; <kbd>U</kbd> queue &nbsp;·&nbsp; <kbd>V</kbd> viewers &nbsp;·&nbsp; <kbd>I</kbd> uptime &nbsp;·&nbsp; <kbd>E</kbd> session &nbsp;·&nbsp; <kbd>D</kbd> countdown &nbsp;·&nbsp; <kbd>B</kbd> top &nbsp;·&nbsp; <kbd>O</kbd> poll &nbsp;·&nbsp; <kbd>P</kbd> prediction &nbsp;·&nbsp; <kbd>H</kbd> hype</div>
 
   <!-- ── Composants actifs ── -->
   <script src="components/alerts.js"></script>
@@ -78,6 +120,14 @@
   <script src="components/subtrain.js"></script>
   <script src="components/nowplaying.js"></script>
   <script src="components/queue.js"></script>
+  <script src="components/viewers.js"></script>
+  <script src="components/uptime.js"></script>
+  <script src="components/session.js"></script>
+  <script src="components/countdown.js"></script>
+  <script src="components/leaderboard.js"></script>
+  <script src="components/poll.js"></script>
+  <script src="components/prediction.js"></script>
+  <script src="components/hypetrain.js"></script>
 
   <!-- Point d'entrée — initialise tous les composants -->
   <script src="script.js"></script>

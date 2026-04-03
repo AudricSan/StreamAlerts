@@ -1,0 +1,883 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>StreamAlerts — Dashboard</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&display=swap" rel="stylesheet">
+  <style>
+
+    *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+
+    :root {
+      --bg:       #0f0f13;
+      --bg2:      #16161c;
+      --surf:     #1e1e26;
+      --surf2:    #26262f;
+      --border:   rgba(255,255,255,0.07);
+      --border2:  rgba(255,255,255,0.12);
+      --text:     #e4e4ef;
+      --muted:    rgba(255,255,255,0.38);
+      --accent:   #9B59B6;
+      --twitch:   #9146FF;
+      --green:    #2ECC71;
+      --red:      #E74C3C;
+      --orange:   #F39C12;
+    }
+
+    html { scroll-behavior: smooth; }
+
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: 'Nunito', -apple-system, 'Segoe UI', sans-serif;
+      font-size: 14px;
+      line-height: 1.5;
+      min-height: 100vh;
+    }
+
+    /* ══════════════════════════════════════
+       HERO
+    ══════════════════════════════════════ */
+
+    .hero {
+      position: relative;
+      padding: 64px 24px 48px;
+      text-align: center;
+      overflow: hidden;
+    }
+
+    .hero::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background:
+        radial-gradient(ellipse 800px 400px at 50% -60px,
+          rgba(145, 70, 255, 0.18) 0%, transparent 70%),
+        radial-gradient(ellipse 400px 200px at 20% 100%,
+          rgba(46, 204, 113, 0.06) 0%, transparent 70%),
+        radial-gradient(ellipse 400px 200px at 80% 100%,
+          rgba(52, 152, 219, 0.06) 0%, transparent 70%);
+      pointer-events: none;
+    }
+
+    .hero-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 0.68rem;
+      font-weight: 800;
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+      color: var(--twitch);
+      background: rgba(145, 70, 255, 0.12);
+      border: 1px solid rgba(145, 70, 255, 0.28);
+      padding: 5px 12px;
+      border-radius: 20px;
+      margin-bottom: 20px;
+    }
+
+    .hero-badge .dot {
+      width: 6px; height: 6px;
+      border-radius: 50%;
+      background: var(--green);
+      box-shadow: 0 0 6px var(--green);
+      animation: pulse 2s ease-in-out infinite;
+    }
+
+    @keyframes pulse {
+      0%,100% { opacity: 1; }
+      50%      { opacity: 0.3; }
+    }
+
+    .hero h1 {
+      font-size: clamp(2rem, 5vw, 3.2rem);
+      font-weight: 900;
+      letter-spacing: -0.01em;
+      color: #fff;
+      margin-bottom: 10px;
+      position: relative;
+    }
+
+    .hero h1 span {
+      background: linear-gradient(135deg, #9146FF 0%, #5DADE2 50%, #2ECC71 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+
+    .hero p {
+      font-size: 1rem;
+      color: var(--muted);
+      max-width: 540px;
+      margin: 0 auto 40px;
+      line-height: 1.7;
+    }
+
+    /* ══════════════════════════════════════
+       NAVIGATION CARDS
+    ══════════════════════════════════════ */
+
+    .nav-cards {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      gap: 16px;
+      max-width: 760px;
+      margin: 0 auto 64px;
+      padding: 0 24px;
+    }
+
+    .nav-card {
+      position: relative;
+      display: flex;
+      flex-direction: column;
+      background: var(--surf);
+      border: 1px solid var(--border2);
+      border-radius: 12px;
+      overflow: hidden;
+      text-decoration: none;
+      color: var(--text);
+      transition: border-color 0.2s, transform 0.2s, box-shadow 0.2s;
+    }
+
+    .nav-card:hover {
+      border-color: rgba(255,255,255,0.2);
+      transform: translateY(-3px);
+      box-shadow: 0 16px 40px rgba(0,0,0,0.4);
+    }
+
+    .nav-card-accent {
+      height: 3px;
+      width: 100%;
+    }
+
+    .nav-card-body {
+      padding: 24px 24px 20px;
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .nav-card-icon {
+      font-size: 2rem;
+      margin-bottom: 4px;
+    }
+
+    .nav-card h2 {
+      font-size: 1.05rem;
+      font-weight: 800;
+      letter-spacing: 0.03em;
+      color: #fff;
+    }
+
+    .nav-card p {
+      font-size: 0.82rem;
+      color: var(--muted);
+      line-height: 1.6;
+      flex: 1;
+    }
+
+    .nav-card-footer {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 12px 24px;
+      background: rgba(255,255,255,0.03);
+      border-top: 1px solid var(--border);
+      font-size: 0.75rem;
+      font-weight: 700;
+      letter-spacing: 0.06em;
+    }
+
+    .nav-card-url {
+      color: var(--muted);
+      font-family: monospace;
+      font-size: 0.72rem;
+    }
+
+    .nav-card-arrow {
+      color: var(--muted);
+      font-size: 0.9rem;
+      transition: transform 0.2s, color 0.2s;
+    }
+
+    .nav-card:hover .nav-card-arrow {
+      transform: translateX(4px);
+      color: #fff;
+    }
+
+    /* ══════════════════════════════════════
+       SECTIONS
+    ══════════════════════════════════════ */
+
+    .section {
+      max-width: 960px;
+      margin: 0 auto 56px;
+      padding: 0 24px;
+    }
+
+    .section-title {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-size: 0.65rem;
+      font-weight: 900;
+      letter-spacing: 0.2em;
+      text-transform: uppercase;
+      color: var(--muted);
+      margin-bottom: 16px;
+    }
+
+    .section-title::after {
+      content: '';
+      flex: 1;
+      height: 1px;
+      background: var(--border);
+    }
+
+    /* ══════════════════════════════════════
+       COMPOSANTS GRID
+    ══════════════════════════════════════ */
+
+    .comp-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+      gap: 8px;
+    }
+
+    .comp-card {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 10px 14px;
+      background: var(--surf);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      border-left: 3px solid var(--comp-color, #555);
+      transition: background 0.15s;
+    }
+
+    .comp-card:hover { background: var(--surf2); }
+
+    .comp-card-icon { font-size: 1.1rem; flex-shrink: 0; }
+
+    .comp-card-info { flex: 1; min-width: 0; }
+
+    .comp-card-name {
+      font-size: 0.78rem;
+      font-weight: 800;
+      color: #fff;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .comp-card-key {
+      font-size: 0.62rem;
+      color: var(--muted);
+    }
+
+    .comp-status {
+      width: 7px; height: 7px;
+      border-radius: 50%;
+      flex-shrink: 0;
+      background: #444;
+    }
+
+    .comp-status.on  { background: var(--green); box-shadow: 0 0 5px var(--green); }
+    .comp-status.off { background: #444; }
+
+    /* ══════════════════════════════════════
+       FLUX
+    ══════════════════════════════════════ */
+
+    .flow {
+      display: flex;
+      align-items: center;
+      gap: 0;
+      flex-wrap: wrap;
+      background: var(--surf);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 20px 24px;
+      gap: 4px;
+    }
+
+    .flow-step {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 4px;
+      padding: 10px 16px;
+      background: var(--surf2);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      text-align: center;
+      flex-shrink: 0;
+    }
+
+    .flow-step-icon { font-size: 1.4rem; }
+
+    .flow-step-label {
+      font-size: 0.68rem;
+      font-weight: 800;
+      color: #fff;
+      letter-spacing: 0.04em;
+    }
+
+    .flow-step-sub {
+      font-size: 0.58rem;
+      color: var(--muted);
+    }
+
+    .flow-arrow {
+      color: var(--muted);
+      font-size: 1.1rem;
+      padding: 0 4px;
+      flex-shrink: 0;
+    }
+
+    /* ══════════════════════════════════════
+       RACCOURCIS
+    ══════════════════════════════════════ */
+
+    .shortcuts {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+    }
+
+    .shortcut {
+      display: flex;
+      align-items: center;
+      gap: 7px;
+      padding: 6px 12px 6px 8px;
+      background: var(--surf);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+    }
+
+    .shortcut kbd {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 22px; height: 22px;
+      background: var(--surf2);
+      border: 1px solid var(--border2);
+      border-radius: 4px;
+      font-family: 'Nunito', monospace;
+      font-size: 0.72rem;
+      font-weight: 800;
+      color: #fff;
+      flex-shrink: 0;
+    }
+
+    .shortcut-desc {
+      font-size: 0.72rem;
+      color: var(--muted);
+    }
+
+    /* ══════════════════════════════════════
+       SCRIPTS TABLE
+    ══════════════════════════════════════ */
+
+    .scripts-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.8rem;
+    }
+
+    .scripts-table th {
+      text-align: left;
+      padding: 8px 12px;
+      background: var(--surf2);
+      border: 1px solid var(--border);
+      font-size: 0.65rem;
+      font-weight: 800;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: var(--muted);
+    }
+
+    .scripts-table td {
+      padding: 8px 12px;
+      border: 1px solid var(--border);
+      background: var(--surf);
+      vertical-align: top;
+    }
+
+    .scripts-table tr:hover td { background: var(--surf2); }
+
+    .scripts-table .script-name {
+      font-family: monospace;
+      color: var(--accent);
+      white-space: nowrap;
+    }
+
+    .trigger-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      font-size: 0.65rem;
+      font-weight: 700;
+      padding: 2px 7px;
+      border-radius: 4px;
+    }
+
+    .trigger-event {
+      background: rgba(243, 156, 18, 0.14);
+      color: #F39C12;
+      border: 1px solid rgba(243, 156, 18, 0.25);
+    }
+
+    .trigger-chat {
+      background: rgba(46, 204, 113, 0.14);
+      color: #2ECC71;
+      border: 1px solid rgba(46, 204, 113, 0.25);
+    }
+
+    .trigger-timer {
+      background: rgba(52, 152, 219, 0.14);
+      color: #3498DB;
+      border: 1px solid rgba(52, 152, 219, 0.25);
+    }
+
+    /* ══════════════════════════════════════
+       FOOTER
+    ══════════════════════════════════════ */
+
+    footer {
+      text-align: center;
+      padding: 32px 24px 48px;
+      border-top: 1px solid var(--border);
+      color: var(--muted);
+      font-size: 0.75rem;
+    }
+
+    footer a { color: var(--accent); text-decoration: none; }
+    footer a:hover { text-decoration: underline; }
+
+  </style>
+</head>
+<body>
+
+  <!-- ══════════════════════════════════════
+       HERO
+  ══════════════════════════════════════ -->
+
+  <div class="hero">
+    <div class="hero-badge">
+      <span class="dot"></span>
+      Système local — sans serveur backend
+    </div>
+    <h1>Stream<span>Alerts</span></h1>
+    <p>
+      Overlay Twitch complet servi par XAMPP.<br>
+      Alertes, chat, statistiques, sondages, prédictions et bien plus —
+      affichés dans OBS via une Browser Source.
+    </p>
+  </div>
+
+  <!-- ══════════════════════════════════════
+       NAVIGATION PRINCIPALE
+  ══════════════════════════════════════ -->
+
+  <div class="nav-cards">
+
+    <a class="nav-card" href="overlay/">
+      <div class="nav-card-accent" style="background: linear-gradient(90deg, #9146FF, #5DADE2);"></div>
+      <div class="nav-card-body">
+        <div class="nav-card-icon">🖥</div>
+        <h2>Overlay OBS</h2>
+        <p>
+          Le canvas 1920×1080 à ajouter comme Browser Source dans OBS.
+          Contient tous les composants actifs en temps réel.
+        </p>
+      </div>
+      <div class="nav-card-footer">
+        <span class="nav-card-url">/overlay/</span>
+        <span class="nav-card-arrow">→</span>
+      </div>
+    </a>
+
+    <a class="nav-card" href="config/">
+      <div class="nav-card-accent" style="background: linear-gradient(90deg, #2ECC71, #3498DB);"></div>
+      <div class="nav-card-body">
+        <div class="nav-card-icon">⚙️</div>
+        <h2>Configuration</h2>
+        <p>
+          Gérer la visibilité des zones, les positions, tailles, opacités
+          et paramètres de chaque composant. Idéal comme OBS Dock.
+        </p>
+      </div>
+      <div class="nav-card-footer">
+        <span class="nav-card-url">/config/</span>
+        <span class="nav-card-arrow">→</span>
+      </div>
+    </a>
+
+  </div>
+
+  <!-- ══════════════════════════════════════
+       COMPOSANTS
+  ══════════════════════════════════════ -->
+
+  <div class="section">
+    <div class="section-title">Composants — 16 au total</div>
+    <div class="comp-grid" id="comp-grid">
+
+      <!-- Composants existants -->
+      <div class="comp-card" style="--comp-color:#9B59B6" data-key="alerts">
+        <span class="comp-card-icon">🔔</span>
+        <div class="comp-card-info">
+          <div class="comp-card-name">Alertes</div>
+          <div class="comp-card-key">touche T</div>
+        </div>
+        <span class="comp-status" id="s-alerts"></span>
+      </div>
+
+      <div class="comp-card" style="--comp-color:#48DBFB" data-key="chat">
+        <span class="comp-card-icon">💬</span>
+        <div class="comp-card-info">
+          <div class="comp-card-name">Chat</div>
+          <div class="comp-card-key">touche C</div>
+        </div>
+        <span class="comp-status" id="s-chat"></span>
+      </div>
+
+      <div class="comp-card" style="--comp-color:#E74C3C" data-key="lastFollower">
+        <span class="comp-card-icon">♥</span>
+        <div class="comp-card-info">
+          <div class="comp-card-name">Dernier follow</div>
+          <div class="comp-card-key">touche L</div>
+        </div>
+        <span class="comp-status" id="s-lastFollower"></span>
+      </div>
+
+      <div class="comp-card" style="--comp-color:#F1C40F" data-key="lastSubscriber">
+        <span class="comp-card-icon">⭐</span>
+        <div class="comp-card-info">
+          <div class="comp-card-name">Dernier sub</div>
+          <div class="comp-card-key">touche L</div>
+        </div>
+        <span class="comp-status" id="s-lastSubscriber"></span>
+      </div>
+
+      <div class="comp-card" style="--comp-color:#3498DB" data-key="goal">
+        <span class="comp-card-icon">🎯</span>
+        <div class="comp-card-info">
+          <div class="comp-card-name">Objectif</div>
+          <div class="comp-card-key">touche G</div>
+        </div>
+        <span class="comp-status" id="s-goal"></span>
+      </div>
+
+      <div class="comp-card" style="--comp-color:#FFA500" data-key="subtrain">
+        <span class="comp-card-icon">🚂</span>
+        <div class="comp-card-info">
+          <div class="comp-card-name">Sub Train</div>
+          <div class="comp-card-key">touche S</div>
+        </div>
+        <span class="comp-status" id="s-subtrain"></span>
+      </div>
+
+      <div class="comp-card" style="--comp-color:#00BCD4" data-key="nowplaying">
+        <span class="comp-card-icon">🎵</span>
+        <div class="comp-card-info">
+          <div class="comp-card-name">Musique</div>
+          <div class="comp-card-key">touche N</div>
+        </div>
+        <span class="comp-status" id="s-nowplaying"></span>
+      </div>
+
+      <div class="comp-card" style="--comp-color:#BDC3C7" data-key="queue">
+        <span class="comp-card-icon">📋</span>
+        <div class="comp-card-info">
+          <div class="comp-card-name">File d'attente</div>
+          <div class="comp-card-key">touche U</div>
+        </div>
+        <span class="comp-status" id="s-queue"></span>
+      </div>
+
+      <!-- Nouveaux composants -->
+      <div class="comp-card" style="--comp-color:#9146FF" data-key="viewers">
+        <span class="comp-card-icon">👁</span>
+        <div class="comp-card-info">
+          <div class="comp-card-name">Spectateurs</div>
+          <div class="comp-card-key">touche V</div>
+        </div>
+        <span class="comp-status" id="s-viewers"></span>
+      </div>
+
+      <div class="comp-card" style="--comp-color:#F39C12" data-key="uptime">
+        <span class="comp-card-icon">⏰</span>
+        <div class="comp-card-info">
+          <div class="comp-card-name">Uptime</div>
+          <div class="comp-card-key">touche I</div>
+        </div>
+        <span class="comp-status" id="s-uptime"></span>
+      </div>
+
+      <div class="comp-card" style="--comp-color:#BDC3C7" data-key="session">
+        <span class="comp-card-icon">📊</span>
+        <div class="comp-card-info">
+          <div class="comp-card-name">Stats session</div>
+          <div class="comp-card-key">touche E</div>
+        </div>
+        <span class="comp-status" id="s-session"></span>
+      </div>
+
+      <div class="comp-card" style="--comp-color:#5DADE2" data-key="countdown">
+        <span class="comp-card-icon">⏱</span>
+        <div class="comp-card-info">
+          <div class="comp-card-name">Countdown</div>
+          <div class="comp-card-key">touche D</div>
+        </div>
+        <span class="comp-status" id="s-countdown"></span>
+      </div>
+
+      <div class="comp-card" style="--comp-color:#F1C40F" data-key="leaderboard">
+        <span class="comp-card-icon">🏆</span>
+        <div class="comp-card-info">
+          <div class="comp-card-name">Leaderboard</div>
+          <div class="comp-card-key">touche B</div>
+        </div>
+        <span class="comp-status" id="s-leaderboard"></span>
+      </div>
+
+      <div class="comp-card" style="--comp-color:#9B59B6" data-key="poll">
+        <span class="comp-card-icon">🗳</span>
+        <div class="comp-card-info">
+          <div class="comp-card-name">Sondage</div>
+          <div class="comp-card-key">touche O</div>
+        </div>
+        <span class="comp-status" id="s-poll"></span>
+      </div>
+
+      <div class="comp-card" style="--comp-color:#3498DB" data-key="prediction">
+        <span class="comp-card-icon">🔮</span>
+        <div class="comp-card-info">
+          <div class="comp-card-name">Prédiction</div>
+          <div class="comp-card-key">touche P</div>
+        </div>
+        <span class="comp-status" id="s-prediction"></span>
+      </div>
+
+      <div class="comp-card" style="--comp-color:#ff6600" data-key="hypetrain">
+        <span class="comp-card-icon">🚆</span>
+        <div class="comp-card-info">
+          <div class="comp-card-name">Hype Train</div>
+          <div class="comp-card-key">touche H</div>
+        </div>
+        <span class="comp-status" id="s-hypetrain"></span>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- ══════════════════════════════════════
+       FLUX DE DONNÉES
+  ══════════════════════════════════════ -->
+
+  <div class="section">
+    <div class="section-title">Flux de données</div>
+    <div class="flow">
+      <div class="flow-step">
+        <span class="flow-step-icon">📡</span>
+        <span class="flow-step-label">Twitch</span>
+        <span class="flow-step-sub">Événements live</span>
+      </div>
+      <span class="flow-arrow">→</span>
+      <div class="flow-step">
+        <span class="flow-step-icon">🤖</span>
+        <span class="flow-step-label">Streamer.bot</span>
+        <span class="flow-step-sub">Scripts C#</span>
+      </div>
+      <span class="flow-arrow">→</span>
+      <div class="flow-step">
+        <span class="flow-step-icon">📂</span>
+        <span class="flow-step-label">Fichiers JSON</span>
+        <span class="flow-step-sub">overlay/data/</span>
+      </div>
+      <span class="flow-arrow">→</span>
+      <div class="flow-step">
+        <span class="flow-step-icon">🌐</span>
+        <span class="flow-step-label">XAMPP</span>
+        <span class="flow-step-sub">Apache local</span>
+      </div>
+      <span class="flow-arrow">→</span>
+      <div class="flow-step">
+        <span class="flow-step-icon">🖥</span>
+        <span class="flow-step-label">Overlay JS</span>
+        <span class="flow-step-sub">Polling / WebSocket</span>
+      </div>
+      <span class="flow-arrow">→</span>
+      <div class="flow-step">
+        <span class="flow-step-icon">🎬</span>
+        <span class="flow-step-label">OBS</span>
+        <span class="flow-step-sub">Browser Source</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══════════════════════════════════════
+       SCRIPTS STREAMER.BOT
+  ══════════════════════════════════════ -->
+
+  <div class="section">
+    <div class="section-title">Scripts Streamer.bot</div>
+    <table class="scripts-table">
+      <thead>
+        <tr>
+          <th>Script</th>
+          <th>Trigger</th>
+          <th>Description</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td class="script-name">WriteAlert.cs</td>
+          <td><span class="trigger-badge trigger-event">⚡ Événement</span></td>
+          <td>Follow, Sub, Resub, Gift, Raid, Bits, Donation, Channel Points</td>
+        </tr>
+        <tr>
+          <td class="script-name">WriteChat.cs</td>
+          <td><span class="trigger-badge trigger-event">⚡ Événement</span></td>
+          <td>ChatMessage Twitch (fallback polling — WebSocket est prioritaire)</td>
+        </tr>
+        <tr>
+          <td class="script-name">WriteGoal.cs</td>
+          <td><span class="trigger-badge trigger-event">⚡ Événement</span></td>
+          <td>Subscribe / Follow — incrémente la barre de progression</td>
+        </tr>
+        <tr>
+          <td class="script-name">WriteSubTrain.cs</td>
+          <td><span class="trigger-badge trigger-event">⚡ Événement</span></td>
+          <td>Subscribe / Gift Subscription — gère le train de subs</td>
+        </tr>
+        <tr>
+          <td class="script-name">WriteNowPlaying.cs</td>
+          <td><span class="trigger-badge trigger-event">⚡ Événement</span></td>
+          <td>Application (Spotify, etc.) via Streamer.bot music integration</td>
+        </tr>
+        <tr>
+          <td class="script-name">WriteQueue.cs</td>
+          <td><span class="trigger-badge trigger-chat">💬 Commande chat</span></td>
+          <td>!join / !leave / !next / !open / !close — file d'attente viewers</td>
+        </tr>
+        <tr>
+          <td class="script-name">WriteVisibility.cs</td>
+          <td><span class="trigger-badge trigger-chat">💬 Commande chat</span></td>
+          <td>!show / !hide / !toggle &lt;composant&gt; — mods et broadcaster</td>
+        </tr>
+        <tr>
+          <td class="script-name">WriteViewers.cs</td>
+          <td><span class="trigger-badge trigger-timer">⏱ Timer</span></td>
+          <td>Toutes les 30 s — lit %viewers% de Streamer.bot</td>
+        </tr>
+        <tr>
+          <td class="script-name">WriteUptime.cs</td>
+          <td><span class="trigger-badge trigger-event">⚡ Événement</span></td>
+          <td>Stream Online / Stream Offline — enregistre l'heure de début</td>
+        </tr>
+        <tr>
+          <td class="script-name">WriteSession.cs</td>
+          <td><span class="trigger-badge trigger-event">⚡ Événement</span></td>
+          <td>Même triggers que WriteAlert — cumule les stats de session</td>
+        </tr>
+        <tr>
+          <td class="script-name">WriteCountdown.cs</td>
+          <td><span class="trigger-badge trigger-chat">💬 Commande chat</span></td>
+          <td>!countdown &lt;min&gt; [label] / !countdown stop — mods seulement</td>
+        </tr>
+        <tr>
+          <td class="script-name">WriteLeaderboard.cs</td>
+          <td><span class="trigger-badge trigger-event">⚡ Événement</span></td>
+          <td>Cheer/Bits, Donation — accumule le classement de session</td>
+        </tr>
+        <tr>
+          <td class="script-name">WritePoll.cs</td>
+          <td><span class="trigger-badge trigger-event">⚡ Événement</span></td>
+          <td>Poll Created / Updated / Completed — sondage Twitch natif</td>
+        </tr>
+        <tr>
+          <td class="script-name">WritePrediction.cs</td>
+          <td><span class="trigger-badge trigger-event">⚡ Événement</span></td>
+          <td>Prediction Created / Updated / Locked / Resolved / Canceled</td>
+        </tr>
+        <tr>
+          <td class="script-name">WriteHypeTrain.cs</td>
+          <td><span class="trigger-badge trigger-event">⚡ Événement</span></td>
+          <td>Hype Train Start / Update / End — progression en temps réel</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- ══════════════════════════════════════
+       RACCOURCIS CLAVIER
+  ══════════════════════════════════════ -->
+
+  <div class="section">
+    <div class="section-title">Raccourcis de test (overlay ouvert dans le navigateur)</div>
+    <div class="shortcuts">
+      <div class="shortcut"><kbd>T</kbd><span class="shortcut-desc">Alerte test</span></div>
+      <div class="shortcut"><kbd>C</kbd><span class="shortcut-desc">Message chat</span></div>
+      <div class="shortcut"><kbd>L</kbd><span class="shortcut-desc">Last follow / sub</span></div>
+      <div class="shortcut"><kbd>G</kbd><span class="shortcut-desc">Goal tracker</span></div>
+      <div class="shortcut"><kbd>S</kbd><span class="shortcut-desc">Sub Train</span></div>
+      <div class="shortcut"><kbd>N</kbd><span class="shortcut-desc">Now Playing</span></div>
+      <div class="shortcut"><kbd>U</kbd><span class="shortcut-desc">File d'attente</span></div>
+      <div class="shortcut"><kbd>V</kbd><span class="shortcut-desc">Spectateurs</span></div>
+      <div class="shortcut"><kbd>I</kbd><span class="shortcut-desc">Uptime</span></div>
+      <div class="shortcut"><kbd>E</kbd><span class="shortcut-desc">Stats session</span></div>
+      <div class="shortcut"><kbd>D</kbd><span class="shortcut-desc">Countdown</span></div>
+      <div class="shortcut"><kbd>B</kbd><span class="shortcut-desc">Leaderboard</span></div>
+      <div class="shortcut"><kbd>O</kbd><span class="shortcut-desc">Sondage</span></div>
+      <div class="shortcut"><kbd>P</kbd><span class="shortcut-desc">Prédiction</span></div>
+      <div class="shortcut"><kbd>H</kbd><span class="shortcut-desc">Hype Train</span></div>
+    </div>
+  </div>
+
+  <!-- ══════════════════════════════════════
+       FOOTER
+  ══════════════════════════════════════ -->
+
+  <footer>
+    <p>
+      StreamAlerts — Overlay local · Pas de build · Pas de dépendances npm<br>
+      <a href="overlay/" target="_blank">overlay/</a> ·
+      <a href="config/" target="_blank">config/</a> ·
+      <a href="README.md" target="_blank">README.md</a>
+    </p>
+  </footer>
+
+  <!-- ══════════════════════════════════════
+       SCRIPT : statuts de visibilité
+  ══════════════════════════════════════ -->
+
+  <script>
+    async function loadVisibility() {
+      try {
+        const res = await fetch('overlay/data/visibility.json?t=' + Date.now());
+        if (!res.ok) return;
+        const vis = await res.json();
+        for (const [key, visible] of Object.entries(vis)) {
+          const el = document.getElementById('s-' + key);
+          if (el) {
+            el.className = 'comp-status ' + (visible ? 'on' : 'off');
+            el.title = visible ? 'Visible' : 'Masqué';
+          }
+        }
+      } catch (_) {}
+    }
+
+    loadVisibility();
+    setInterval(loadVisibility, 3000);
+  </script>
+
+</body>
+</html>

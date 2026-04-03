@@ -134,6 +134,22 @@ Elle permet de tout régler **sans toucher au code**.
 
 ## Configuration Streamer.bot
 
+### Vue d'ensemble des triggers
+
+| Script | Type de trigger | Commande / Événement |
+| --- | --- | --- |
+| `WriteAlert.cs` | ⚡ Événement Twitch | Subscribe, Follow, Raid, Bits… |
+| `WriteGoal.cs` | ⚡ Événement Twitch | Mêmes actions que WriteAlert |
+| `WriteSubTrain.cs` | ⚡ Événement Twitch | Subscribe, Re-Subscribe, Gift Subscription |
+| `WriteChat.cs` | 💬 Chat Message | Tous les messages (fallback WS) |
+| `WriteNowPlaying.cs` | 💬 Chat Command | `!np` (mod) |
+| `WriteQueue.cs` | 💬 Chat Command | `!join` `!leave` `!next` `!queue` |
+| `WriteVisibility.cs` | 💬 Chat Command | `!show` `!hide` `!toggle` _(optionnel)_ |
+
+> Les scripts ⚡ doivent absolument être sur des triggers d'événements Twitch — les placer sur un trigger Chat ne les déclenchera pas automatiquement lors des vrais événements.
+
+---
+
 ### Activer le serveur WebSocket
 
 Le chat utilise l'API WebSocket native de Streamer.bot.
@@ -178,34 +194,43 @@ Le WebSocket gère le chat en temps réel. `WriteChat.cs` sert uniquement de fal
 
 ### Goal (WriteGoal.cs)
 
-Incrémente automatiquement un objectif à chaque événement Twitch.
+> ⚠️ **Trigger d'événement requis — pas un trigger Chat.**
+> Ce script doit se déclencher automatiquement quand un follow, sub ou bits arrive sur Twitch.
+> Le placer sur un trigger Chat ne l'incrémentera que si quelqu'un tape une commande manuellement.
 
-**Où le placer :** ajoute `WriteGoal.cs` en sous-action dans chaque action d'alerte concernée (Follow, Sub, Bits…). Tu peux aussi créer une action dédiée `[StreamAlerts] Goal` appelée par Run Action.
+**Où le placer :** ajouter en sous-action dans les actions qui ont déjà un trigger d'événement Twitch — c'est-à-dire les mêmes actions que `WriteAlert.cs`.
 
-**Arguments à passer avant le script (Set Argument) :**
+**Exemple — objectif de subs (dans `[StreamAlerts] Sub`) :**
 
-| Argument        | Valeur                                            | Description                                       |
-| --------------- | ------------------------------------------------- | ------------------------------------------------- |
-| `goalIncrement` | `1` (ou autre)                                    | Nombre à ajouter à chaque déclenchement           |
-| `goalTarget`    | `100`                                             | Objectif total (conservé si déjà dans le fichier) |
-| `goalLabel`     | `"Objectif subs"`                                 | Texte affiché (conservé si déjà dans le fichier)  |
-| `goalType`      | `sub` / `follow` / `bits` / `donation` / `custom` | Couleur de la barre                               |
-| `goalReset`     | `true`                                            | Remet le compteur à 0                             |
+```
+Trigger  : Twitch → Channel Events → Subscribe
+Sub-actions :
+  1. Set Argument  →  alertType       = sub
+  2. Run Action    →  [StreamAlerts] Écrire alerte    ← déjà présent
+  3. Set Argument  →  goalIncrement   = 1
+  4. Set Argument  →  goalType        = sub
+  5. Execute C#    →  WriteGoal.cs                    ← à ajouter
+```
 
-**Exemple — objectif de subs :**
+**Arguments disponibles (Set Argument) :**
 
-1. Dans l'action `[StreamAlerts] Sub`, ajouter avant `WriteAlert.cs` :
-   - Set Argument → `goalIncrement` = `1`
-   - Set Argument → `goalType` = `sub`
-   - Execute C# Code → `WriteGoal.cs`
+| Argument        | Valeur                                             | Description                                       |
+| --------------- | -------------------------------------------------- | ------------------------------------------------- |
+| `goalIncrement` | `1` (ou autre)                                     | Nombre à ajouter à chaque déclenchement           |
+| `goalTarget`    | `100`                                              | Objectif total (conservé si déjà dans le fichier) |
+| `goalLabel`     | `"Objectif subs"`                                  | Texte affiché (conservé si déjà dans le fichier)  |
+| `goalType`      | `sub` / `follow` / `bits` / `donation` / `custom`  | Couleur de la barre                               |
+| `goalReset`     | `true`                                             | Remet le compteur à 0 (reset manuel)              |
 
-> `goalTarget` et `goalLabel` ne sont à passer qu'une seule fois (lors de l'initialisation). Ensuite le script les conserve automatiquement depuis le fichier.
+> `goalTarget` et `goalLabel` ne sont à passer qu'une seule fois. Le script les conserve ensuite automatiquement.
 
 ---
 
 ### Sub Train (WriteSubTrain.cs)
 
-Démarre ou prolonge le sub train à chaque sub/resub/giftsub.
+> ⚠️ **Trigger d'événement requis — pas un trigger Chat.**
+> Ce script doit se déclencher automatiquement à chaque sub/resub/giftsub Twitch.
+> Le placer sur un trigger Chat ne démarrera le train que si un mod tape une commande manuellement.
 
 **Où le placer :** ajouter en sous-action dans les actions `[StreamAlerts] Sub`, `[StreamAlerts] Resub` et `[StreamAlerts] Gift Sub`, après `WriteAlert.cs`.
 
@@ -219,14 +244,16 @@ Démarre ou prolonge le sub train à chaque sub/resub/giftsub.
 **Exemple dans `[StreamAlerts] Sub` :**
 
 ```
-Trigger  : Twitch → Subscribe
+Trigger  : Twitch → Channel Events → Subscribe
 Sub-actions :
   1. Set Argument  →  alertType       = sub
-  2. Run Action    →  [StreamAlerts] Écrire alerte
+  2. Run Action    →  [StreamAlerts] Écrire alerte    ← déjà présent
   3. Set Argument  →  user            = %user%
   4. Set Argument  →  trainDuration   = 60
-  5. Execute C#    →  WriteSubTrain.cs
+  5. Execute C#    →  WriteSubTrain.cs                ← à ajouter
 ```
+
+Répéter pour `[StreamAlerts] Resub` (trigger `Re-Subscribe`) et `[StreamAlerts] Gift Sub` (trigger `Gift Subscription`).
 
 ---
 

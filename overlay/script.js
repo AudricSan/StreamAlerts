@@ -27,6 +27,14 @@ const ZONE_MAP = {
   subtrain:       { id: 'zone-subtrain',        aliases: ['train','subtrain'] },
   nowplaying:     { id: 'zone-nowplaying',      aliases: ['music','musique','nowplaying','chanson'] },
   queue:          { id: 'zone-queue',           aliases: ['queue','file'] },
+  viewers:        { id: 'zone-viewers',         aliases: ['viewers','spectateurs'] },
+  uptime:         { id: 'zone-uptime',          aliases: ['uptime','duree','direct'] },
+  session:        { id: 'zone-session',         aliases: ['session','stats'] },
+  countdown:      { id: 'zone-countdown',       aliases: ['countdown','compte','timer'] },
+  leaderboard:    { id: 'zone-leaderboard',     aliases: ['leaderboard','top','classement'] },
+  poll:           { id: 'zone-poll',            aliases: ['poll','vote','sondage'] },
+  prediction:     { id: 'zone-prediction',      aliases: ['prediction','pari'] },
+  hypetrain:      { id: 'zone-hypetrain',       aliases: ['hypetrain','hype'] },
 };
 
 // Table alias → cfgKey (utilisée par handleVisibilityCmd)
@@ -48,15 +56,30 @@ document.addEventListener('DOMContentLoaded', async () => {
   applyZone('zone-subtrain',        cfg.subtrain);
   applyZone('zone-nowplaying',      cfg.nowplaying);
   applyZone('zone-queue',           cfg.queue);
-  applyZone('zone-counter',         cfg.counter);
+  applyZone('zone-viewers',         cfg.viewers);
+  applyZone('zone-uptime',          cfg.uptime);
+  applyZone('zone-session',         cfg.session);
+  applyZone('zone-countdown',       cfg.countdown);
+  applyZone('zone-leaderboard',     cfg.leaderboard);
+  applyZone('zone-poll',            cfg.poll);
+  applyZone('zone-prediction',      cfg.prediction);
+  applyZone('zone-hypetrain',       cfg.hypetrain);
 
   // ── 3. Composants actifs ─────────────────────────────────────
-  if (cfg.alerts?.enabled     !== false) Alerts.init(cfg.alerts         || {});
-  if (cfg.chat?.enabled       !== false) Chat.init(cfg.chat             || {});
-  if (cfg.goal?.enabled       !== false) Goals.init(cfg.goal            || {});
-  if (cfg.subtrain?.enabled   !== false) SubTrain.init(cfg.subtrain     || {});
-  if (cfg.nowplaying?.enabled !== false) NowPlaying.init(cfg.nowplaying || {});
-  if (cfg.queue?.enabled      !== false) Queue.init(cfg.queue           || {});
+  if (cfg.alerts?.enabled      !== false) Alerts.init(cfg.alerts          || {});
+  if (cfg.chat?.enabled        !== false) Chat.init(cfg.chat              || {});
+  if (cfg.goal?.enabled        !== false) Goals.init(cfg.goal             || {});
+  if (cfg.subtrain?.enabled    !== false) SubTrain.init(cfg.subtrain      || {});
+  if (cfg.nowplaying?.enabled  !== false) NowPlaying.init(cfg.nowplaying  || {});
+  if (cfg.queue?.enabled       !== false) Queue.init(cfg.queue            || {});
+  if (cfg.viewers?.enabled     !== false) ViewerCount.init(cfg.viewers    || {});
+  if (cfg.uptime?.enabled      !== false) Uptime.init(cfg.uptime          || {});
+  if (cfg.session?.enabled     !== false) Session.init(cfg.session        || {});
+  if (cfg.countdown?.enabled   !== false) Countdown.init(cfg.countdown    || {});
+  if (cfg.leaderboard?.enabled !== false) Leaderboard.init(cfg.leaderboard || {});
+  if (cfg.poll?.enabled        !== false) Poll.init(cfg.poll              || {});
+  if (cfg.prediction?.enabled  !== false) Prediction.init(cfg.prediction  || {});
+  if (cfg.hypetrain?.enabled   !== false) HypeTrain.init(cfg.hypetrain    || {});
   LastEvents.init(); // enabled géré via applyZone (hidden si disabled)
 
   // ── 4. Visibilité dynamique ──────────────────────────────────
@@ -113,6 +136,9 @@ function applyVisibility(vis) {
     if (!el || el.dataset.disabled) return; // jamais surcharger un disabled permanent
     if (vis[key] !== undefined) el.hidden = (vis[key] === false);
   });
+  // Barre d'aide (raccourcis clavier)
+  const hint = document.getElementById('test-hint');
+  if (hint && vis.hint !== undefined) hint.hidden = (vis.hint === false);
 }
 
 async function pollVisibility() {

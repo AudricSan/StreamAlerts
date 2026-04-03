@@ -529,6 +529,117 @@
     #toast.ok   { border-color: rgba(46,204,113,0.4); color: var(--green); }
     #toast.err  { border-color: rgba(231,76,60,0.4);  color: var(--red); }
 
+    /* ══════════════════════════════════════════
+       PREVIEW
+    ══════════════════════════════════════════ */
+
+    .preview-wrap {
+      position: relative;
+      width: 100%;
+      overflow: hidden;
+      background: #0a0a0a;
+      border-radius: 4px;
+      border: 1px solid var(--border);
+      margin-top: 6px;
+      cursor: crosshair;
+    }
+
+    .preview-inner {
+      position: relative;
+      width: 1920px;
+      height: 1080px;
+      transform-origin: top left;
+    }
+
+    .preview-grid-line {
+      position: absolute;
+      background: rgba(255,255,255,0.04);
+      pointer-events: none;
+    }
+
+    .preview-zone {
+      position: absolute;
+      border: 2px solid;
+      border-radius: 3px;
+      overflow: hidden;
+      cursor: grab;
+      user-select: none;
+      display: flex;
+      align-items: flex-start;
+      padding: 6px 10px;
+      transition: opacity 0.15s;
+    }
+
+    .preview-zone:active { cursor: grabbing; }
+    .preview-zone.pz-hidden { opacity: 0.3; }
+
+    .preview-zone.pz-selected {
+      outline: 3px solid rgba(255,255,255,0.8);
+      outline-offset: 2px;
+      z-index: 10;
+    }
+
+    .preview-zone-label {
+      font-size: 56px;
+      font-weight: 800;
+      white-space: nowrap;
+      line-height: 1;
+      pointer-events: none;
+    }
+
+    /* ══════════════════════════════════════════
+       HISTORIQUE
+    ══════════════════════════════════════════ */
+
+    .history-list {
+      display: flex;
+      flex-direction: column;
+      gap: 3px;
+      max-height: 380px;
+      overflow-y: auto;
+    }
+
+    .history-list::-webkit-scrollbar { width: 4px; }
+    .history-list::-webkit-scrollbar-thumb { background: var(--surf); border-radius: 2px; }
+
+    .history-entry {
+      display: flex;
+      align-items: center;
+      gap: 7px;
+      padding: 5px 10px;
+      background: var(--surf);
+      border-radius: 4px;
+      border: 1px solid var(--border);
+    }
+
+    .hist-type {
+      font-size: 8px;
+      font-weight: 800;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      padding: 2px 6px;
+      border-radius: 3px;
+      flex-shrink: 0;
+      min-width: 52px;
+      text-align: center;
+    }
+
+    .hist-user { flex: 1; font-weight: 700; font-size: 12px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .hist-detail { font-size: 10px; color: var(--muted); flex-shrink: 0; }
+    .hist-time   { font-size: 10px; color: var(--muted); flex-shrink: 0; }
+
+    /* ══════════════════════════════════════════
+       PROFILS
+    ══════════════════════════════════════════ */
+
+    .profile-row {
+      display: flex;
+      gap: 5px;
+      align-items: center;
+    }
+
+    .profile-row select { flex: 1; }
+
   </style>
 </head>
 <body>
@@ -544,6 +655,7 @@
   <button class="tab" data-tab="music">🎵 Music</button>
   <button class="tab" data-tab="layout">📐 Layout</button>
   <button class="tab" data-tab="cfg">⚙️ Config</button>
+  <button class="tab" data-tab="history">📋 Historique</button>
 </nav>
 
 <main>
@@ -663,6 +775,17 @@
     <div>
       <label>Visibilité</label>
       <div class="vis-grid" id="vis-grid"></div>
+    </div>
+
+    <!-- Aperçu de l'overlay (drag & drop) -->
+    <div>
+      <label style="display:flex;align-items:center;justify-content:space-between;margin-bottom:0">
+        Aperçu de l'overlay
+        <button class="btn-ghost" id="preview-toggle-btn" style="padding:3px 10px;font-size:10px" onclick="togglePreview()">Afficher</button>
+      </label>
+      <div class="preview-wrap" id="preview-wrap" hidden>
+        <div id="preview-inner"></div>
+      </div>
     </div>
 
     <div class="sep"></div>
@@ -794,6 +917,45 @@
 
     <button class="btn-primary btn-block" onclick="saveConfig()">Sauvegarder la config</button>
 
+    <div class="sep"></div>
+    <div class="section-head">Profils</div>
+
+    <div class="profile-row">
+      <select id="profile-select"><option value="">— aucun profil —</option></select>
+      <button class="btn-ghost" onclick="loadProfile()" style="flex-shrink:0">Charger</button>
+    </div>
+    <div class="btn-row">
+      <button class="btn-ghost" onclick="saveProfile()">💾 Enregistrer</button>
+      <button class="btn-ghost" onclick="newProfile()">+ Nouveau</button>
+      <button class="btn-red"   onclick="deleteProfile()">🗑</button>
+    </div>
+
+    <div class="sep"></div>
+    <div class="section-head">Import / Export</div>
+
+    <div class="btn-row">
+      <button class="btn-ghost btn-block" onclick="exportConfig()">⬇ Exporter JSON</button>
+      <label class="btn-ghost btn-block" style="cursor:pointer;display:flex;align-items:center;justify-content:center">
+        ⬆ Importer JSON
+        <input type="file" accept=".json" style="display:none" onchange="importConfig(this)">
+      </label>
+    </div>
+
+  </section>
+
+  <!-- ══ TAB : HISTORIQUE ══════════════════════════════════ -->
+  <section id="tab-history" hidden>
+
+    <div class="section-head" id="history-count">0 alerte enregistrée</div>
+
+    <div class="history-list" id="history-list">
+      <div class="queue-empty">Aucune alerte — en attente d'événements Twitch…</div>
+    </div>
+
+    <div class="btn-row" style="margin-top:4px">
+      <button class="btn-ghost btn-block" onclick="clearHistory()">🗑 Effacer l'historique</button>
+    </div>
+
   </section>
 
 </main>
@@ -814,12 +976,19 @@ let visData = {};
 let visPollTimer = null;
 
 function buildVisGrid() {
-  document.getElementById('vis-grid').innerHTML = ZONES.map(z => `
+  const zonesHtml = ZONES.map(z => `
     <button class="vis-btn vis-on" id="vis-btn-${z.cfgKey}" onclick="toggleVisibility('${z.cfgKey}')">
       <span>${z.label}</span>
       <span class="vis-icon" id="vis-icon-${z.cfgKey}">👁</span>
     </button>
   `).join('');
+  const hintHtml = `
+    <button class="vis-btn vis-on" id="vis-btn-hint" onclick="toggleVisibility('hint')" style="grid-column:1/-1;opacity:0.7">
+      <span>⌨️ Aide (raccourcis)</span>
+      <span class="vis-icon" id="vis-icon-hint">👁</span>
+    </button>
+  `;
+  document.getElementById('vis-grid').innerHTML = zonesHtml + hintHtml;
 }
 
 async function loadVisibility() {
@@ -828,11 +997,12 @@ async function loadVisibility() {
 }
 
 function renderVisGrid() {
-  ZONES.forEach(z => {
-    const btn  = document.getElementById('vis-btn-'  + z.cfgKey);
-    const icon = document.getElementById('vis-icon-' + z.cfgKey);
+  const keys = [...ZONES.map(z => z.cfgKey), 'hint'];
+  keys.forEach(cfgKey => {
+    const btn  = document.getElementById('vis-btn-'  + cfgKey);
+    const icon = document.getElementById('vis-icon-' + cfgKey);
     if (!btn || !icon) return;
-    const on = visData[z.cfgKey] !== false;
+    const on = visData[cfgKey] !== false;
     btn.className    = 'vis-btn ' + (on ? 'vis-on' : 'vis-off');
     icon.textContent = on ? '👁' : '🚫';
   });
@@ -846,8 +1016,8 @@ async function toggleVisibility(cfgKey) {
     await apiWrite('visibility', vis);
     visData = vis;
     renderVisGrid();
-    const z = ZONES.find(z => z.cfgKey === cfgKey);
-    toast(vis[cfgKey] ? `👁 ${z?.label} affiché` : `🚫 ${z?.label} masqué`);
+    const label = cfgKey === 'hint' ? '⌨️ Aide' : ZONES.find(z => z.cfgKey === cfgKey)?.label;
+    toast(vis[cfgKey] ? `👁 ${label} affiché` : `🚫 ${label} masqué`);
   } catch (e) { toast('Erreur', 'err'); }
 }
 
@@ -857,14 +1027,14 @@ async function toggleVisibility(cfgKey) {
 
 const ZONES = [
   {
-    cfgKey: 'alerts', label: '🔔 Alertes', dataFile: 'alert',
+    cfgKey: 'alerts', label: '🔔 Alertes', dataFile: 'alert', color: '#9B59B6',
     extras: [
       { id: 'displayDuration', label: 'Durée d\'affichage (ms)', type: 'number', min: 500, step: 500, placeholder: '5500' },
     ],
     testData: () => ({ type: 'follow', user: 'TestUser', message: '', timestamp: ts() }),
   },
   {
-    cfgKey: 'chat', label: '💬 Chat', hasMaxHeight: true, dataFile: 'chat',
+    cfgKey: 'chat', label: '💬 Chat', hasMaxHeight: true, dataFile: 'chat', color: '#48DBFB',
     extras: [
       { id: 'websocket',         label: 'URL WebSocket',               type: 'text',   placeholder: 'ws://127.0.0.1:8080' },
       { id: 'websocketPassword', label: 'Mot de passe WebSocket',      type: 'password', placeholder: '...' },
@@ -874,34 +1044,66 @@ const ZONES = [
     testData: () => ({ user: 'TestUser', color: '#9B59B6', message: 'Bonjour le chat ! 👋', isMod: false, timestamp: ts() }),
   },
   {
-    cfgKey: 'lastFollower', label: '👤 Last Follow', dataFile: 'last_follower', extras: [],
+    cfgKey: 'lastFollower', label: '👤 Last Follow', dataFile: 'last_follower', color: '#E74C3C', extras: [],
     testData: () => ({ user: 'TestFollower', avatar: '', timestamp: ts() }),
   },
   {
-    cfgKey: 'lastSubscriber', label: '⭐ Last Sub', dataFile: 'last_subscriber', extras: [],
+    cfgKey: 'lastSubscriber', label: '⭐ Last Sub', dataFile: 'last_subscriber', color: '#F1C40F', extras: [],
     testData: () => ({ user: 'TestSub', avatar: '', tier: 'Tier 1', months: 3, timestamp: ts() }),
   },
   {
-    cfgKey: 'goal', label: '🎯 Goal', dataFile: 'goal', extras: [],
+    cfgKey: 'goal', label: '🎯 Goal', dataFile: 'goal', color: '#3498DB', extras: [],
     testData: () => ({ label: 'Test Goal', current: 65, target: 100, type: 'sub', timestamp: ts() }),
   },
   {
-    cfgKey: 'subtrain', label: '🚂 Sub Train', dataFile: 'subtrain',
+    cfgKey: 'subtrain', label: '🚂 Sub Train', dataFile: 'subtrain', color: '#FFA500',
     extras: [
       { id: 'duration', label: 'Durée du train (s)', type: 'number', min: 10, step: 5, placeholder: '60' },
     ],
-    testData: () => ({ count: 5, user: 'TestSub', expiresAt: Date.now() + 60000, timestamp: ts() }),
+    testData: () => ({ count: 5, lastUser: 'TestSub', active: true, expiresAt: Date.now() + 60000, timestamp: ts() }),
   },
   {
-    cfgKey: 'nowplaying', label: '🎵 Musique', dataFile: 'nowplaying', extras: [],
+    cfgKey: 'nowplaying', label: '🎵 Musique', dataFile: 'nowplaying', color: '#00BCD4', extras: [],
     testData: () => ({ title: 'Test Song', artist: 'Test Artist', active: true, timestamp: ts() }),
   },
   {
-    cfgKey: 'queue', label: '👥 Queue', dataFile: 'queue',
+    cfgKey: 'queue', label: '👥 Queue', dataFile: 'queue', color: '#9E9E9E',
     extras: [
       { id: 'maxVisible', label: 'Lignes max (overlay)', type: 'number', min: 1, max: 20, placeholder: '8' },
     ],
     testData: () => ({ isOpen: true, entries: [{user:'GamerPro99'},{user:'FanAcharné'},{user:'SubFidèle'},{user:'NewVenu'}], timestamp: ts() }),
+  },
+  {
+    cfgKey: 'viewers', label: '👁 Spectateurs', dataFile: 'viewers', color: '#9146FF', extras: [],
+    testData: () => ({ count: 142, timestamp: ts() }),
+  },
+  {
+    cfgKey: 'uptime', label: '⏰ Uptime', dataFile: 'uptime', color: '#F39C12', extras: [],
+    testData: () => ({ startedAt: Date.now() - 9240000, timestamp: ts() }),
+  },
+  {
+    cfgKey: 'session', label: '📊 Session', dataFile: 'session', color: '#BDC3C7', extras: [],
+    testData: () => ({ follows: 12, subs: 5, bits: 750, raids: 2, donations: 3, timestamp: ts() }),
+  },
+  {
+    cfgKey: 'countdown', label: '⏱ Countdown', dataFile: 'countdown', color: '#5DADE2', extras: [],
+    testData: () => ({ label: 'Début du jeu', active: true, startedAt: Date.now(), endsAt: Date.now() + 300000, timestamp: ts() }),
+  },
+  {
+    cfgKey: 'leaderboard', label: '🏆 Leaderboard', dataFile: 'leaderboard', color: '#F1C40F', extras: [],
+    testData: () => ({ title: 'Top Bits', entries: [{user:'BigFan',score:5000},{user:'FanFidèle',score:3000},{user:'NewComer',score:950}], timestamp: ts() }),
+  },
+  {
+    cfgKey: 'poll', label: '🗳 Sondage', dataFile: 'poll', color: '#9B59B6', extras: [],
+    testData: () => ({ title: 'Quelle map ?', active: true, startedAt: Date.now(), endsAt: Date.now() + 60000, choices: [{title:'Dust 2',votes:45},{title:'Mirage',votes:30},{title:'Inferno',votes:15}], timestamp: ts() }),
+  },
+  {
+    cfgKey: 'prediction', label: '🔮 Prédiction', dataFile: 'prediction', color: '#3498DB', extras: [],
+    testData: () => ({ title: 'On gagne ?', active: true, startedAt: Date.now(), endsAt: Date.now() + 90000, lockedAt: 0, options: [{title:'Oui!',points:15000},{title:'Non...',points:8000}], timestamp: ts() }),
+  },
+  {
+    cfgKey: 'hypetrain', label: '🚆 Hype Train', dataFile: 'hypetrain', color: '#FF6600', extras: [],
+    testData: () => ({ level: 2, progress: 68, goal: 100, active: true, startedAt: Date.now() - 120000, endsAt: Date.now() + 180000, duration: 300, contributors: [{user:'TopFan',amount:500}], timestamp: ts() }),
   },
 ];
 
@@ -938,6 +1140,7 @@ function toast(msg, type = 'ok') {
 
 let activeTab = 'goal';
 let queuePollTimer = null;
+let historyPollTimer = null;
 
 document.querySelectorAll('.tab').forEach(btn => {
   btn.addEventListener('click', () => {
@@ -948,11 +1151,17 @@ document.querySelectorAll('.tab').forEach(btn => {
     document.getElementById('tab-' + activeTab).hidden = false;
 
     clearInterval(queuePollTimer);
-    if      (activeTab === 'queue')  { loadQueue(); queuePollTimer = setInterval(loadQueue, 2000); }
-    else if (activeTab === 'goal')   loadGoal();
-    else if (activeTab === 'music')  loadNowPlaying();
-    else if (activeTab === 'cfg')    loadConfig();
-    else if (activeTab === 'layout') {
+    clearInterval(historyPollTimer);
+
+    if      (activeTab === 'queue')   { loadQueue(); queuePollTimer = setInterval(loadQueue, 2000); }
+    else if (activeTab === 'goal')    loadGoal();
+    else if (activeTab === 'music')   loadNowPlaying();
+    else if (activeTab === 'cfg')     { loadConfig(); renderProfileSelect(); }
+    else if (activeTab === 'history') {
+      renderHistory();
+      historyPollTimer = setInterval(pollHistory, 2000);
+    }
+    else if (activeTab === 'layout')  {
       loadLayout();
       loadVisibility();
       clearInterval(visPollTimer);
@@ -1354,6 +1563,337 @@ async function saveConfig() {
 function esc(v) {
   if (v == null) return '';
   return String(v).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
+// ════════════════════════════════════════════════════════════
+//  PREVIEW — aperçu de l'overlay + drag & drop
+// ════════════════════════════════════════════════════════════
+
+let previewScale  = 1;
+let previewDrag   = null; // { cfgKey, startClientX, startClientY, startLeft, startTop }
+let previewOpen   = false;
+
+const PREVIEW_HEIGHTS = {
+  alerts:520, chat:900, lastFollower:70, lastSubscriber:70,
+  goal:80, subtrain:70, nowplaying:70, queue:240,
+  viewers:70, uptime:70, session:100, countdown:115,
+  leaderboard:185, poll:210, prediction:215, hypetrain:105,
+};
+
+const DEFAULT_WIDTHS = {
+  alerts:520, chat:360, lastFollower:230, lastSubscriber:230,
+  goal:400, subtrain:260, nowplaying:380, queue:230,
+  viewers:160, uptime:160, session:230, countdown:300,
+  leaderboard:230, poll:380, prediction:320, hypetrain:300,
+};
+
+function togglePreview() {
+  previewOpen = !previewOpen;
+  const wrap = document.getElementById('preview-wrap');
+  const btn  = document.getElementById('preview-toggle-btn');
+  wrap.hidden = !previewOpen;
+  btn.textContent = previewOpen ? 'Masquer' : 'Afficher';
+  if (previewOpen) { computePreviewScale(); renderPreview(); }
+}
+
+function computePreviewScale() {
+  const wrap  = document.getElementById('preview-wrap');
+  const inner = document.getElementById('preview-inner');
+  if (!wrap || !inner) return;
+  previewScale = wrap.clientWidth / 1920;
+  inner.style.transform = `scale(${previewScale})`;
+  wrap.style.height = Math.round(1080 * previewScale) + 'px';
+}
+
+function getZonePixelPos(cfgKey) {
+  const zc = layoutCfg[cfgKey] || {};
+  const w  = zc.width   || DEFAULT_WIDTHS[cfgKey]   || 200;
+  const h  = PREVIEW_HEIGHTS[cfgKey] || 80;
+  const left = zc.left   != null ? zc.left   : (zc.right  != null ? 1920 - zc.right  - w : 0);
+  const top  = zc.top    != null ? zc.top    : (zc.bottom != null ? 1080 - zc.bottom - h : 0);
+  return { left, top, w, h };
+}
+
+function renderPreview() {
+  const inner = document.getElementById('preview-inner');
+  if (!inner) return;
+
+  // Lignes de grille (quarts du canvas)
+  let html = `
+    <div class="preview-grid-line" style="left:480px;top:0;width:1px;height:1080px"></div>
+    <div class="preview-grid-line" style="left:960px;top:0;width:1px;height:1080px"></div>
+    <div class="preview-grid-line" style="left:1440px;top:0;width:1px;height:1080px"></div>
+    <div class="preview-grid-line" style="left:0;top:270px;width:1920px;height:1px"></div>
+    <div class="preview-grid-line" style="left:0;top:540px;width:1920px;height:1px"></div>
+    <div class="preview-grid-line" style="left:0;top:810px;width:1920px;height:1px"></div>
+  `;
+
+  ZONES.forEach(z => {
+    const { left, top, w, h } = getZonePixelPos(z.cfgKey);
+    const visible  = visData[z.cfgKey] !== false;
+    const selected = currentZone?.cfgKey === z.cfgKey;
+    const col      = z.color || '#888';
+
+    html += `
+      <div class="preview-zone${selected ? ' pz-selected' : ''}${!visible ? ' pz-hidden' : ''}"
+           data-key="${z.cfgKey}"
+           style="left:${left}px;top:${top}px;width:${w}px;height:${h}px;
+                  background:${col}22;border-color:${col}${visible ? 'bb' : '44'}">
+        <span class="preview-zone-label" style="color:${col}">${z.label}</span>
+      </div>
+    `;
+  });
+
+  inner.innerHTML = html;
+
+  // Drag & Drop
+  inner.addEventListener('pointerdown', onPreviewPointerDown);
+  inner.addEventListener('pointermove', onPreviewPointerMove);
+  inner.addEventListener('pointerup',   onPreviewPointerUp);
+}
+
+function onPreviewPointerDown(e) {
+  const zoneEl = e.target.closest('.preview-zone');
+  if (!zoneEl) return;
+  e.preventDefault();
+  e.currentTarget.setPointerCapture(e.pointerId);
+
+  const cfgKey = zoneEl.dataset.key;
+  const { left, top } = getZonePixelPos(cfgKey);
+
+  previewDrag = { cfgKey, startClientX: e.clientX, startClientY: e.clientY, startLeft: left, startTop: top };
+  selectZone(cfgKey);
+}
+
+function onPreviewPointerMove(e) {
+  if (!previewDrag) return;
+
+  const dx = (e.clientX - previewDrag.startClientX) / previewScale;
+  const dy = (e.clientY - previewDrag.startClientY) / previewScale;
+  const zc = layoutCfg[previewDrag.cfgKey] || {};
+  const w  = zc.width || DEFAULT_WIDTHS[previewDrag.cfgKey] || 200;
+  const h  = PREVIEW_HEIGHTS[previewDrag.cfgKey] || 80;
+
+  const newLeft = Math.max(0, Math.min(1920 - w, previewDrag.startLeft + dx));
+  const newTop  = Math.max(0, Math.min(1080 - h, previewDrag.startTop  + dy));
+
+  // Mettre à jour les champs de l'éditeur
+  const hVal = hAnchor === 'left' ? Math.round(newLeft) : Math.round(1920 - newLeft - w);
+  const vVal = vAnchor === 'top'  ? Math.round(newTop)  : Math.round(1080 - newTop  - h);
+  document.getElementById('pos-h-val').value = hVal;
+  document.getElementById('pos-v-val').value = vVal;
+
+  // Déplacer visuellement la zone dans le preview
+  const el = document.querySelector(`.preview-zone[data-key="${previewDrag.cfgKey}"]`);
+  if (el) { el.style.left = newLeft + 'px'; el.style.top = newTop + 'px'; }
+}
+
+async function onPreviewPointerUp(e) {
+  if (!previewDrag) return;
+  await savePosition();
+  previewDrag = null;
+  if (previewOpen) renderPreview(); // rafraîchir la sélection
+}
+
+// ════════════════════════════════════════════════════════════
+//  IMPORT / EXPORT
+// ════════════════════════════════════════════════════════════
+
+async function exportConfig() {
+  try {
+    const cfg  = await apiRead('config');
+    const blob = new Blob([JSON.stringify(cfg, null, 2)], { type: 'application/json' });
+    const url  = URL.createObjectURL(blob);
+    const a    = Object.assign(document.createElement('a'), {
+      href: url,
+      download: `streamalerts-config-${new Date().toISOString().slice(0,10)}.json`,
+    });
+    a.click();
+    URL.revokeObjectURL(url);
+    toast('✓ Config exportée');
+  } catch (e) { toast('Erreur export', 'err'); }
+}
+
+function importConfig(input) {
+  const file = input.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = async (ev) => {
+    try {
+      const cfg = JSON.parse(ev.target.result);
+      await apiWrite('config', cfg);
+      layoutCfg = cfg;
+      toast('✓ Config importée — rechargez l\'overlay');
+    } catch (e) { toast('Fichier invalide', 'err'); }
+    input.value = '';
+  };
+  reader.readAsText(file);
+}
+
+// ════════════════════════════════════════════════════════════
+//  PROFILS
+// ════════════════════════════════════════════════════════════
+
+const LS_PROFILES = 'streamalerts_profiles';
+
+function getProfiles() {
+  try { return JSON.parse(localStorage.getItem(LS_PROFILES) || '[]'); }
+  catch { return []; }
+}
+
+function saveProfiles(list) {
+  localStorage.setItem(LS_PROFILES, JSON.stringify(list));
+}
+
+function renderProfileSelect() {
+  const sel   = document.getElementById('profile-select');
+  const list  = getProfiles();
+  const cur   = sel.value;
+  sel.innerHTML = '<option value="">— aucun profil —</option>' +
+    list.map((p, i) => `<option value="${i}" ${String(i) === cur ? 'selected' : ''}>${esc(p.name)}</option>`).join('');
+}
+
+async function saveProfile() {
+  const sel   = document.getElementById('profile-select');
+  const list  = getProfiles();
+  const idx   = parseInt(sel.value, 10);
+  const cfg   = await apiRead('config').catch(() => ({}));
+
+  if (!isNaN(idx) && list[idx]) {
+    list[idx].config = cfg;
+    saveProfiles(list);
+    toast(`✓ Profil "${list[idx].name}" mis à jour`);
+  } else {
+    const name = prompt('Nom du nouveau profil :');
+    if (!name) return;
+    list.push({ name: name.trim(), config: cfg });
+    saveProfiles(list);
+    renderProfileSelect();
+    document.getElementById('profile-select').value = String(list.length - 1);
+    toast(`✓ Profil "${name}" créé`);
+  }
+}
+
+async function loadProfile() {
+  const sel = document.getElementById('profile-select');
+  const idx = parseInt(sel.value, 10);
+  const list = getProfiles();
+  if (isNaN(idx) || !list[idx]) { toast('Sélectionner un profil', 'err'); return; }
+  try {
+    await apiWrite('config', list[idx].config);
+    layoutCfg = list[idx].config;
+    if (currentZone) selectZone(currentZone.cfgKey);
+    if (previewOpen) renderPreview();
+    toast(`✓ Profil "${list[idx].name}" chargé`);
+  } catch (e) { toast('Erreur', 'err'); }
+}
+
+function newProfile() {
+  const name = prompt('Nom du profil :');
+  if (!name) return;
+  const list = getProfiles();
+  list.push({ name: name.trim(), config: {} });
+  saveProfiles(list);
+  renderProfileSelect();
+  document.getElementById('profile-select').value = String(list.length - 1);
+  toast(`✓ Profil "${name}" créé (vide)`);
+}
+
+function deleteProfile() {
+  const sel  = document.getElementById('profile-select');
+  const idx  = parseInt(sel.value, 10);
+  const list = getProfiles();
+  if (isNaN(idx) || !list[idx]) { toast('Sélectionner un profil', 'err'); return; }
+  if (!confirm(`Supprimer le profil "${list[idx].name}" ?`)) return;
+  list.splice(idx, 1);
+  saveProfiles(list);
+  renderProfileSelect();
+  toast('✓ Profil supprimé');
+}
+
+// ════════════════════════════════════════════════════════════
+//  HISTORIQUE DES ALERTES
+// ════════════════════════════════════════════════════════════
+
+const LS_HISTORY  = 'streamalerts_history';
+const MAX_HISTORY = 60;
+let   lastAlertTs = -1;
+
+const HIST_COLORS = {
+  follow:        { bg:'rgba(46,204,113,0.18)',  fg:'#2ECC71' },
+  sub:           { bg:'rgba(241,196,15,0.18)',  fg:'#F1C40F' },
+  resub:         { bg:'rgba(241,196,15,0.18)',  fg:'#F1C40F' },
+  giftsub:       { bg:'rgba(255,165,0,0.18)',   fg:'#FFA500' },
+  raid:          { bg:'rgba(230,126,34,0.18)',  fg:'#E67E22' },
+  bits:          { bg:'rgba(0,188,212,0.18)',   fg:'#00BCD4' },
+  donation:      { bg:'rgba(52,152,219,0.18)',  fg:'#3498DB' },
+  channelpoints: { bg:'rgba(155,89,182,0.18)', fg:'#9B59B6' },
+  hype_train:    { bg:'rgba(255,80,80,0.18)',   fg:'#FF5050' },
+};
+
+function getHistory() {
+  try { return JSON.parse(localStorage.getItem(LS_HISTORY) || '[]'); }
+  catch { return []; }
+}
+
+async function pollHistory() {
+  try {
+    const d = await apiRead('alert');
+    if (!d?.timestamp || d.timestamp === lastAlertTs) return;
+    lastAlertTs = d.timestamp;
+    const hist = getHistory();
+    hist.unshift({ ...d, _addedAt: Date.now() });
+    if (hist.length > MAX_HISTORY) hist.length = MAX_HISTORY;
+    localStorage.setItem(LS_HISTORY, JSON.stringify(hist));
+    renderHistory();
+  } catch (_) {}
+}
+
+function renderHistory() {
+  const list = getHistory();
+  const el   = document.getElementById('history-list');
+  const cnt  = document.getElementById('history-count');
+  if (!el) return;
+
+  cnt.textContent = `${list.length} alerte${list.length !== 1 ? 's' : ''} cette session`;
+
+  if (list.length === 0) {
+    el.innerHTML = '<div class="queue-empty">Aucune alerte — en attente d\'événements Twitch…</div>';
+    return;
+  }
+
+  el.innerHTML = list.map(a => {
+    const type = a.type || 'unknown';
+    const col  = HIST_COLORS[type] || { bg:'rgba(255,255,255,0.08)', fg:'#aaa' };
+    const ago  = fmtAgo(a._addedAt);
+    let detail = '';
+    if (a.amount) detail = `+${a.amount}`;
+    else if (a.months) detail = `${a.months} mois`;
+    return `
+      <div class="history-entry">
+        <span class="hist-type" style="background:${col.bg};color:${col.fg}">${esc(type)}</span>
+        <span class="hist-user">${esc(a.user || '—')}</span>
+        ${detail ? `<span class="hist-detail">${esc(detail)}</span>` : ''}
+        <span class="hist-time">${ago}</span>
+      </div>
+    `;
+  }).join('');
+}
+
+function fmtAgo(ts) {
+  if (!ts) return '';
+  const s = Math.floor((Date.now() - ts) / 1000);
+  if (s < 60)   return `il y a ${s}s`;
+  if (s < 3600) return `il y a ${Math.floor(s/60)}min`;
+  return `il y a ${Math.floor(s/3600)}h`;
+}
+
+function clearHistory() {
+  if (!confirm('Effacer tout l\'historique ?')) return;
+  localStorage.removeItem(LS_HISTORY);
+  lastAlertTs = -1;
+  renderHistory();
+  toast('✓ Historique effacé');
 }
 
 // ── Init ─────────────────────────────────────────────────────

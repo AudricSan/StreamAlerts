@@ -14,6 +14,8 @@ const ALLOWED = [
     'goal', 'subtrain', 'nowplaying', 'queue',
     'last_follower', 'last_subscriber',
     'visibility',
+    'viewers', 'uptime', 'session', 'countdown',
+    'leaderboard', 'poll', 'prediction', 'hypetrain',
 ];
 
 $DATA_DIR = realpath(__DIR__ . '/../overlay/data');
