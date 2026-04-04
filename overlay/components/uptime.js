@@ -2,55 +2,45 @@
 
 /* ============================================================
    Composant : Uptime / Durée du stream
-   Affiche le temps écoulé depuis le début du stream.
-   La carte se met à jour chaque seconde de façon autonome.
-
    Expose : window.Uptime  →  { init() }
-   Zone HTML  : #zone-uptime
-   Données    : data/uptime.json  (startedAt = timestamp UNIX ms)
-   Test       : touche I
+   Zone    : #zone-uptime  |  Données : data/uptime.json
+   Test    : touche I
    ============================================================ */
 
-const Uptime = (() => {
-
-  const POLL_INTERVAL = 60000; // 60s — recharge startedAt (change peu souvent)
-  const TICK_INTERVAL = 1000;  // 1s — met à jour l'affichage
-
-  // ── ÉTAT ────────────────────────────────────────────────────
-
-  let zone;
-  let startedAt     = 0;
-  let lastTimestamp = -1;
-  let tickTimer     = null;
-
-  // ── POLLING ─────────────────────────────────────────────────
-
-  async function poll() {
-    try {
-      const res = await fetch(`data/uptime.json?t=${Date.now()}`);
-      if (!res.ok) return;
-      const data = await res.json();
-      if (!data || data.timestamp === lastTimestamp) return;
-      lastTimestamp = data.timestamp;
-      startedAt     = data.startedAt || 0;
-
-      if (!startedAt) {
-        zone.innerHTML = '';
-        stopTick();
-        return;
-      }
-
-      renderShell();
-      renderTime();
-      startTick();
-    } catch (_) {}
+class UptimeComponent extends BaseComponent {
+  constructor() {
+    super({
+      name:         'uptime',
+      zoneId:       'zone-uptime',
+      dataFile:     'uptime.json',
+      pollInterval: 60000,
+      testKey:      'i',
+      testData:     [{ startedAt: Date.now() - 9240000, timestamp: 1 }], // ~2h34m
+    });
+    this._startedAt = 0;
+    this._tickTimer = null;
   }
 
-  // ── RENDU ────────────────────────────────────────────────────
+  // testData est dynamique (startedAt = maintenant - N)
+  getTestData() {
+    return { startedAt: Date.now() - 9240000, timestamp: Date.now() };
+  }
 
-  function renderShell() {
-    if (zone.querySelector('.uptime-card')) return;
-    zone.innerHTML = `
+  onData(data) {
+    this._startedAt = data.startedAt || 0;
+    if (!this._startedAt) {
+      this._stopTick();
+      this.clear();
+      return;
+    }
+    this._renderShell();
+    this._renderTime();
+    this._startTick();
+  }
+
+  _renderShell() {
+    if (this.zone.querySelector('.uptime-card')) return;
+    this.zone.innerHTML = `
       <div class="uptime-card">
         <div class="uptime-accent"></div>
         <div class="uptime-inner">
@@ -64,54 +54,20 @@ const Uptime = (() => {
     `;
   }
 
-  function renderTime() {
-    if (!startedAt) return;
+  _renderTime() {
     const el = document.getElementById('uptime-value');
-    if (!el) return;
-
-    const elapsed = Math.max(0, Date.now() - startedAt);
-    const h = Math.floor(elapsed / 3600000);
-    const m = Math.floor((elapsed % 3600000) / 60000);
-    const s = Math.floor((elapsed % 60000) / 1000);
-
-    el.textContent = h > 0
-      ? `${h}h ${String(m).padStart(2, '0')}m`
-      : `${m}m ${String(s).padStart(2, '0')}s`;
+    if (!el || !this._startedAt) return;
+    el.textContent = formatUptime(Date.now() - this._startedAt);
   }
 
-  // ── TICK ─────────────────────────────────────────────────────
-
-  function startTick() {
-    stopTick();
-    tickTimer = setInterval(renderTime, TICK_INTERVAL);
+  _startTick() {
+    this._stopTick();
+    this._tickTimer = setInterval(() => this._renderTime(), 1000);
   }
 
-  function stopTick() {
-    if (tickTimer) { clearInterval(tickTimer); tickTimer = null; }
+  _stopTick() {
+    if (this._tickTimer) { clearInterval(this._tickTimer); this._tickTimer = null; }
   }
+}
 
-  // ── MODE TEST (touche I) ─────────────────────────────────────
-
-  function onKeyDown(e) {
-    if (e.key.toLowerCase() !== 'i') return;
-    if (e.ctrlKey || e.altKey || e.metaKey) return;
-    const ts   = Date.now();
-    lastTimestamp = ts;
-    startedAt     = ts - 9240000; // 2h 34m
-    renderShell();
-    renderTime();
-    startTick();
-  }
-
-  // ── INIT ─────────────────────────────────────────────────────
-
-  function init(cfg = {}) {
-    zone = document.getElementById('zone-uptime');
-    poll();
-    setInterval(poll, POLL_INTERVAL);
-    document.addEventListener('keydown', onKeyDown);
-  }
-
-  return { init };
-
-})();
+window.Uptime = new UptimeComponent();

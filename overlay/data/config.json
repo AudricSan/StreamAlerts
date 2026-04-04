@@ -3,8 +3,8 @@
         "displayDuration": 5500,
         "enabled": true,
         "opacity": 100,
-        "left": 633,
-        "bottom": 293,
+        "left": 628,
+        "bottom": 216,
         "width": 600
     },
     "chat": {
@@ -14,106 +14,108 @@
         "websocketPassword": "uZS0LLd2W6eL5y1m",
         "enabled": true,
         "opacity": 100,
-        "right": 123,
-        "bottom": 66,
+        "right": 90,
+        "bottom": 16,
         "width": 360,
         "maxHeight": 1500
     },
     "lastFollower": {
         "enabled": true,
         "opacity": 100,
-        "left": 770,
-        "bottom": 325,
+        "left": 0,
+        "bottom": 224,
         "width": 230
     },
     "lastSubscriber": {
         "enabled": true,
-        "left": 837,
-        "bottom": 342,
-        "width": 230,
-        "opacity": 100
+        "opacity": 100,
+        "left": 0,
+        "bottom": 309,
+        "width": 230
     },
     "goal": {
         "enabled": true,
         "opacity": 100,
-        "left": 680,
-        "top": 395,
+        "left": 1003,
+        "top": 21,
         "width": 400
     },
     "nowplaying": {
         "enabled": true,
-        "left": 642,
-        "bottom": 380,
-        "width": 380,
-        "opacity": 100
+        "opacity": 100,
+        "left": 405,
+        "bottom": 884,
+        "width": 380
     },
     "subtrain": {
         "duration": 60,
         "enabled": true,
-        "right": 877,
-        "top": 411,
-        "width": 260,
-        "opacity": 100
+        "opacity": 100,
+        "right": 856,
+        "top": 128,
+        "width": 260
     },
     "queue": {
         "enabled": true,
         "opacity": 100,
-        "left": 753,
-        "top": 369,
+        "left": 0,
+        "top": 453,
         "width": 230
     },
     "viewers": {
         "enabled": true,
-        "right": 913,
-        "top": 331,
-        "width": 160,
-        "opacity": 100
+        "opacity": 100,
+        "right": 1361,
+        "top": 25,
+        "width": 160
     },
     "uptime": {
         "enabled": true,
-        "right": 938,
-        "top": 396,
-        "width": 160,
-        "opacity": 100
+        "opacity": 100,
+        "right": 1184,
+        "top": 26,
+        "width": 160
     },
     "session": {
         "enabled": true,
         "opacity": 100,
-        "left": 656,
-        "top": 464,
+        "left": 757,
+        "top": 18,
         "width": 230
     },
     "countdown": {
-        "top": 450,
-        "left": 660,
-        "width": 300
+        "enabled": true,
+        "left": 1533,
+        "top": 24,
+        "width": 300,
+        "opacity": 100
     },
     "leaderboard": {
         "enabled": true,
         "opacity": 100,
-        "left": 695,
-        "top": 422,
+        "left": 0,
+        "top": 259,
         "width": 230
     },
     "poll": {
         "enabled": true,
-        "left": 904,
-        "top": 283,
-        "width": 380,
-        "opacity": 100
+        "opacity": 100,
+        "left": 0,
+        "top": 30,
+        "width": 380
     },
     "prediction": {
         "enabled": true,
-        "right": 650,
-        "top": 415,
-        "width": 320,
-        "opacity": 100
+        "opacity": 100,
+        "right": 1600,
+        "top": 865,
+        "width": 320
     },
     "hypetrain": {
         "enabled": true,
-        "right": 704,
-        "top": 520,
-        "width": 300,
-        "opacity": 100
+        "opacity": 100,
+        "right": 548,
+        "top": 125,
+        "width": 300
     }
 }

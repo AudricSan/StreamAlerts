@@ -1,10 +1,7 @@
-﻿{
-  "user":          "audric_san",
-  "color":         "#5F9EA0",
-  "message":       "!clear",
-  "isSub":         false,
-  "isMod":         true,
-  "isVip":         false,
-  "isBroadcaster": false,
-  "timestamp":     1775228102579
+{
+    "user": "TestUser",
+    "color": "#9B59B6",
+    "message": "Bonjour le chat ! 👋",
+    "isMod": false,
+    "timestamp": 1775295051
 }

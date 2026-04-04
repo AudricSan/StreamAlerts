@@ -1,183 +1,103 @@
 'use strict';
 
 /* ============================================================
-   StreamAlerts — Point d'entrée unique
-
-   Ordre de démarrage :
-     1. Chargement de data/config.json
-     2. Application des positions/tailles sur chaque zone
-     3. Initialisation des composants actifs
-     4. Polling de data/visibility.json (show/hide runtime)
-
-   Commandes chat (modérateur/broadcaster) :
-     !show   <composant>   — afficher
-     !hide   <composant>   — masquer
-     !toggle <composant>   — basculer
-   Détectées dans chat.js → window.StreamAlerts.handleVisibilityCmd()
+   StreamAlerts — Bootstrap
+   Charge la config, positionne les zones, initialise les
+   composants actifs, démarre la visibilité dynamique.
    ============================================================ */
 
-// ── Correspondance cfgKey → zone HTML + alias commandes ──────
+// ── Définition des zones (id DOM + alias commandes chat) ──────
 
-const ZONE_MAP = {
-  alerts:         { id: 'zone-alerts',         aliases: ['alerts','alertes','alerte','alert'] },
-  chat:           { id: 'zone-chat',            aliases: ['chat'] },
-  lastFollower:   { id: 'zone-last-follower',   aliases: ['follower','follow','lastfollow','lastfollower'] },
-  lastSubscriber: { id: 'zone-last-subscriber', aliases: ['sub','subscriber','lastsub','lastsubscriber','abonne'] },
-  goal:           { id: 'zone-goal',            aliases: ['goal','objectif'] },
-  subtrain:       { id: 'zone-subtrain',        aliases: ['train','subtrain'] },
-  nowplaying:     { id: 'zone-nowplaying',      aliases: ['music','musique','nowplaying','chanson'] },
-  queue:          { id: 'zone-queue',           aliases: ['queue','file'] },
-  viewers:        { id: 'zone-viewers',         aliases: ['viewers','spectateurs'] },
-  uptime:         { id: 'zone-uptime',          aliases: ['uptime','duree','direct'] },
-  session:        { id: 'zone-session',         aliases: ['session','stats'] },
-  countdown:      { id: 'zone-countdown',       aliases: ['countdown','compte','timer'] },
-  leaderboard:    { id: 'zone-leaderboard',     aliases: ['leaderboard','top','classement'] },
-  poll:           { id: 'zone-poll',            aliases: ['poll','vote','sondage'] },
-  prediction:     { id: 'zone-prediction',      aliases: ['prediction','pari'] },
-  hypetrain:      { id: 'zone-hypetrain',       aliases: ['hypetrain','hype'] },
+const ZONE_DEFS = {
+  alerts:         { id: 'zone-alerts',          aliases: ['alerts','alertes','alerte','alert'] },
+  chat:           { id: 'zone-chat',             aliases: ['chat'] },
+  lastFollower:   { id: 'zone-last-follower',    aliases: ['follower','follow','lastfollow','lastfollower'] },
+  lastSubscriber: { id: 'zone-last-subscriber',  aliases: ['sub','subscriber','lastsub','lastsubscriber','abonne'] },
+  goal:           { id: 'zone-goal',             aliases: ['goal','objectif'] },
+  subtrain:       { id: 'zone-subtrain',         aliases: ['train','subtrain'] },
+  nowplaying:     { id: 'zone-nowplaying',       aliases: ['music','musique','nowplaying','chanson'] },
+  queue:          { id: 'zone-queue',            aliases: ['queue','file'] },
+  viewers:        { id: 'zone-viewers',          aliases: ['viewers','spectateurs'] },
+  uptime:         { id: 'zone-uptime',           aliases: ['uptime','duree','direct'] },
+  session:        { id: 'zone-session',          aliases: ['session','stats'] },
+  countdown:      { id: 'zone-countdown',        aliases: ['countdown','compte','timer'] },
+  leaderboard:    { id: 'zone-leaderboard',      aliases: ['leaderboard','top','classement'] },
+  poll:           { id: 'zone-poll',             aliases: ['poll','vote','sondage'] },
+  prediction:     { id: 'zone-prediction',       aliases: ['prediction','pari'] },
+  hypetrain:      { id: 'zone-hypetrain',        aliases: ['hypetrain','hype'] },
 };
 
-// Table alias → cfgKey (utilisée par handleVisibilityCmd)
-const ALIAS_MAP = {};
-Object.entries(ZONE_MAP).forEach(([key, {aliases}]) =>
-  aliases.forEach(a => { ALIAS_MAP[a] = key; }));
+// ── Registre des composants (cfgKey → instance) ───────────────
+
+const COMPONENTS = {
+  alerts:         window.Alerts,
+  chat:           window.Chat,
+  lastFollower:   window.LastFollower,
+  lastSubscriber: window.LastSubscriber,
+  goal:           window.Goals,
+  subtrain:       window.SubTrain,
+  nowplaying:     window.NowPlaying,
+  queue:          window.Queue,
+  viewers:        window.ViewerCount,
+  uptime:         window.Uptime,
+  session:        window.Session,
+  countdown:      window.Countdown,
+  leaderboard:    window.Leaderboard,
+  poll:           window.Poll,
+  prediction:     window.Prediction,
+  hypetrain:      window.HypeTrain,
+};
+
+// ── Démarrage ─────────────────────────────────────────────────
 
 document.addEventListener('DOMContentLoaded', async () => {
 
-  // ── 1. Config ────────────────────────────────────────────────
-  const cfg = await loadConfig();
+  // 1. Charger la configuration
+  const cfg = await Config.load();
 
-  // ── 2. Positionnement des zones ──────────────────────────────
-  applyZone('zone-alerts',          cfg.alerts);
-  applyZone('zone-chat',            cfg.chat);
-  applyZone('zone-last-follower',   cfg.lastFollower);
-  applyZone('zone-last-subscriber', cfg.lastSubscriber);
-  applyZone('zone-goal',            cfg.goal);
-  applyZone('zone-subtrain',        cfg.subtrain);
-  applyZone('zone-nowplaying',      cfg.nowplaying);
-  applyZone('zone-queue',           cfg.queue);
-  applyZone('zone-viewers',         cfg.viewers);
-  applyZone('zone-uptime',          cfg.uptime);
-  applyZone('zone-session',         cfg.session);
-  applyZone('zone-countdown',       cfg.countdown);
-  applyZone('zone-leaderboard',     cfg.leaderboard);
-  applyZone('zone-poll',            cfg.poll);
-  applyZone('zone-prediction',      cfg.prediction);
-  applyZone('zone-hypetrain',       cfg.hypetrain);
+  // 2. Positionner toutes les zones
+  Object.entries(ZONE_DEFS).forEach(([key, { id }]) => {
+    _applyZone(id, cfg[key]);
+  });
 
-  // ── 3. Composants actifs ─────────────────────────────────────
-  if (cfg.alerts?.enabled      !== false) Alerts.init(cfg.alerts          || {});
-  if (cfg.chat?.enabled        !== false) Chat.init(cfg.chat              || {});
-  if (cfg.goal?.enabled        !== false) Goals.init(cfg.goal             || {});
-  if (cfg.subtrain?.enabled    !== false) SubTrain.init(cfg.subtrain      || {});
-  if (cfg.nowplaying?.enabled  !== false) NowPlaying.init(cfg.nowplaying  || {});
-  if (cfg.queue?.enabled       !== false) Queue.init(cfg.queue            || {});
-  if (cfg.viewers?.enabled     !== false) ViewerCount.init(cfg.viewers    || {});
-  if (cfg.uptime?.enabled      !== false) Uptime.init(cfg.uptime          || {});
-  if (cfg.session?.enabled     !== false) Session.init(cfg.session        || {});
-  if (cfg.countdown?.enabled   !== false) Countdown.init(cfg.countdown    || {});
-  if (cfg.leaderboard?.enabled !== false) Leaderboard.init(cfg.leaderboard || {});
-  if (cfg.poll?.enabled        !== false) Poll.init(cfg.poll              || {});
-  if (cfg.prediction?.enabled  !== false) Prediction.init(cfg.prediction  || {});
-  if (cfg.hypetrain?.enabled   !== false) HypeTrain.init(cfg.hypetrain    || {});
-  LastEvents.init(); // enabled géré via applyZone (hidden si disabled)
+  // 3. Initialiser les composants actifs
+  Object.entries(COMPONENTS).forEach(([key, component]) => {
+    if (!component) return;
+    if (Config.isEnabled(key)) {
+      component.init(Config.get(key));
+    }
+  });
 
-  // ── 4. Visibilité dynamique ──────────────────────────────────
-  await pollVisibility();
-  setInterval(pollVisibility, 1500);
+  // 4. Mettre à jour la barre de hint avec les touches enregistrées
+  Keyboard.updateHint();
 
+  // 5. Démarrer la visibilité dynamique
+  Visibility.init(ZONE_DEFS);
+
+  Log.info('Bootstrap', 'StreamAlerts prêt');
 });
 
-// ── Chargement du fichier de configuration ───────────────────
-
-async function loadConfig() {
-  try {
-    const res = await fetch(`data/config.json?t=${Date.now()}`);
-    if (res.ok) return await res.json();
-  } catch (_) {}
-  console.warn('[StreamAlerts] config.json introuvable — positions par défaut utilisées.');
-  return {};
-}
-
-// ── Application d'une zone depuis la config ──────────────────
+// ── Application CSS d'une zone depuis la config ───────────────
 //
 //  Propriétés de position (px) : top · bottom · left · right
 //  Propriétés de taille   (px) : width · height · maxHeight
-//  Opacité                     : opacity (0-100)
-//  Désactivation permanente    : enabled: false
+//  Opacité                     : opacity (0→100 converti en 0→1)
+//  Désactivation permanente    : enabled: false  (non surchargeable)
 
-function applyZone(id, cfg) {
+function _applyZone(id, cfg) {
   const el = document.getElementById(id);
   if (!el || !cfg) return;
 
-  const PX_PROPS = ['top', 'bottom', 'left', 'right', 'width', 'height', 'maxHeight'];
-  PX_PROPS.forEach(prop => {
+  ['top', 'bottom', 'left', 'right', 'width', 'height', 'maxHeight'].forEach(prop => {
     if (cfg[prop] == null) return;
-    const cssProp = prop.replace(/([A-Z])/g, c => `-${c.toLowerCase()}`);
-    const val = cfg[prop];
-    el.style[cssProp] = typeof val === 'number' ? `${val}px` : String(val);
+    const cssProp = prop.replace(/[A-Z]/g, c => `-${c.toLowerCase()}`);
+    el.style[cssProp] = typeof cfg[prop] === 'number' ? `${cfg[prop]}px` : String(cfg[prop]);
   });
 
-  // Opacité (0-100 → 0-1)
   if (cfg.opacity != null) el.style.opacity = cfg.opacity / 100;
 
-  // Désactivation permanente (enabled: false) — non surchargeable par visibility.json
   if (cfg.enabled === false) {
     el.hidden = true;
-    el.dataset.disabled = '1';
+    el.dataset.disabled = '1'; // jamais surchargeable par visibility.json
   }
 }
-
-// ── Visibilité dynamique (data/visibility.json) ──────────────
-
-function applyVisibility(vis) {
-  Object.entries(ZONE_MAP).forEach(([key, {id}]) => {
-    const el = document.getElementById(id);
-    if (!el || el.dataset.disabled) return; // jamais surcharger un disabled permanent
-    if (vis[key] !== undefined) el.hidden = (vis[key] === false);
-  });
-  // Barre d'aide (raccourcis clavier)
-  const hint = document.getElementById('test-hint');
-  if (hint && vis.hint !== undefined) hint.hidden = (vis.hint === false);
-}
-
-async function pollVisibility() {
-  try {
-    const res = await fetch(`data/visibility.json?t=${Date.now()}`);
-    if (!res.ok) return;
-    applyVisibility(await res.json());
-  } catch (_) {}
-}
-
-// ── Interface globale — utilisée par chat.js ─────────────────
-//
-//  Appelée quand un modérateur tape !show / !hide / !toggle dans le chat.
-//  Met à jour visibility.json via l'API puis applique immédiatement.
-
-window.StreamAlerts = {
-
-  async handleVisibilityCmd(action, name) {
-    const cfgKey = ALIAS_MAP[name.toLowerCase()];
-    if (!cfgKey) return;
-
-    try {
-      const res = await fetch(`data/visibility.json?t=${Date.now()}`);
-      const vis  = res.ok ? await res.json() : {};
-
-      const current = vis[cfgKey] !== false;
-      if      (action === 'show')   vis[cfgKey] = true;
-      else if (action === 'hide')   vis[cfgKey] = false;
-      else                          vis[cfgKey] = !current; // toggle
-
-      applyVisibility(vis);
-
-      // Persiste la modification dans le fichier
-      await fetch('../config/api.php?action=write&file=visibility', {
-        method:  'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body:    JSON.stringify(vis),
-      });
-    } catch (_) {}
-  },
-
-};

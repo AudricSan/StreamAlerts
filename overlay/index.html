@@ -12,7 +12,7 @@
 <body>
 
   <!-- ═══════════════════════════════════════════════════
-       ZONE : Alertes Twitch — bas centre
+       ZONE : Alertes Twitch
        Données : data/alert.json
   ════════════════════════════════════════════════════ -->
   <div id="zone-alerts">
@@ -20,43 +20,43 @@
   </div>
 
   <!-- ═══════════════════════════════════════════════════
-       ZONE : Chat overlay — droite
-       Données : data/chat.json
+       ZONE : Chat overlay
+       Données : data/chat.json (fallback WebSocket)
   ════════════════════════════════════════════════════ -->
   <div id="zone-chat"></div>
 
   <!-- ═══════════════════════════════════════════════════
-       ZONE : Dernier follow — bas gauche
+       ZONE : Dernier follow
        Données : data/last_follower.json
   ════════════════════════════════════════════════════ -->
   <div id="zone-last-follower"></div>
 
   <!-- ═══════════════════════════════════════════════════
-       ZONE : Dernier sub — bas gauche (au-dessus du follow)
+       ZONE : Dernier sub
        Données : data/last_subscriber.json
   ════════════════════════════════════════════════════ -->
   <div id="zone-last-subscriber"></div>
 
   <!-- ═══════════════════════════════════════════════════
-       ZONE : Objectif / Goal tracker — haut centre
+       ZONE : Objectif / Goal tracker
        Données : data/goal.json
   ════════════════════════════════════════════════════ -->
   <div id="zone-goal"></div>
 
   <!-- ═══════════════════════════════════════════════════
-       ZONE : Sub Train — haut droite
+       ZONE : Sub Train
        Données : data/subtrain.json
   ════════════════════════════════════════════════════ -->
   <div id="zone-subtrain"></div>
 
   <!-- ═══════════════════════════════════════════════════
-       ZONE : Musique en cours — bas gauche
+       ZONE : Musique en cours
        Données : data/nowplaying.json
   ════════════════════════════════════════════════════ -->
   <div id="zone-nowplaying"></div>
 
   <!-- ═══════════════════════════════════════════════════
-       ZONE : Queue viewers — haut gauche
+       ZONE : Queue viewers
        Données : data/queue.json
   ════════════════════════════════════════════════════ -->
   <div id="zone-queue"></div>
@@ -109,13 +109,45 @@
   ════════════════════════════════════════════════════ -->
   <div id="zone-hypetrain"></div>
 
-  <!-- Indicateur de test (non visible dans OBS) -->
-  <div id="test-hint"><kbd>T</kbd> alertes &nbsp;·&nbsp; <kbd>C</kbd> chat &nbsp;·&nbsp; <kbd>L</kbd> last &nbsp;·&nbsp; <kbd>G</kbd> goal &nbsp;·&nbsp; <kbd>S</kbd> train &nbsp;·&nbsp; <kbd>N</kbd> music &nbsp;·&nbsp; <kbd>U</kbd> queue &nbsp;·&nbsp; <kbd>V</kbd> viewers &nbsp;·&nbsp; <kbd>I</kbd> uptime &nbsp;·&nbsp; <kbd>E</kbd> session &nbsp;·&nbsp; <kbd>D</kbd> countdown &nbsp;·&nbsp; <kbd>B</kbd> top &nbsp;·&nbsp; <kbd>O</kbd> poll &nbsp;·&nbsp; <kbd>P</kbd> prediction &nbsp;·&nbsp; <kbd>H</kbd> hype</div>
+  <!-- Barre de raccourcis (generée par Keyboard.updateHint) -->
+  <div id="test-hint"></div>
 
-  <!-- ── Composants actifs ── -->
+  <!-- ══════════════════════════════════════════════════════
+       SCRIPTS — ordre de chargement obligatoire :
+         1. core/      fondations (Log, Bus, Config, Store, BaseComponent)
+         2. utils/     fonctions pures (esc, formatCountdown, color)
+         3. services/  I/O partagée (Poller, WS, Visibility)
+         4. dev/       outils de debug (chargés toujours, actifs si ?debug=1)
+         5. components/  logique métier + rendu
+         6. script.js  bootstrap final
+  ════════════════════════════════════════════════════════ -->
+
+  <!-- 1. CORE -->
+  <script src="core/logger.js"></script>
+  <script src="core/event-bus.js"></script>
+  <script src="core/config-manager.js"></script>
+  <script src="core/state-store.js"></script>
+  <script src="core/base-component.js"></script>
+
+  <!-- 2. UTILS -->
+  <script src="utils/dom.js"></script>
+  <script src="utils/time.js"></script>
+  <script src="utils/color.js"></script>
+
+  <!-- 3. SERVICES -->
+  <script src="services/polling-manager.js"></script>
+  <script src="services/websocket-manager.js"></script>
+  <script src="services/visibility-manager.js"></script>
+
+  <!-- 4. DEV (actif uniquement si ?debug=1 dans l'URL) -->
+  <script src="dev/keyboard-tester.js"></script>
+  <script src="dev/debug-panel.js"></script>
+
+  <!-- 5. COMPONENTS -->
   <script src="components/alerts.js"></script>
   <script src="components/chat.js"></script>
-  <script src="components/lastevents.js"></script>
+  <script src="components/last-follower.js"></script>
+  <script src="components/last-subscriber.js"></script>
   <script src="components/goals.js"></script>
   <script src="components/subtrain.js"></script>
   <script src="components/nowplaying.js"></script>
@@ -129,7 +161,7 @@
   <script src="components/prediction.js"></script>
   <script src="components/hypetrain.js"></script>
 
-  <!-- Point d'entrée — initialise tous les composants -->
+  <!-- 6. BOOTSTRAP -->
   <script src="script.js"></script>
 
 </body>

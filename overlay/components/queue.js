@@ -2,55 +2,46 @@
 
 /* ============================================================
    Composant : Queue Viewers
-   Liste des viewers en file d'attente pour jouer.
-
-   Commandes chat (Streamer.bot) :
-     !join             → rejoindre (si queue ouverte)
-     !leave            → partir
-     !next             → (mod/broadcaster) passer au suivant
-     !queue open/close → (mod/broadcaster) ouvrir / fermer
-     !queue clear      → (mod/broadcaster) vider
-
    Expose : window.Queue  →  { init() }
-   Zone HTML  : #zone-queue
-   Données    : data/queue.json
-   Test       : touche U (evite conflit avec Q=quitter)
+   Zone    : #zone-queue  |  Données : data/queue.json
+   Test    : touche U
    ============================================================ */
 
-const Queue = (() => {
-
-  const POLL_INTERVAL = 1000;
-  let   maxVisible    = 8;
-
-  // ── ÉTAT ────────────────────────────────────────────────────
-
-  let zone;
-  let lastTimestamp = -1;
-
-  // ── POLLING ─────────────────────────────────────────────────
-
-  async function poll() {
-    try {
-      const res = await fetch(`data/queue.json?t=${Date.now()}`);
-      if (!res.ok) return;
-      const data = await res.json();
-      if (!data || data.timestamp === lastTimestamp) return;
-      lastTimestamp = data.timestamp;
-
-      const hasContent = data.isOpen || (data.entries && data.entries.length > 0);
-      if (!hasContent) { zone.innerHTML = ''; return; }
-      render(data);
-    } catch (_) {}
+class QueueComponent extends BaseComponent {
+  constructor() {
+    super({
+      name:         'queue',
+      zoneId:       'zone-queue',
+      dataFile:     'queue.json',
+      pollInterval: 1000,
+      testKey:      'u',
+      testData: [{
+        isOpen:  true,
+        entries: [
+          { user: 'GamerPro99'    },
+          { user: 'FanAcharné'    },
+          { user: 'SubFidèle'     },
+          { user: 'NouveauJoueur' },
+        ],
+        timestamp: 1,
+      }],
+    });
+    this._maxVisible = 8;
   }
 
-  // ── RENDU ────────────────────────────────────────────────────
+  setup(cfg) {
+    this._maxVisible = cfg.maxVisible || 8;
+  }
 
-  function render(data) {
+  onData(data) {
+    const hasContent = data.isOpen || (data.entries && data.entries.length > 0);
+    if (!hasContent) { this.clear(); return; }
+
     const all     = data.entries || [];
-    const entries = all.slice(0, maxVisible);
-    const more    = all.length - maxVisible;
+    const entries = all.slice(0, this._maxVisible);
+    const more    = all.length - this._maxVisible;
 
-    zone.innerHTML = `
+    this.zone.innerHTML = `
       <div class="queue-card">
         <div class="queue-header">
           <span class="queue-title">QUEUE</span>
@@ -73,42 +64,6 @@ const Queue = (() => {
       </div>
     `;
   }
+}
 
-  // ── MODE TEST (touche U) ─────────────────────────────────────
-
-  function onKeyDown(e) {
-    if (e.key.toLowerCase() !== 'u') return;
-    if (e.ctrlKey || e.altKey || e.metaKey) return;
-    lastTimestamp = Date.now();
-    render({
-      isOpen:  true,
-      entries: [
-        { user: 'GamerPro99' },
-        { user: 'FanAcharné' },
-        { user: 'SubFidèle' },
-        { user: 'NouveauJoueur' },
-      ],
-      timestamp: lastTimestamp,
-    });
-  }
-
-  // ── UTILITAIRES ──────────────────────────────────────────────
-
-  function esc(v) {
-    if (v == null) return '';
-    return String(v).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
-  }
-
-  // ── INIT ─────────────────────────────────────────────────────
-
-  function init(cfg = {}) {
-    zone        = document.getElementById('zone-queue');
-    maxVisible  = cfg.maxVisible || 8;
-    poll();
-    setInterval(poll, POLL_INTERVAL);
-    document.addEventListener('keydown', onKeyDown);
-  }
-
-  return { init };
-
-})();
+window.Queue = new QueueComponent();

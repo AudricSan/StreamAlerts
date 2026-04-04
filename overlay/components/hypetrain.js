@@ -1,55 +1,58 @@
 'use strict';
 
 /* ============================================================
-   Composant : Hype Train (temps réel)
-   Barre de progression du Hype Train actif.
-   Différent de l'alerte : persistant pendant tout le train.
-
+   Composant : Hype Train (persistant pendant tout le train)
    Expose : window.HypeTrain  →  { init() }
-   Zone HTML  : #zone-hypetrain
-   Données    : data/hypetrain.json
-   Test       : touche H
+   Zone    : #zone-hypetrain  |  Données : data/hypetrain.json
+   Test    : touche H
    ============================================================ */
 
-const HypeTrain = (() => {
-
-  const POLL_INTERVAL = 1000;
-  const TICK_INTERVAL = 80; // ms — barre de temps fluide
-
-  // ── ÉTAT ────────────────────────────────────────────────────
-
-  let zone;
-  let lastTimestamp = -1;
-  let currentData   = null;
-  let tickTimer     = null;
-
-  // ── POLLING ─────────────────────────────────────────────────
-
-  async function poll() {
-    try {
-      const res = await fetch(`data/hypetrain.json?t=${Date.now()}`);
-      if (!res.ok) return;
-      const data = await res.json();
-      if (!data || data.timestamp === lastTimestamp) return;
-      lastTimestamp = data.timestamp;
-      currentData   = data;
-
-      if (data.active && data.endsAt > Date.now()) {
-        render(data);
-        startTick();
-      } else {
-        hide();
-      }
-    } catch (_) {}
+class HypeTrainComponent extends BaseComponent {
+  constructor() {
+    super({
+      name:         'hypetrain',
+      zoneId:       'zone-hypetrain',
+      dataFile:     'hypetrain.json',
+      pollInterval: 1000,
+      testKey:      'h',
+    });
+    this._currentData = null;
+    this._tickTimer   = null;
   }
 
-  // ── RENDU ────────────────────────────────────────────────────
+  getTestData() {
+    const ts = Date.now();
+    return {
+      level:        2,
+      progress:     68,
+      goal:         100,
+      active:       true,
+      startedAt:    ts - 120000,
+      endsAt:       ts + 180000,
+      duration:     300,
+      contributors: [
+        { user: 'TopFan',    amount: 500 },
+        { user: 'SubLord',   amount: 300 },
+        { user: 'Hype4ever', amount: 200 },
+      ],
+      timestamp: ts,
+    };
+  }
 
-  function render(data) {
-    const pct       = Math.min(100, Math.max(0, Math.round((data.progress / (data.goal || 100)) * 100)));
-    const topUsers  = (data.contributors || []).slice(0, 3).map(c => esc(c.user)).join(' · ');
+  onData(data) {
+    this._currentData = data;
+    if (data.active && data.endsAt > Date.now()) {
+      this._render(data);
+    } else {
+      this._hide();
+    }
+  }
 
-    zone.innerHTML = `
+  _render(data) {
+    const pct      = Math.min(100, Math.max(0, Math.round((data.progress / (data.goal || 100)) * 100)));
+    const topUsers = (data.contributors || []).slice(0, 3).map(c => esc(c.user)).join(' · ');
+
+    this.zone.innerHTML = `
       <div class="hypetrain-card">
         <div class="hypetrain-accent"></div>
         <div class="hypetrain-inner">
@@ -69,82 +72,38 @@ const HypeTrain = (() => {
         </div>
       </div>
     `;
-    startTick();
+    this._startTick();
   }
 
-  // ── TICK ─────────────────────────────────────────────────────
-
-  function startTick() {
-    stopTick();
-    tickTimer = setInterval(tick, TICK_INTERVAL);
+  _startTick() {
+    this._stopTick();
+    this._tickTimer = setInterval(() => this._tick(), 80);
   }
 
-  function stopTick() {
-    if (tickTimer) { clearInterval(tickTimer); tickTimer = null; }
+  _stopTick() {
+    if (this._tickTimer) { clearInterval(this._tickTimer); this._tickTimer = null; }
   }
 
-  function tick() {
-    if (!currentData) return;
+  _tick() {
+    if (!this._currentData) return;
     const fill = document.getElementById('hypetrain-timer-fill');
-    if (!fill) { stopTick(); return; }
+    if (!fill) { this._stopTick(); return; }
 
-    const remaining = Math.max(0, currentData.endsAt - Date.now());
-    const total     = currentData.duration
-      ? currentData.duration * 1000
-      : (currentData.endsAt - (currentData.startedAt || currentData.endsAt - 300000));
-    const pct = total > 0 ? Math.round((remaining / total) * 100) : 0;
-    fill.style.width = pct + '%';
+    const remaining = Math.max(0, this._currentData.endsAt - Date.now());
+    const total     = this._currentData.duration
+      ? this._currentData.duration * 1000
+      : (this._currentData.endsAt - (this._currentData.startedAt || this._currentData.endsAt - 300000));
 
-    if (remaining <= 0) hide();
+    fill.style.width = (total > 0 ? Math.round((remaining / total) * 100) : 0) + '%';
+
+    if (remaining <= 0) this._hide();
   }
 
-  function hide() {
-    stopTick();
-    zone.innerHTML = '';
-    currentData = null;
+  _hide() {
+    this._stopTick();
+    this.clear();
+    this._currentData = null;
   }
+}
 
-  // ── UTILITAIRES ──────────────────────────────────────────────
-
-  function esc(v) {
-    if (v == null) return '';
-    return String(v).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
-  }
-
-  // ── MODE TEST (touche H) ─────────────────────────────────────
-
-  function onKeyDown(e) {
-    if (e.key.toLowerCase() !== 'h') return;
-    if (e.ctrlKey || e.altKey || e.metaKey) return;
-    const ts = Date.now();
-    currentData = {
-      level:      2,
-      progress:   68,
-      goal:       100,
-      active:     true,
-      startedAt:  ts - 120000,
-      endsAt:     ts + 180000,
-      duration:   300,
-      contributors: [
-        { user: 'TopFan',  amount: 500 },
-        { user: 'SubLord', amount: 300 },
-        { user: 'Hype4ever', amount: 200 },
-      ],
-      timestamp: ts,
-    };
-    lastTimestamp = ts;
-    render(currentData);
-  }
-
-  // ── INIT ─────────────────────────────────────────────────────
-
-  function init(cfg = {}) {
-    zone = document.getElementById('zone-hypetrain');
-    poll();
-    setInterval(poll, POLL_INTERVAL);
-    document.addEventListener('keydown', onKeyDown);
-  }
-
-  return { init };
-
-})();
+window.HypeTrain = new HypeTrainComponent();

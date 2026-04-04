@@ -1,53 +1,43 @@
 'use strict';
 
 /* ============================================================
-   Composant : Countdown / Timer
-   Compte à rebours vers une date/heure cible.
-   Se masque automatiquement à 0.
-
+   Composant : Countdown / Compte à rebours
    Expose : window.Countdown  →  { init() }
-   Zone HTML  : #zone-countdown
-   Données    : data/countdown.json
-   Test       : touche D
+   Zone    : #zone-countdown  |  Données : data/countdown.json
+   Test    : touche D
    ============================================================ */
 
-const Countdown = (() => {
-
-  const POLL_INTERVAL = 2000;
-  const TICK_INTERVAL = 200; // ms
-
-  // ── ÉTAT ────────────────────────────────────────────────────
-
-  let zone;
-  let lastTimestamp = -1;
-  let currentData   = null;
-  let tickTimer     = null;
-
-  // ── POLLING ─────────────────────────────────────────────────
-
-  async function poll() {
-    try {
-      const res = await fetch(`data/countdown.json?t=${Date.now()}`);
-      if (!res.ok) return;
-      const data = await res.json();
-      if (!data || data.timestamp === lastTimestamp) return;
-      lastTimestamp = data.timestamp;
-      currentData   = data;
-
-      if (data.active && data.endsAt > Date.now()) {
-        renderShell(data);
-        startTick();
-      } else {
-        hide();
-      }
-    } catch (_) {}
+class CountdownComponent extends BaseComponent {
+  constructor() {
+    super({
+      name:         'countdown',
+      zoneId:       'zone-countdown',
+      dataFile:     'countdown.json',
+      pollInterval: 2000,
+      testKey:      'd',
+    });
+    this._currentData = null;
+    this._tickTimer   = null;
   }
 
-  // ── RENDU ────────────────────────────────────────────────────
+  getTestData() {
+    const ts = Date.now();
+    return { label: 'Début du jeu', active: true, startedAt: ts, endsAt: ts + 300000, timestamp: ts };
+  }
 
-  function renderShell(data) {
-    if (zone.querySelector('.countdown-card')) return; // structure déjà en place
-    zone.innerHTML = `
+  onData(data) {
+    this._currentData = data;
+    if (data.active && data.endsAt > Date.now()) {
+      this._renderShell(data);
+      this._startTick();
+    } else {
+      this._hide();
+    }
+  }
+
+  _renderShell(data) {
+    if (this.zone.querySelector('.countdown-card')) return;
+    this.zone.innerHTML = `
       <div class="countdown-card">
         <div class="countdown-accent"></div>
         <div class="countdown-inner">
@@ -61,84 +51,38 @@ const Countdown = (() => {
     `;
   }
 
-  // ── TICK ─────────────────────────────────────────────────────
-
-  function startTick() {
-    stopTick();
-    tick();
-    tickTimer = setInterval(tick, TICK_INTERVAL);
+  _startTick() {
+    this._stopTick();
+    this._tick();
+    this._tickTimer = setInterval(() => this._tick(), 200);
   }
 
-  function stopTick() {
-    if (tickTimer) { clearInterval(tickTimer); tickTimer = null; }
+  _stopTick() {
+    if (this._tickTimer) { clearInterval(this._tickTimer); this._tickTimer = null; }
   }
 
-  function tick() {
-    if (!currentData) return;
+  _tick() {
+    if (!this._currentData) return;
     const el   = document.getElementById('countdown-value');
     const fill = document.getElementById('countdown-fill');
-    if (!el) { stopTick(); return; }
+    if (!el) { this._stopTick(); return; }
 
-    const remaining = Math.max(0, currentData.endsAt - Date.now());
+    const remaining = Math.max(0, this._currentData.endsAt - Date.now());
+    if (remaining <= 0) { this._hide(); return; }
 
-    if (remaining <= 0) { hide(); return; }
+    el.textContent = formatCountdown(remaining);
 
-    const h = Math.floor(remaining / 3600000);
-    const m = Math.floor((remaining % 3600000) / 60000);
-    const s = Math.floor((remaining % 60000) / 1000);
-
-    el.textContent = h > 0
-      ? `${h}:${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')}`
-      : `${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')}`;
-
-    if (fill && currentData.startedAt) {
-      const total = currentData.endsAt - currentData.startedAt;
-      const pct   = total > 0 ? Math.round((remaining / total) * 100) : 100;
-      fill.style.width = pct + '%';
+    if (fill && this._currentData.startedAt) {
+      const total = this._currentData.endsAt - this._currentData.startedAt;
+      fill.style.width = (total > 0 ? Math.round((remaining / total) * 100) : 100) + '%';
     }
   }
 
-  function hide() {
-    stopTick();
-    zone.innerHTML = '';
-    currentData = null;
+  _hide() {
+    this._stopTick();
+    this.clear();
+    this._currentData = null;
   }
+}
 
-  // ── MODE TEST (touche D) ─────────────────────────────────────
-
-  function onKeyDown(e) {
-    if (e.key.toLowerCase() !== 'd') return;
-    if (e.ctrlKey || e.altKey || e.metaKey) return;
-    const ts = Date.now();
-    currentData = {
-      label:     'Début du jeu',
-      active:    true,
-      startedAt: ts,
-      endsAt:    ts + 300000, // 5 min
-      timestamp: ts,
-    };
-    lastTimestamp = ts;
-    zone.innerHTML = ''; // forcer la recréation du shell
-    renderShell(currentData);
-    startTick();
-  }
-
-  // ── UTILITAIRES ──────────────────────────────────────────────
-
-  function esc(v) {
-    if (v == null) return '';
-    return String(v).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
-  }
-
-  // ── INIT ─────────────────────────────────────────────────────
-
-  function init(cfg = {}) {
-    zone = document.getElementById('zone-countdown');
-    poll();
-    setInterval(poll, POLL_INTERVAL);
-    document.addEventListener('keydown', onKeyDown);
-  }
-
-  return { init };
-
-})();
+window.Countdown = new CountdownComponent();

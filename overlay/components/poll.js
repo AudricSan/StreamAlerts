@@ -2,53 +2,54 @@
 
 /* ============================================================
    Composant : Poll (Sondage Twitch)
-   Affiche le sondage actif avec les votes en temps réel.
-   Barre de temps décroissante. Se masque automatiquement.
-
    Expose : window.Poll  →  { init() }
-   Zone HTML  : #zone-poll
-   Données    : data/poll.json
-   Test       : touche O
+   Zone    : #zone-poll  |  Données : data/poll.json
+   Test    : touche O
    ============================================================ */
 
-const Poll = (() => {
-
-  const POLL_INTERVAL = 2000;
-  const TICK_INTERVAL = 200;
-
-  // ── ÉTAT ────────────────────────────────────────────────────
-
-  let zone;
-  let lastTimestamp = -1;
-  let currentData   = null;
-  let tickTimer     = null;
-
-  // ── POLLING ─────────────────────────────────────────────────
-
-  async function poll() {
-    try {
-      const res = await fetch(`data/poll.json?t=${Date.now()}`);
-      if (!res.ok) return;
-      const data = await res.json();
-      if (!data || data.timestamp === lastTimestamp) return;
-      lastTimestamp = data.timestamp;
-      currentData   = data;
-
-      if (data.active) {
-        render(data);
-        startTick();
-      } else {
-        hide();
-      }
-    } catch (_) {}
+class PollComponent extends BaseComponent {
+  constructor() {
+    super({
+      name:         'poll',
+      zoneId:       'zone-poll',
+      dataFile:     'poll.json',
+      pollInterval: 2000,
+      testKey:      'o',
+    });
+    this._currentData = null;
+    this._tickTimer   = null;
   }
 
-  // ── RENDU ────────────────────────────────────────────────────
+  getTestData() {
+    const ts = Date.now();
+    return {
+      title:     'Quelle map on joue ?',
+      active:    true,
+      startedAt: ts,
+      endsAt:    ts + 60000,
+      choices: [
+        { title: 'Dust 2',  votes: 45 },
+        { title: 'Mirage',  votes: 30 },
+        { title: 'Inferno', votes: 15 },
+      ],
+      timestamp: ts,
+    };
+  }
 
-  function render(data) {
+  onData(data) {
+    this._currentData = data;
+    if (data.active) {
+      this._render(data);
+      this._startTick();
+    } else {
+      this._hide();
+    }
+  }
+
+  _render(data) {
     const total = (data.choices || []).reduce((s, c) => s + (c.votes || 0), 0);
 
-    zone.innerHTML = `
+    this.zone.innerHTML = `
       <div class="poll-card">
         <div class="poll-header">
           <span class="poll-label">SONDAGE</span>
@@ -76,83 +77,40 @@ const Poll = (() => {
         </div>
       </div>
     `;
-    tick();
+    this._tick(); // mise à jour immédiate de la barre de temps
   }
 
-  // ── TICK ─────────────────────────────────────────────────────
-
-  function startTick() {
-    stopTick();
-    tickTimer = setInterval(tick, TICK_INTERVAL);
+  _startTick() {
+    this._stopTick();
+    this._tickTimer = setInterval(() => this._tick(), 200);
   }
 
-  function stopTick() {
-    if (tickTimer) { clearInterval(tickTimer); tickTimer = null; }
+  _stopTick() {
+    if (this._tickTimer) { clearInterval(this._tickTimer); this._tickTimer = null; }
   }
 
-  function tick() {
-    if (!currentData) return;
+  _tick() {
+    if (!this._currentData) return;
     const fill = document.getElementById('poll-timer-fill');
     if (!fill) return;
 
-    if (!currentData.endsAt) { fill.style.width = '100%'; return; }
+    if (!this._currentData.endsAt) { fill.style.width = '100%'; return; }
 
-    const remaining = Math.max(0, currentData.endsAt - Date.now());
-    const duration  = currentData.endsAt - (currentData.startedAt || (currentData.endsAt - 120000));
-    const pct       = duration > 0 ? Math.round((remaining / duration) * 100) : 0;
-    fill.style.width = pct + '%';
+    const remaining = Math.max(0, this._currentData.endsAt - Date.now());
+    const duration  = this._currentData.endsAt - (this._currentData.startedAt || (this._currentData.endsAt - 120000));
+    fill.style.width = (duration > 0 ? Math.round((remaining / duration) * 100) : 0) + '%';
 
-    if (remaining <= 0 && currentData.active) {
-      currentData.active = false;
-      hide();
+    if (remaining <= 0 && this._currentData.active) {
+      this._currentData.active = false;
+      this._hide();
     }
   }
 
-  function hide() {
-    stopTick();
-    zone.innerHTML = '';
-    currentData = null;
+  _hide() {
+    this._stopTick();
+    this.clear();
+    this._currentData = null;
   }
+}
 
-  // ── UTILITAIRES ──────────────────────────────────────────────
-
-  function esc(v) {
-    if (v == null) return '';
-    return String(v).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
-  }
-
-  // ── MODE TEST (touche O) ─────────────────────────────────────
-
-  function onKeyDown(e) {
-    if (e.key.toLowerCase() !== 'o') return;
-    if (e.ctrlKey || e.altKey || e.metaKey) return;
-    const ts = Date.now();
-    currentData = {
-      title:     'Quelle map on joue ?',
-      active:    true,
-      startedAt: ts,
-      endsAt:    ts + 60000,
-      choices: [
-        { title: 'Dust 2',  votes: 45 },
-        { title: 'Mirage',  votes: 30 },
-        { title: 'Inferno', votes: 15 },
-      ],
-      timestamp: ts,
-    };
-    lastTimestamp = ts;
-    render(currentData);
-    startTick();
-  }
-
-  // ── INIT ─────────────────────────────────────────────────────
-
-  function init(cfg = {}) {
-    zone = document.getElementById('zone-poll');
-    poll();
-    setInterval(poll, POLL_INTERVAL);
-    document.addEventListener('keydown', onKeyDown);
-  }
-
-  return { init };
-
-})();
+window.Poll = new PollComponent();

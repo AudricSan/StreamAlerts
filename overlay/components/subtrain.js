@@ -2,51 +2,45 @@
 
 /* ============================================================
    Composant : Sub Train
-   Barre qui se remplit à chaque sub et se vide sur une durée.
-   S'efface automatiquement quand expiresAt est dépassé.
-
    Expose : window.SubTrain  →  { init() }
-   Zone HTML  : #zone-subtrain
-   Données    : data/subtrain.json
-   Test       : touche S
+   Zone    : #zone-subtrain  |  Données : data/subtrain.json
+   Test    : touche S
    ============================================================ */
 
-const SubTrain = (() => {
-
-  const POLL_INTERVAL    = 500; // ms
-  const DURATION_DEFAULT = 60;  // secondes
-
-  // ── ÉTAT ────────────────────────────────────────────────────
-
-  let zone;
-  let duration     = DURATION_DEFAULT;
-  let lastTimestamp = -1;
-  let currentData  = null;
-  let tickTimer    = null;
-
-  // ── POLLING ─────────────────────────────────────────────────
-
-  async function poll() {
-    try {
-      const res = await fetch(`data/subtrain.json?t=${Date.now()}`);
-      if (!res.ok) return;
-      const data = await res.json();
-      if (!data || data.timestamp === lastTimestamp) return;
-      lastTimestamp = data.timestamp;
-      currentData   = data;
-
-      if (data.active && data.expiresAt > Date.now()) {
-        render(data);
-      } else {
-        hide();
-      }
-    } catch (_) {}
+class SubTrainComponent extends BaseComponent {
+  constructor() {
+    super({
+      name:         'subtrain',
+      zoneId:       'zone-subtrain',
+      dataFile:     'subtrain.json',
+      pollInterval: 500,
+      testKey:      's',
+    });
+    this._duration    = 60; // secondes (surchargé par config)
+    this._currentData = null;
+    this._tickTimer   = null;
   }
 
-  // ── RENDU ────────────────────────────────────────────────────
+  setup(cfg) {
+    if (cfg.duration != null) this._duration = cfg.duration;
+  }
 
-  function render(data) {
-    zone.innerHTML = `
+  getTestData() {
+    const ts = Date.now();
+    return { count: 7, active: true, lastUser: 'SuperFan', expiresAt: ts + this._duration * 1000, timestamp: ts };
+  }
+
+  onData(data) {
+    this._currentData = data;
+    if (data.active && data.expiresAt > Date.now()) {
+      this._render(data);
+    } else {
+      this._hide();
+    }
+  }
+
+  _render(data) {
+    this.zone.innerHTML = `
       <div class="subtrain-card">
         <div class="subtrain-accent"></div>
         <div class="subtrain-inner">
@@ -62,68 +56,34 @@ const SubTrain = (() => {
         </div>
       </div>
     `;
-
-    startTick();
+    this._startTick();
   }
 
-  // ── COUNTDOWN ────────────────────────────────────────────────
-
-  function startTick() {
-    if (tickTimer) clearInterval(tickTimer);
-    tickTimer = setInterval(tick, 80);
+  _startTick() {
+    this._stopTick();
+    this._tickTimer = setInterval(() => this._tick(), 80);
   }
 
-  function tick() {
-    if (!currentData) return;
+  _stopTick() {
+    if (this._tickTimer) { clearInterval(this._tickTimer); this._tickTimer = null; }
+  }
+
+  _tick() {
+    if (!this._currentData) return;
     const fill = document.getElementById('subtrain-fill');
-    if (!fill) { clearInterval(tickTimer); return; }
+    if (!fill) { this._stopTick(); return; }
 
-    const remaining = Math.max(0, currentData.expiresAt - Date.now());
-    const ratio     = remaining / (duration * 1000);
-    fill.style.width = Math.round(ratio * 100) + '%';
+    const remaining = Math.max(0, this._currentData.expiresAt - Date.now());
+    fill.style.width = Math.round((remaining / (this._duration * 1000)) * 100) + '%';
 
-    if (remaining <= 0) hide();
+    if (remaining <= 0) this._hide();
   }
 
-  function hide() {
-    if (tickTimer) { clearInterval(tickTimer); tickTimer = null; }
-    zone.innerHTML = '';
+  _hide() {
+    this._stopTick();
+    this.clear();
+    this._currentData = null;
   }
+}
 
-  // ── MODE TEST (touche S) ─────────────────────────────────────
-
-  function onKeyDown(e) {
-    if (e.key.toLowerCase() !== 's') return;
-    if (e.ctrlKey || e.altKey || e.metaKey) return;
-    const ts   = Date.now();
-    currentData = {
-      count:    7,
-      active:   true,
-      lastUser: 'SuperFan',
-      expiresAt: ts + duration * 1000,
-      timestamp: ts,
-    };
-    lastTimestamp = ts;
-    render(currentData);
-  }
-
-  // ── UTILITAIRES ──────────────────────────────────────────────
-
-  function esc(v) {
-    if (v == null) return '';
-    return String(v).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
-  }
-
-  // ── INIT ─────────────────────────────────────────────────────
-
-  function init(cfg = {}) {
-    zone = document.getElementById('zone-subtrain');
-    if (cfg.duration != null) duration = cfg.duration;
-    poll();
-    setInterval(poll, POLL_INTERVAL);
-    document.addEventListener('keydown', onKeyDown);
-  }
-
-  return { init };
-
-})();
+window.SubTrain = new SubTrainComponent();

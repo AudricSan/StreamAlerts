@@ -2,167 +2,98 @@
 
 /* ============================================================
    Composant : Alertes Twitch
-   Polling JSON local + file d'attente + mode test (touche T)
-
    Expose : window.Alerts  →  { init() }
-   Zone HTML  : #alert-container  (dans #zone-alerts)
-   Données    : data/alert.json
+   Zone    : #zone-alerts  |  Données : data/alert.json
+   Test    : touche T  (cycle sur tous les types)
+
+   skipFirst: true — ne rejoue pas la dernière alerte au reload OBS.
    ============================================================ */
 
-const Alerts = (() => {
+const _ALERT_TYPES = {
+  follow:       { label: 'NOUVEAU FOLLOW',  icon: '💜', color: '#9B59B6', rgb: '155, 89, 182' },
+  sub:          { label: 'NOUVEAU SUB',     icon: '⭐', color: '#F1C40F', rgb: '241, 196, 15' },
+  resub:        { label: 'RESUB',           icon: '🔥', color: '#E67E22', rgb: '230, 126, 34' },
+  giftsub:      { label: 'GIFT SUB',        icon: '🎁', color: '#E91E8C', rgb: '233, 30, 140' },
+  raid:         { label: 'RAID',            icon: '⚔️', color: '#E74C3C', rgb: '231, 76, 60'  },
+  bits:         { label: 'BITS',            icon: '💎', color: '#00BCD4', rgb: '0, 188, 212'  },
+  donation:     { label: 'DONATION',        icon: '💚', color: '#2ECC71', rgb: '46, 204, 113' },
+  channelpoints:{ label: 'CHANNEL POINTS',  icon: '✨', color: '#3498DB', rgb: '52, 152, 219' },
+  hype_train:   { label: 'HYPE TRAIN',      icon: '🚂', color: '#FF6B6B', rgb: '255, 107, 107'},
+};
 
-  // ── CONSTANTES ──────────────────────────────────────────────
-
-  const POLL_INTERVAL            = 500;  // ms entre chaque lecture du JSON
-  const EXIT_DURATION            = 700;  // ms pour l'animation de sortie
-  const DISPLAY_DURATION_DEFAULT = 5500; // ms — surchargeable via config.json
-
-  let displayDuration = DISPLAY_DURATION_DEFAULT;
-
-  const CONFIGS = {
-    follow: {
-      label:    'NOUVEAU FOLLOW',
-      icon:     '💜',
-      color:    '#9B59B6',
-      colorRgb: '155, 89, 182',
-    },
-    sub: {
-      label:    'NOUVEAU SUB',
-      icon:     '⭐',
-      color:    '#F1C40F',
-      colorRgb: '241, 196, 15',
-    },
-    resub: {
-      label:    'RESUB',
-      icon:     '🔥',
-      color:    '#E67E22',
-      colorRgb: '230, 126, 34',
-    },
-    giftsub: {
-      label:    'GIFT SUB',
-      icon:     '🎁',
-      color:    '#E91E8C',
-      colorRgb: '233, 30, 140',
-    },
-    raid: {
-      label:    'RAID',
-      icon:     '⚔️',
-      color:    '#E74C3C',
-      colorRgb: '231, 76, 60',
-    },
-    bits: {
-      label:    'BITS',
-      icon:     '💎',
-      color:    '#00BCD4',
-      colorRgb: '0, 188, 212',
-    },
-    donation: {
-      label:    'DONATION',
-      icon:     '💚',
-      color:    '#2ECC71',
-      colorRgb: '46, 204, 113',
-    },
-    channelpoints: {
-      label:    'CHANNEL POINTS',
-      icon:     '✨',
-      color:    '#3498DB',
-      colorRgb: '52, 152, 219',
-    },
-    hype_train: {
-      label:    'HYPE TRAIN',
-      icon:     '🚂',
-      color:    '#FF6B6B',
-      colorRgb: '255, 107, 107',
-    },
-  };
-
-  const TEST_DATA = [
-    { type: 'follow',        user: 'NouvelAbonné42' },
-    { type: 'sub',           user: 'SuperFan',       tier: 'Tier 1' },
-    { type: 'resub',         user: 'FidèleSoutien',  months: 12, tier: 'Tier 2' },
-    { type: 'giftsub',       user: 'GénéreuseÂme',   amount: 5 },
-    { type: 'raid',          user: 'RaidBoss99',     amount: 250 },
-    { type: 'bits',          user: 'BitsDonateur',   amount: 1500 },
-    { type: 'donation',      user: 'SuperDonateur',  amount: 10 },
-    { type: 'channelpoints', user: 'PointsFan',      message: 'Hydrate-toi ! 💧' },
-    { type: 'hype_train',    user: 'La Communauté' },
-  ];
-
-  // ── ÉTAT ────────────────────────────────────────────────────
-
-  let container;
-  let queue         = [];
-  let playing       = false;
-  let lastTimestamp = 0;
-  let initialized   = false; // true après le premier poll
-  let testIndex     = 0;
-
-  // ── POLLING ─────────────────────────────────────────────────
-
-  async function poll() {
-    try {
-      const res = await fetch(`data/alert.json?t=${Date.now()}`);
-      if (!res.ok) return;
-
-      const data = await res.json();
-
-      if (!data || typeof data.timestamp !== 'number' || data.timestamp <= 0) return;
-
-      if (!initialized) {
-        // Premier poll : mémoriser le timestamp sans afficher l'alerte.
-        // Évite de rejouer la dernière alerte au rechargement de la page.
-        lastTimestamp = data.timestamp;
-        initialized   = true;
-        return;
-      }
-
-      if (
-        data.timestamp !== lastTimestamp &&
-        data.type &&
-        CONFIGS[data.type]
-      ) {
-        lastTimestamp = data.timestamp;
-        enqueue(data);
-      }
-    } catch (_) {
-      // Fichier absent ou JSON invalide → silence
-    }
+class AlertsComponent extends BaseComponent {
+  constructor() {
+    super({
+      name:         'alerts',
+      zoneId:       'zone-alerts',
+      dataFile:     'alert.json',
+      pollInterval: 500,
+      skipFirst:    true, // ne pas rejouer la dernière alerte au démarrage
+      testKey:      't',
+      testData: [
+        { type: 'follow',        user: 'NouvelAbonné42' },
+        { type: 'sub',           user: 'SuperFan',       tier: 'Tier 1'  },
+        { type: 'resub',         user: 'FidèleSoutien',  months: 12, tier: 'Tier 2' },
+        { type: 'giftsub',       user: 'GénéreuseÂme',   amount: 5   },
+        { type: 'raid',          user: 'RaidBoss99',     amount: 250 },
+        { type: 'bits',          user: 'BitsDonateur',   amount: 1500 },
+        { type: 'donation',      user: 'SuperDonateur',  amount: 10  },
+        { type: 'channelpoints', user: 'PointsFan',      message: 'Hydrate-toi ! 💧' },
+        { type: 'hype_train',    user: 'La Communauté'  },
+      ],
+    });
+    this._container  = null;
+    this._queue      = [];
+    this._playing    = false;
+    this._displayDur = 5500;
   }
 
-  // ── FILE D'ATTENTE ───────────────────────────────────────────
-
-  function enqueue(alertData) {
-    queue.push(alertData);
-    if (!playing) playNext();
+  setup(cfg) {
+    this._container  = document.getElementById('alert-container');
+    this._displayDur = cfg.displayDuration ?? 5500;
   }
 
-  async function playNext() {
-    if (playing || queue.length === 0) return;
-    playing = true;
-    await display(queue.shift());
-    playing = false;
-    playNext();
+  // ── Données ──────────────────────────────────────────────────
+
+  onData(data) {
+    if (!_ALERT_TYPES[data.type]) return;
+    this._enqueue(data);
   }
 
-  // ── MESSAGES ─────────────────────────────────────────────────
+  // ── File d'attente ───────────────────────────────────────────
 
-  function buildMessage(a) {
+  _enqueue(data) {
+    this._queue.push(data);
+    if (!this._playing) this._playNext();
+  }
+
+  async _playNext() {
+    if (this._playing || this._queue.length === 0) return;
+    this._playing = true;
+    await this._display(this._queue.shift());
+    this._playing = false;
+    this._playNext();
+  }
+
+  // ── Construction de la carte ─────────────────────────────────
+
+  _buildMessage(a) {
     if (a.message && a.message.trim()) return a.message.trim();
     switch (a.type) {
-      case 'follow':       return 'vient de follow !';
-      case 'sub':          return `vient de s'abonner !${a.tier ? ` — ${a.tier}` : ''}`;
-      case 'resub':        return `x${a.months || '?'} mois${a.tier ? ` — ${a.tier}` : ''}`;
-      case 'giftsub':      return `offre ${a.amount > 1 ? `${a.amount} subs` : 'un sub'} !`;
-      case 'raid':         return `arrive en raid avec ${a.amount || '?'} viewers !`;
-      case 'bits':         return `envoie ${a.amount || '?'} bits !`;
-      case 'donation':     return `fait un don de ${a.amount || '?'}€ !`;
-      case 'channelpoints':return 'a échangé ses points !';
-      case 'hype_train':   return 'Le Hype Train démarre ! 🚂💨';
-      default:             return '';
+      case 'follow':        return 'vient de follow !';
+      case 'sub':           return `vient de s'abonner !${a.tier ? ` — ${a.tier}` : ''}`;
+      case 'resub':         return `x${a.months || '?'} mois${a.tier ? ` — ${a.tier}` : ''}`;
+      case 'giftsub':       return `offre ${a.amount > 1 ? `${a.amount} subs` : 'un sub'} !`;
+      case 'raid':          return `arrive en raid avec ${a.amount || '?'} viewers !`;
+      case 'bits':          return `envoie ${a.amount || '?'} bits !`;
+      case 'donation':      return `fait un don de ${a.amount || '?'}€ !`;
+      case 'channelpoints': return 'a échangé ses points !';
+      case 'hype_train':    return 'Le Hype Train démarre ! 🚂💨';
+      default:              return '';
     }
   }
 
-  function buildBadge(a) {
+  _buildBadge(a) {
     switch (a.type) {
       case 'bits':     return a.amount ? `${a.amount} BITS` : null;
       case 'donation': return a.amount ? `${a.amount}€`     : null;
@@ -172,23 +103,19 @@ const Alerts = (() => {
     }
   }
 
-  // ── CRÉATION DE CARTE ────────────────────────────────────────
-
-  function createCard(a) {
-    const cfg = CONFIGS[a.type];
-    if (!cfg) return null;
-
-    const msg   = buildMessage(a);
-    const badge = buildBadge(a);
+  _createCard(a) {
+    const cfg   = _ALERT_TYPES[a.type];
+    const msg   = this._buildMessage(a);
+    const badge = this._buildBadge(a);
 
     const card = document.createElement('div');
     card.className = `alert-card ${a.type}`;
     card.style.setProperty('--alert-color',     cfg.color);
-    card.style.setProperty('--alert-color-rgb', cfg.colorRgb);
+    card.style.setProperty('--alert-color-rgb', cfg.rgb);
     card.style.boxShadow = [
-      `0 0 0 1px rgba(${cfg.colorRgb}, 0.12)`,
-      `0 0 28px rgba(${cfg.colorRgb}, 0.18)`,
-      `0 14px 40px rgba(0, 0, 0, 0.65)`,
+      `0 0 0 1px rgba(${cfg.rgb}, 0.12)`,
+      `0 0 28px rgba(${cfg.rgb}, 0.18)`,
+      `0 14px 40px rgba(0,0,0,0.65)`,
     ].join(', ');
 
     card.innerHTML = `
@@ -204,20 +131,25 @@ const Alerts = (() => {
         ${a.avatar ? `<img class="alert-avatar" src="${esc(a.avatar)}" alt="" onerror="this.style.display='none'">` : ''}
       </div>
     `;
-
     return card;
   }
 
-  // ── AFFICHAGE ────────────────────────────────────────────────
+  // ── Affichage ────────────────────────────────────────────────
 
-  function display(alertData) {
+  _display(alertData) {
     return new Promise((resolve) => {
-      const card = createCard(alertData);
+      const card = this._createCard(alertData);
       if (!card) { resolve(); return; }
 
-      container.appendChild(card);
+      this._container.appendChild(card);
 
-      if (alertData.sound) playSound(`assets/sounds/${alertData.sound}`);
+      if (alertData.sound) {
+        try {
+          const audio = new Audio(`assets/sounds/${alertData.sound}`);
+          audio.volume = 0.8;
+          audio.play().catch(() => {});
+        } catch (_) {}
+      }
 
       requestAnimationFrame(() => {
         requestAnimationFrame(() => card.classList.add('visible'));
@@ -226,51 +158,10 @@ const Alerts = (() => {
       setTimeout(() => {
         card.classList.remove('visible');
         card.classList.add('exiting');
-        setTimeout(() => { card.remove(); resolve(); }, EXIT_DURATION);
-      }, displayDuration);
+        setTimeout(() => { card.remove(); resolve(); }, 700);
+      }, this._displayDur);
     });
   }
+}
 
-  // ── SON ──────────────────────────────────────────────────────
-
-  function playSound(src) {
-    try {
-      const audio = new Audio(src);
-      audio.volume = 0.8;
-      audio.play().catch(() => {});
-    } catch (_) {}
-  }
-
-  // ── MODE TEST (touche T) ─────────────────────────────────────
-
-  function onKeyDown(e) {
-    if (e.key.toLowerCase() !== 't') return;
-    if (e.ctrlKey || e.altKey || e.metaKey) return;
-    const base = TEST_DATA[testIndex % TEST_DATA.length];
-    testIndex++;
-    enqueue({ ...base, timestamp: Date.now() });
-  }
-
-  // ── UTILITAIRES ──────────────────────────────────────────────
-
-  function esc(v) {
-    if (v == null) return '';
-    return String(v)
-      .replace(/&/g, '&amp;')
-      .replace(/</g, '&lt;')
-      .replace(/>/g, '&gt;')
-      .replace(/"/g, '&quot;');
-  }
-
-  // ── INIT (appelé par script.js) ──────────────────────────────
-
-  function init(cfg = {}) {
-    container = document.getElementById('alert-container');
-    if (cfg.displayDuration != null) displayDuration = cfg.displayDuration;
-    setInterval(poll, POLL_INTERVAL);
-    document.addEventListener('keydown', onKeyDown);
-  }
-
-  return { init };
-
-})();
+window.Alerts = new AlertsComponent();
