@@ -43,7 +43,7 @@ class SessionComponent extends BaseComponent {
             ${visible.map(s => `
               <div class="session-stat">
                 <span class="session-stat-icon">${s.icon}</span>
-                <span class="session-stat-value">${data[s.key] ?? 0}</span>
+                <span class="session-stat-value">${esc(data[s.key] ?? 0)}</span>
                 <span class="session-stat-name">${s.label}</span>
               </div>
             `).join('')}

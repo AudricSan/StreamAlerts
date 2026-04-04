@@ -40,7 +40,7 @@ if (new URLSearchParams(location.search).has('debug')) {
       statusLine.textContent = `${ws}  |  Polls: ${pStr || '—'}`;
     }
 
-    setInterval(updateStatus, 2000);
+    const _statusTimer = setInterval(updateStatus, 2000);
     // Mise à jour immédiate après que le store soit populé
     Bus.on('ws:connected',    updateStatus);
     Bus.on('ws:disconnected', updateStatus);

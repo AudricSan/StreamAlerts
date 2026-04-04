@@ -86,7 +86,7 @@ class HypeTrainComponent extends BaseComponent {
 
   _tick() {
     if (!this._currentData) return;
-    const fill = document.getElementById('hypetrain-timer-fill');
+    const fill = this.zone.querySelector('#hypetrain-timer-fill');
     if (!fill) { this._stopTick(); return; }
 
     const remaining = Math.max(0, this._currentData.endsAt - Date.now());

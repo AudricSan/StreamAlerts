@@ -1,83 +1,556 @@
 # CLAUDE.md
 
-This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
+This file provides guidance to Claude Code when working inside the StreamAlerts repository.
 
-## Contexte
+## Project Overview
 
-StreamAlerts est un overlay Twitch local (sans serveur backend) servi par XAMPP. Il s'affiche dans OBS Studio via une Browser Source pointant vers `http://localhost/StreamAlerts/overlay/`.
+StreamAlerts is a fully local Twitch overlay system designed for OBS Studio.
 
-Flux de données :
+No external backend, framework, build step, bundler, npm dependency, or cloud service is required.
+
+Main flow:
+
+```text
+Twitch → Streamer.bot → JSON files / WebSocket → Overlay → OBS Browser Source
 ```
-Twitch → Streamer.bot → JSON files → Overlay (polling/WebSocket) → OBS
+
+The overlay is served locally by XAMPP:
+
+* Overlay URL: `http://localhost/StreamAlerts/overlay/`
+* Config panel URL: `http://localhost/StreamAlerts/config/`
+* Main dashboard URL: `http://localhost/StreamAlerts/`
+
+---
+
+## Technical Constraints
+
+* Vanilla HTML / CSS / JavaScript only
+* No ES modules (`import` / `export`)
+* No bundler
+* No TypeScript
+* No npm packages
+* No React / Vue / framework
+* Global classes exposed through `window.*`
+* Must remain compatible with OBS Chromium engine (Chromium 90+)
+* Avoid unsupported syntax such as:
+
+  * `??=`
+  * `structuredClone()`
+  * decorators
+  * top-level await
+  * private class fields (`#field`)
+
+Always favor broad compatibility and defensive coding.
+
+---
+
+## Repository Structure
+
+```text
+StreamAlerts/
+├── index.html
+├── README.md
+├── CLAUDE.md
+├── config/
+├── streamerbot/
+└── overlay/
 ```
 
-## Démarrage
+### `config/`
 
-- **Serveur** : XAMPP doit tourner avec Apache actif.
-- **URL de l'overlay** : `http://localhost/StreamAlerts/overlay/`
-- **Aucun build requis** — HTML/CSS/JS vanilla, pas de bundler.
-- **Tests manuels** : ouvrir l'overlay dans le navigateur, appuyer sur `T` (alerte test) ou `C` (message chat test).
+Contains the OBS dock configuration UI.
 
-## Architecture
+* `index.html` → config UI
+* `api.php` → reads/writes JSON files
 
-### Overlay (`overlay/`)
+### `streamerbot/`
 
-| Fichier | Rôle |
-|---------|------|
-| `index.html` | Point d'entrée, définit les 5 zones (`#zone-alerts`, `#zone-chat`, `#zone-goal`, `#zone-nowplaying`, `#zone-counter`) |
-| `script.js` | Charge `config.json`, applique le positionnement CSS sur chaque zone, initialise les composants |
-| `style.css` | Tous les styles du canvas 1920×1080 |
-| `components/alerts.js` | Composant alertes — expose `window.Alerts` |
-| `components/chat.js` | Composant chat — expose `window.Chat` |
-| `components/goals.js` etc. | Composants futurs (non implémentés) |
+Contains C# scripts to paste into Streamer.bot.
 
-### Pattern des composants
+Each script writes JSON files into:
 
-Chaque composant est une IIFE qui expose un objet global (`window.Alerts`, `window.Chat`). Ils reçoivent `config` (section correspondante de `config.json`) via `init(config)` appelé dans `script.js`.
+```text
+overlay/data/
+```
 
-### Données (`overlay/data/`)
+These scripts may contain hardcoded absolute Windows paths.
 
-- `config.json` — configuration des zones (positions, tailles, durées, WebSocket)
-- `alert.json` — alerte courante écrite par Streamer.bot (pollee toutes les 500 ms)
-- `chat.json` — message chat fallback (pollé toutes les 300 ms si WebSocket KO)
-- Les exemples sont dans `data/examples/`
+### `overlay/`
 
-### Intégration Streamer.bot (`streamerbot/`)
+Contains the full OBS overlay.
 
-Scripts C# exécutés par Streamer.bot :
-- `WriteAlert.cs` — écrit `alert.json` sur chaque événement Twitch (follow, sub, raid, bits…)
-- `WriteChat.cs` — écrit `chat.json` (fallback polling uniquement ; le WebSocket est la méthode principale)
+```text
+overlay/
+├── index.html
+├── style.css
+├── script.js
+├── core/
+├── services/
+├── utils/
+├── components/
+├── dev/
+├── assets/
+└── data/
+```
 
-### Chemins absolus
+---
 
-Les scripts C# écrivent vers `D:\audri\Xamp\htdocs\StreamAlerts\overlay\data\`. Si le projet est déplacé, ces chemins doivent être mis à jour dans `WriteAlert.cs` et `WriteChat.cs`.
+## Overlay Boot Sequence
 
-## Configuration (`config.json`)
+Script loading order in `overlay/index.html` is critical.
 
-Toutes les positions sont en pixels sur un canvas 1920×1080. Les propriétés de positionnement (`top`, `bottom`, `left`, `right`) acceptent : un nombre (→ `px`), une chaîne (`"auto"`, `"50%"`), ou être omises. Formule de centrage : `left = (1920 - width) / 2`.
+Always preserve this order:
 
-Exemple minimal pour le WebSocket chat :
+```text
+core/ → utils/ → services/ → components/ → dev/ → script.js
+```
+
+Reason:
+
+* `window.Log`, `window.Bus`, `window.Config`, `window.Store` must exist before components initialize
+* components depend on `BaseComponent`
+* debug tools depend on all other globals
+* `script.js` is the final bootstrap layer
+
+Never move `script.js` before the other scripts.
+
+---
+
+## Core Globals
+
+The project relies on globally exposed singletons.
+
+### `window.Log`
+
+Defined in `core/logger.js`.
+
+Use:
+
+```js
+Log.debug('chat', 'message received');
+Log.info('poller', 'registered', id);
+Log.warn('ws', 'connection lost');
+Log.error('alerts', err);
+```
+
+Rules:
+
+* Prefer `Log.info/warn/error/debug` over `console.log`
+* `debug` logs should only be visible when `?debug=1` is enabled
+* Never leave raw `console.log()` calls in production code
+
+### `window.Bus`
+
+Defined in `core/event-bus.js`.
+
+Global pub/sub event system.
+
+Common events:
+
+```text
+config:loaded
+component:ready
+ws:connected
+ws:disconnected
+ws:message
+chat:message
+chat:clear
+visibility:cmd
+visibility:changed
+log:entry
+```
+
+### `window.Store`
+
+Shared runtime state.
+
+Use for temporary state only.
+
+Do not use Store as a replacement for JSON persistence.
+
+### `window.Config`
+
+Loads `overlay/data/config.json` merged with defaults.
+
+Use:
+
+```js
+Config.get('chat.maxMessages');
+Config.isEnabled('goal');
+```
+
+### `window.Poller`
+
+Centralized polling manager.
+
+All JSON polling must go through Poller.
+
+Never create ad hoc `setInterval()` loops inside components unless absolutely necessary.
+
+### `window.WSManager`
+
+Single WebSocket connection to Streamer.bot.
+
+Responsibilities:
+
+* connect
+* authenticate
+* subscribe
+* reconnect
+* emit bus events
+
+### `window.Visibility`
+
+Handles visibility state and `!show` / `!hide` / `!toggle` commands.
+
+---
+
+## Component Pattern
+
+Every overlay widget must extend `BaseComponent`.
+
+Example:
+
+```js
+class ExampleWidget extends BaseComponent {
+  constructor() {
+    super({
+      name: 'example',
+      zoneId: 'zone-example',
+      dataFile: 'example.json',
+      pollInterval: 2000,
+      testKey: 'x'
+    });
+  }
+
+  setup(cfg) {
+    // optional initialization
+  }
+
+  onData(data) {
+    // update DOM here
+  }
+
+  test() {
+    // optional fake test data
+  }
+}
+
+window.ExampleWidget = new ExampleWidget();
+```
+
+### Required Rules
+
+* Always call `super()` in the constructor
+* Always expose the instance globally through `window.*`
+* Every component must have a unique `name`
+* Every component must have a unique DOM zone ID
+* Every component must safely handle missing or invalid JSON
+* Every component should fail gracefully without breaking the rest of the overlay
+
+---
+
+## Creating a New Component
+
+When creating a new overlay component:
+
+1. Create a new file in `overlay/components/`
+2. Extend `BaseComponent`
+3. Expose the instance via `window.MyComponent`
+4. Add the script include in `overlay/index.html`
+5. Add the component entry in `COMPONENTS` inside `script.js`
+6. Add the zone definition in `ZONE_DEFS`
+7. Add default configuration in `config-manager.js`
+8. Add visibility support if needed
+9. Add a keyboard test shortcut in `keyboard-tester.js`
+10. Add corresponding JSON file support in `overlay/data/`
+11. Add documentation in `README.md`
+
+---
+
+## JSON Rules
+
+All JSON files written by Streamer.bot must contain:
+
 ```json
-"chat": {
-  "websocket": "ws://127.0.0.1:8080",
-  "websocketPassword": "..."
+{
+  "timestamp": 1710000000000
 }
 ```
 
-## Composant Alerts (`alerts.js`)
+Rules:
 
-- Polling `alert.json` via `timestamp` pour détecter les nouvelles alertes
-- File d'attente : une alerte à la fois, durée `displayDuration` (défaut 5500 ms)
-- Protection XSS : toujours utiliser la fonction locale `esc()` pour tout contenu utilisateur injecté en HTML
-- Types supportés : `follow`, `sub`, `resub`, `giftsub`, `raid`, `bits`, `donation`, `channelpoints`, `hype_train`
+* `timestamp` is required
+* must be Unix milliseconds
+* Poller uses timestamp-based deduplication
+* if timestamp does not change, component updates will be ignored
+* invalid JSON should never crash the overlay
+* always wrap parsing in `try/catch`
 
-## Composant Chat (`chat.js`)
+Recommended pattern:
 
-- **Mode primaire** : WebSocket Streamer.bot (port 8080) avec auth SHA-256
-- **Fallback** : polling `chat.json` si WebSocket indisponible
-- Persistance via `localStorage` (les messages survivent aux changements de scène OBS)
-- Protection XSS : utiliser `esc()` pour tout contenu injecté en HTML
+```js
+try {
+  var data = JSON.parse(text);
+} catch (err) {
+  Log.error('component-name', err);
+  return;
+}
+```
 
-## Compatibilité navigateur
+---
 
-Le projet cible le moteur Chromium intégré à OBS (≥ v90). Ne pas utiliser d'APIs incompatibles avec cette version.
+## Security Rules
+
+User-generated content comes from Twitch chat, usernames, donations, predictions, poll titles, etc.
+
+Treat all incoming data as unsafe.
+
+### XSS Protection
+
+Always escape user content before inserting it into the DOM.
+
+Use:
+
+```js
+esc(username)
+esc(message)
+esc(title)
+```
+
+Never do:
+
+```js
+element.innerHTML = data.message;
+```
+
+Only use `innerHTML` with already escaped content.
+
+Preferred safer pattern:
+
+```js
+element.textContent = data.message;
+```
+
+### Never Trust
+
+* Twitch usernames
+* chat messages
+* donation messages
+* poll labels
+* prediction titles
+* song titles
+* queue usernames
+
+---
+
+## DOM and Rendering Rules
+
+OBS Browser Sources are performance-sensitive.
+
+### Prefer
+
+* `transform`
+* `opacity`
+* CSS transitions
+* lightweight DOM updates
+* reusing existing DOM nodes
+
+### Avoid
+
+* large `box-shadow`
+* excessive `filter: blur()`
+* frequent layout thrashing
+* rebuilding entire HTML trees every poll
+* unnecessary timers
+* animating width/height/top/left when transform is possible
+
+### Good Pattern
+
+```js
+element.style.transform = 'translateY(0px)';
+element.style.opacity = '1';
+```
+
+### Avoid
+
+```js
+element.style.top = '300px';
+element.style.left = '500px';
+```
+
+for repeated animations.
+
+---
+
+## Polling Rules
+
+All polling must be centralized.
+
+Use:
+
+```js
+Poller.register({
+  id: 'goal',
+  file: 'goal.json',
+  interval: 2000,
+  onData: function(data) {
+    // ...
+  }
+});
+```
+
+Rules:
+
+* First fetch should happen immediately
+* Avoid polling intervals under 500ms
+* Chat should use WebSocket first, polling only as fallback
+* Never create duplicate pollers for the same file
+
+---
+
+## WebSocket Rules
+
+The WebSocket connection is the preferred real-time source.
+
+Expected flow:
+
+```text
+Connect → Hello → Authenticate → Subscribe → Receive Events
+```
+
+Rules:
+
+* Reconnect automatically after disconnect
+* Use exponential or fixed reconnect delay
+* Never spam reconnection attempts
+* Emit status changes through Bus
+* Keep WebSocket logic inside `websocket-manager.js`
+* Components should not open their own WebSocket connections
+
+---
+
+## Visibility Rules
+
+Visibility is controlled by:
+
+* `overlay/data/visibility.json`
+* chat commands
+* config panel
+
+If a component has:
+
+```json
+"enabled": false
+```
+
+inside `config.json`, it is permanently disabled and cannot be shown via chat commands.
+
+Components must respect both:
+
+* config enabled state
+* runtime visibility state
+
+---
+
+## Naming Conventions
+
+### Files
+
+Use kebab-case:
+
+```text
+last-follower.js
+websocket-manager.js
+visibility-manager.js
+```
+
+### Classes
+
+Use PascalCase:
+
+```js
+class LastFollower extends BaseComponent {}
+class WebSocketManager {}
+```
+
+### Globals
+
+Use PascalCase on `window.*`:
+
+```js
+window.LastFollower
+window.WSManager
+window.Visibility
+```
+
+### Config Keys
+
+Use camelCase:
+
+```json
+{
+  "lastFollower": {},
+  "lastSubscriber": {},
+  "maxMessages": 20
+}
+```
+
+---
+
+## Debug Mode
+
+Debug mode is enabled via:
+
+```text
+?debug=1
+```
+
+Example:
+
+```text
+http://localhost/StreamAlerts/overlay/?debug=1
+```
+
+When debug mode is active:
+
+* show debug panel
+* enable debug logs
+* show active pollers
+* show websocket state
+* show component initialization status
+
+Debug mode should never affect production behavior.
+
+---
+
+## Before Finishing Any Task
+
+Always verify:
+
+1. No raw `console.log()` remains
+2. No unsafe `innerHTML` with unescaped user data
+3. No duplicate polling loops
+4. Component still works if JSON file is missing
+5. Component still works if JSON is malformed
+6. Component still works if WebSocket disconnects
+7. Code is compatible with Chromium 90
+8. New files are referenced in `index.html`
+9. New config keys have defaults
+10. README and CLAUDE.md stay consistent
+
+---
+
+## Typical Mistakes To Avoid
+
+* Forgetting to expose a component via `window.*`
+* Forgetting to add the component to `script.js`
+* Using unsupported modern JS syntax
+* Using `innerHTML` with Twitch data
+* Creating independent `setInterval()` loops
+* Forgetting `timestamp` in JSON
+* Breaking load order in `index.html`
+* Hardcoding dimensions without respecting config
+* Rebuilding large DOM trees every second
+* Not handling WebSocket disconnects
+* Forgetting to keep OBS performance in mind

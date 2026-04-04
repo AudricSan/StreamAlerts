@@ -55,7 +55,7 @@ class UptimeComponent extends BaseComponent {
   }
 
   _renderTime() {
-    const el = document.getElementById('uptime-value');
+    const el = this.zone.querySelector('#uptime-value');
     if (!el || !this._startedAt) return;
     el.textContent = formatUptime(Date.now() - this._startedAt);
   }

@@ -446,6 +446,128 @@
     }
 
     /* ══════════════════════════════════════
+       DÉMARRAGE RAPIDE
+    ══════════════════════════════════════ */
+
+    .quickstart {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    .qs-step {
+      display: flex;
+      align-items: flex-start;
+      gap: 14px;
+      padding: 16px 20px;
+      background: var(--surf);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      transition: border-color 0.15s;
+    }
+
+    .qs-step:hover { border-color: var(--border2); }
+
+    .qs-step-num {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      width: 28px; height: 28px;
+      background: rgba(145, 70, 255, 0.14);
+      border: 1px solid rgba(145, 70, 255, 0.3);
+      border-radius: 50%;
+      font-size: 0.75rem;
+      font-weight: 900;
+      color: var(--twitch);
+      flex-shrink: 0;
+      margin-top: 2px;
+    }
+
+    .qs-step-icon {
+      font-size: 1.25rem;
+      flex-shrink: 0;
+      width: 26px;
+      text-align: center;
+      margin-top: 2px;
+    }
+
+    .qs-step-body { flex: 1; }
+
+    .qs-step-title {
+      font-size: 0.85rem;
+      font-weight: 800;
+      color: #fff;
+      margin-bottom: 5px;
+    }
+
+    .qs-step-desc {
+      font-size: 0.78rem;
+      color: var(--muted);
+      line-height: 1.7;
+    }
+
+    .qs-step-desc code {
+      font-family: monospace;
+      font-size: 0.75rem;
+      background: var(--surf2);
+      border: 1px solid var(--border2);
+      padding: 1px 6px;
+      border-radius: 4px;
+      color: var(--accent);
+    }
+
+    .qs-step-desc a { color: var(--accent); text-decoration: none; }
+    .qs-step-desc a:hover { text-decoration: underline; }
+
+    .qs-step-desc kbd {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      min-width: 20px; height: 20px;
+      padding: 0 5px;
+      background: var(--surf2);
+      border: 1px solid var(--border2);
+      border-radius: 4px;
+      font-family: 'Nunito', monospace;
+      font-size: 0.72rem;
+      font-weight: 800;
+      color: #fff;
+    }
+
+    /* ══════════════════════════════════════
+       CALLOUT
+    ══════════════════════════════════════ */
+
+    .callout {
+      display: flex;
+      align-items: flex-start;
+      gap: 12px;
+      padding: 14px 18px;
+      background: rgba(93, 173, 226, 0.07);
+      border: 1px solid rgba(93, 173, 226, 0.2);
+      border-left: 3px solid #5DADE2;
+      border-radius: 8px;
+      font-size: 0.8rem;
+      color: var(--text);
+      line-height: 1.7;
+    }
+
+    .callout-icon { font-size: 1.1rem; flex-shrink: 0; margin-top: 2px; }
+
+    .callout code {
+      font-family: monospace;
+      font-size: 0.75rem;
+      background: var(--surf2);
+      border: 1px solid var(--border2);
+      padding: 1px 6px;
+      border-radius: 4px;
+      color: #5DADE2;
+    }
+
+    .callout a { color: #5DADE2; text-decoration: none; }
+    .callout a:hover { text-decoration: underline; }
+
+    /* ══════════════════════════════════════
        FOOTER
     ══════════════════════════════════════ */
 
@@ -519,6 +641,84 @@
       </div>
     </a>
 
+  </div>
+
+  <!-- ══════════════════════════════════════
+       DÉMARRAGE RAPIDE
+  ══════════════════════════════════════ -->
+
+  <div class="section">
+    <div class="section-title">Démarrage rapide</div>
+    <div class="quickstart">
+
+      <div class="qs-step">
+        <div class="qs-step-num">1</div>
+        <span class="qs-step-icon">🌐</span>
+        <div class="qs-step-body">
+          <div class="qs-step-title">Démarrer XAMPP</div>
+          <div class="qs-step-desc">
+            Ouvrir <strong>XAMPP Control Panel</strong> et cliquer <strong>Start</strong> sur le module <strong>Apache</strong>.
+            La pastille doit devenir verte. Laisser XAMPP ouvert pendant tout le stream.
+          </div>
+        </div>
+      </div>
+
+      <div class="qs-step">
+        <div class="qs-step-num">2</div>
+        <span class="qs-step-icon">🤖</span>
+        <div class="qs-step-body">
+          <div class="qs-step-title">Importer les scripts dans Streamer.bot</div>
+          <div class="qs-step-desc">
+            Dans Streamer.bot → onglet <strong>Actions</strong> → bouton <strong>Import</strong>.
+            Charger les fichiers <code>.cs</code> du dossier <code>streamerbot/</code> du projet.
+            Vérifier que chaque action a bien ses triggers (voir tableau plus bas).
+          </div>
+        </div>
+      </div>
+
+      <div class="qs-step">
+        <div class="qs-step-num">3</div>
+        <span class="qs-step-icon">🎬</span>
+        <div class="qs-step-body">
+          <div class="qs-step-title">Ajouter la Browser Source dans OBS</div>
+          <div class="qs-step-desc">
+            Dans OBS → <strong>Sources</strong> → <strong>+</strong> → <strong>Navigateur</strong>.<br>
+            URL : <code>http://localhost/StreamAlerts/overlay/</code><br>
+            Largeur : <code>1920</code> · Hauteur : <code>1080</code><br>
+            Cocher <em>« Actualiser le navigateur quand la scène devient active »</em>.
+          </div>
+        </div>
+      </div>
+
+      <div class="qs-step">
+        <div class="qs-step-num">4</div>
+        <span class="qs-step-icon">⚙️</span>
+        <div class="qs-step-body">
+          <div class="qs-step-title">Configurer les positions et options</div>
+          <div class="qs-step-desc">
+            Ouvrir <a href="config/">la page de configuration</a> pour régler la position,
+            la taille et la visibilité de chaque composant.<br>
+            Elle peut aussi être utilisée comme OBS Dock : <strong>Outils → Docks personnalisés</strong>
+            → URL <code>http://localhost/StreamAlerts/config/</code>.
+          </div>
+        </div>
+      </div>
+
+      <div class="qs-step">
+        <div class="qs-step-num">5</div>
+        <span class="qs-step-icon">✅</span>
+        <div class="qs-step-body">
+          <div class="qs-step-title">Tester l'overlay</div>
+          <div class="qs-step-desc">
+            Ouvrir <a href="overlay/" target="_blank">l'overlay dans le navigateur</a>
+            et appuyer sur <kbd>T</kbd> pour déclencher une alerte de test,
+            ou <kbd>C</kbd> pour un message chat.
+            Toutes les touches de test sont listées dans la section <em>Raccourcis</em> ci-dessous.
+          </div>
+        </div>
+      </div>
+
+    </div>
   </div>
 
   <!-- ══════════════════════════════════════
@@ -839,6 +1039,25 @@
       <div class="shortcut"><kbd>O</kbd><span class="shortcut-desc">Sondage</span></div>
       <div class="shortcut"><kbd>P</kbd><span class="shortcut-desc">Prédiction</span></div>
       <div class="shortcut"><kbd>H</kbd><span class="shortcut-desc">Hype Train</span></div>
+    </div>
+  </div>
+
+  <!-- ══════════════════════════════════════
+       MODE DEBUG
+  ══════════════════════════════════════ -->
+
+  <div class="section">
+    <div class="section-title">Mode debug</div>
+    <div class="callout">
+      <span class="callout-icon">🔍</span>
+      <div>
+        Pour diagnostiquer un problème (composant qui ne s'affiche pas, WebSocket qui ne se connecte pas,
+        données qui ne se mettent pas à jour…), ouvrir l'overlay avec <code>?debug=1</code> dans l'URL :<br>
+        <a href="overlay/?debug=1" target="_blank"><code>http://localhost/StreamAlerts/overlay/?debug=1</code></a><br><br>
+        Un panneau flottant apparaît avec l'état de la connexion WebSocket, la liste des fichiers JSON
+        en cours de polling et les logs en temps réel. Ce mode n'affecte pas OBS —
+        il ne s'active que dans le navigateur ordinaire.
+      </div>
     </div>
   </div>
 

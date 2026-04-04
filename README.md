@@ -17,6 +17,7 @@ Fonctionne avec **Streamer.bot** + **XAMPP** + **OBS Studio**.
 - [Visibilité — commandes chat](#visibilité--commandes-chat)
 - [Personnalisation via config.json](#personnalisation-via-configjson)
 - [Mode test](#mode-test)
+- [Mode debug](#mode-debug)
 - [Structure des fichiers](#structure-des-fichiers)
 - [Dépannage](#dépannage)
 
@@ -29,31 +30,34 @@ Twitch
   │  événements (follow, sub, raid, chat…)
   ▼
 Streamer.bot
-  ├── Alertes      → WriteAlert.cs      → overlay/data/alert.json          (polling 500 ms)
-  ├── Last Follow  → WriteAlert.cs      → overlay/data/last_follower.json   (polling 2 s)
-  ├── Last Sub     → WriteAlert.cs      → overlay/data/last_subscriber.json (polling 2 s)
-  ├── Goal         → WriteGoal.cs       → overlay/data/goal.json            (polling 2 s)
-  ├── Sub Train    → WriteSubTrain.cs   → overlay/data/subtrain.json        (polling 500 ms)
-  ├── Musique      → WriteNowPlaying.cs → overlay/data/nowplaying.json      (polling 3 s)
-  ├── Queue        → WriteQueue.cs      → overlay/data/queue.json           (polling 1 s)
-  ├── Visibilité   → WriteVisibility.cs → overlay/data/visibility.json      (polling 1,5 s)
+  ├── Alertes         → WriteAlert.cs        → overlay/data/alert.json
+  ├── Last Follow     → WriteAlert.cs        → overlay/data/last_follower.json
+  ├── Last Sub        → WriteAlert.cs        → overlay/data/last_subscriber.json
+  ├── Goal            → WriteGoal.cs         → overlay/data/goal.json
+  ├── Sub Train       → WriteSubTrain.cs     → overlay/data/subtrain.json
+  ├── Musique         → WriteNowPlaying.cs   → overlay/data/nowplaying.json
+  ├── Queue           → WriteQueue.cs        → overlay/data/queue.json
+  ├── Spectateurs     → WriteViewers.cs      → overlay/data/viewers.json
+  ├── Uptime          → WriteUptime.cs       → overlay/data/uptime.json
+  ├── Stats session   → WriteSession.cs      → overlay/data/session.json
+  ├── Countdown       → WriteCountdown.cs    → overlay/data/countdown.json
+  ├── Leaderboard     → WriteLeaderboard.cs  → overlay/data/leaderboard.json
+  ├── Sondage         → WritePoll.cs         → overlay/data/poll.json
+  ├── Prédiction      → WritePrediction.cs   → overlay/data/prediction.json
+  ├── Hype Train      → WriteHypeTrain.cs    → overlay/data/hypetrain.json
+  ├── Visibilité      → WriteVisibility.cs   → overlay/data/visibility.json
   │
-  └── Chat ──── WebSocket API ─────────────────────────► overlay/components/chat.js
-              (temps réel, push)          │
-              + WriteChat.cs → chat.json  (fallback polling si WS indisponible)
+  └── Chat ──── WebSocket API (temps réel, push) ──────► overlay/components/chat.js
+              + WriteChat.cs → chat.json (fallback polling si WS indisponible)
 
                               overlay/index.html  ←  OBS Browser Source unique
-                          ┌──────────────────────────────────┐
-                          │  data/config.json                │  ← positions, tailles, durées
-                          │  data/visibility.json            │  ← affichage/masquage runtime
-                          │  components/alerts.js            │
-                          │  components/chat.js              │
-                          │  components/lastevents.js        │
-                          │  components/goals.js             │
-                          │  components/subtrain.js          │
-                          │  components/nowplaying.js        │
-                          │  components/queue.js             │
-                          └──────────────────────────────────┘
+                          ┌──────────────────────────────────────────┐
+                          │  core/     logger, bus, config, store     │
+                          │  services/ polling, websocket, visibility │
+                          │  utils/    esc(), formatters, colors       │
+                          │  components/ 16 widgets indépendants      │
+                          │  data/     JSON écrits par Streamer.bot   │
+                          └──────────────────────────────────────────┘
                                         │
                                         ▼
                             OBS — 1 seul Browser Source
@@ -82,10 +86,10 @@ Streamer.bot
 
 2. Démarre **Apache** dans le panneau XAMPP.
 
-3. Ouvre `http://localhost/StreamAlerts/overlay/` dans ton navigateur.
-   Tu dois voir l'indicateur de test en bas de la page.
+3. Ouvre `http://localhost/StreamAlerts/` dans ton navigateur.
+   Tu arrives sur le tableau de bord principal.
 
-4. Appuie sur **T** pour tester une alerte, **C** pour un message de chat.
+4. Clique sur **Overlay OBS** puis appuie sur **T** pour tester une alerte.
 
 ---
 
@@ -128,7 +132,7 @@ Elle permet de tout régler **sans toucher au code**.
 | 👥 **Queue**  | Ouvrir/fermer la queue, ajouter/retirer des joueurs manuellement                               |
 | 🎵 **Music**  | Afficher/masquer la musique en cours, titre et artiste                                         |
 | 📐 **Layout** | Visibilité rapide de chaque zone, position/taille/opacité, paramètres spécifiques, bouton Test |
-| ⚙️ **Config** | Durée des alertes, durée du sub train, last follower/sub affiché                               |
+| ⚙️ **Config** | Durée des alertes, durée du sub train, paramètres WebSocket                                    |
 
 ---
 
@@ -141,12 +145,20 @@ Elle permet de tout régler **sans toucher au code**.
 | `WriteAlert.cs` | ⚡ Événement Twitch | Subscribe, Follow, Raid, Bits… |
 | `WriteGoal.cs` | ⚡ Événement Twitch | Mêmes actions que WriteAlert |
 | `WriteSubTrain.cs` | ⚡ Événement Twitch | Subscribe, Re-Subscribe, Gift Subscription |
+| `WriteViewers.cs` | ⏱ Timer (30s) | Lit le nombre de spectateurs |
+| `WriteUptime.cs` | ⚡ Événement Twitch | Stream Online / Stream Offline |
+| `WriteSession.cs` | ⚡ Événement Twitch | Même triggers que WriteAlert |
+| `WriteLeaderboard.cs` | ⚡ Événement Twitch | Cheer, Donation |
+| `WritePoll.cs` | ⚡ Événement Twitch | Poll Created / Updated / Completed |
+| `WritePrediction.cs` | ⚡ Événement Twitch | Prediction Created / Updated / Resolved |
+| `WriteHypeTrain.cs` | ⚡ Événement Twitch | Hype Train Start / Update / End |
 | `WriteChat.cs` | 💬 Chat Message | Tous les messages (fallback WS) |
 | `WriteNowPlaying.cs` | 💬 Chat Command | `!np` (mod) |
 | `WriteQueue.cs` | 💬 Chat Command | `!join` `!leave` `!next` `!queue` |
+| `WriteCountdown.cs` | 💬 Chat Command | `!countdown <min> [label]` / `!countdown stop` |
 | `WriteVisibility.cs` | 💬 Chat Command | `!show` `!hide` `!toggle` _(optionnel)_ |
 
-> Les scripts ⚡ doivent absolument être sur des triggers d'événements Twitch — les placer sur un trigger Chat ne les déclenchera pas automatiquement lors des vrais événements.
+> Les scripts ⚡ doivent être sur des triggers d'événements Twitch — les placer sur un trigger Chat ne les déclenchera pas automatiquement lors des vrais événements.
 
 ---
 
@@ -195,83 +207,33 @@ Le WebSocket gère le chat en temps réel. `WriteChat.cs` sert uniquement de fal
 ### Goal (WriteGoal.cs)
 
 > ⚠️ **Trigger d'événement requis — pas un trigger Chat.**
-> Ce script doit se déclencher automatiquement quand un follow, sub ou bits arrive sur Twitch.
-> Le placer sur un trigger Chat ne l'incrémentera que si quelqu'un tape une commande manuellement.
 
-**Où le placer :** ajouter en sous-action dans les actions qui ont déjà un trigger d'événement Twitch — c'est-à-dire les mêmes actions que `WriteAlert.cs`.
-
-**Exemple — objectif de subs (dans `[StreamAlerts] Sub`) :**
-
-```
-Trigger  : Twitch → Channel Events → Subscribe
-Sub-actions :
-  1. Set Argument  →  alertType       = sub
-  2. Run Action    →  [StreamAlerts] Écrire alerte    ← déjà présent
-  3. Set Argument  →  goalIncrement   = 1
-  4. Set Argument  →  goalType        = sub
-  5. Execute C#    →  WriteGoal.cs                    ← à ajouter
-```
+**Où le placer :** ajouter en sous-action dans les actions qui ont déjà un trigger d'événement Twitch.
 
 **Arguments disponibles (Set Argument) :**
 
-| Argument        | Valeur                                             | Description                                       |
-| --------------- | -------------------------------------------------- | ------------------------------------------------- |
-| `goalIncrement` | `1` (ou autre)                                     | Nombre à ajouter à chaque déclenchement           |
-| `goalTarget`    | `100`                                              | Objectif total (conservé si déjà dans le fichier) |
-| `goalLabel`     | `"Objectif subs"`                                  | Texte affiché (conservé si déjà dans le fichier)  |
-| `goalType`      | `sub` / `follow` / `bits` / `donation` / `custom`  | Couleur de la barre                               |
-| `goalReset`     | `true`                                             | Remet le compteur à 0 (reset manuel)              |
-
-> `goalTarget` et `goalLabel` ne sont à passer qu'une seule fois. Le script les conserve ensuite automatiquement.
-
----
+| Argument        | Valeur                                              | Description                                       |
+| --------------- | --------------------------------------------------- | ------------------------------------------------- |
+| `goalIncrement` | `1` (ou autre)                                      | Nombre à ajouter à chaque déclenchement           |
+| `goalTarget`    | `100`                                               | Objectif total (conservé si déjà dans le fichier) |
+| `goalLabel`     | `"Objectif subs"`                                   | Texte affiché (conservé si déjà dans le fichier)  |
+| `goalType`      | `sub` / `follow` / `bits` / `donation` / `custom`   | Couleur de la barre                               |
+| `goalReset`     | `true`                                              | Remet le compteur à 0                             |
 
 ### Sub Train (WriteSubTrain.cs)
 
-> ⚠️ **Trigger d'événement requis — pas un trigger Chat.**
-> Ce script doit se déclencher automatiquement à chaque sub/resub/giftsub Twitch.
-> Le placer sur un trigger Chat ne démarrera le train que si un mod tape une commande manuellement.
+**Où le placer :** ajouter en sous-action dans les actions `Sub`, `Resub` et `Gift Sub`.
 
-**Où le placer :** ajouter en sous-action dans les actions `[StreamAlerts] Sub`, `[StreamAlerts] Resub` et `[StreamAlerts] Gift Sub`, après `WriteAlert.cs`.
+**Arguments :**
 
-**Arguments à passer (Set Argument) :**
-
-| Argument        | Valeur Streamer.bot | Description                                       |
-| --------------- | ------------------- | ------------------------------------------------- |
-| `user`          | `%user%`            | Pseudo du viewer (variable automatique)           |
-| `trainDuration` | `60`                | Durée du train en secondes (optionnel, défaut 60) |
-
-**Exemple dans `[StreamAlerts] Sub` :**
-
-```
-Trigger  : Twitch → Channel Events → Subscribe
-Sub-actions :
-  1. Set Argument  →  alertType       = sub
-  2. Run Action    →  [StreamAlerts] Écrire alerte    ← déjà présent
-  3. Set Argument  →  user            = %user%
-  4. Set Argument  →  trainDuration   = 60
-  5. Execute C#    →  WriteSubTrain.cs                ← à ajouter
-```
-
-Répéter pour `[StreamAlerts] Resub` (trigger `Re-Subscribe`) et `[StreamAlerts] Gift Sub` (trigger `Gift Subscription`).
-
----
+| Argument        | Valeur      | Description                          |
+| --------------- | ----------- | ------------------------------------ |
+| `user`          | `%user%`    | Pseudo du viewer                     |
+| `trainDuration` | `60`        | Durée en secondes (défaut : 60)      |
 
 ### Musique (WriteNowPlaying.cs)
 
-Affiche le titre et l'artiste en cours de lecture.
-
-**Où le placer :** créer une action dédiée `[StreamAlerts] Now Playing`.
-
-**Triggers possibles (choisir selon ton setup) :**
-
-| Méthode                                       | Trigger Streamer.bot                             |
-| --------------------------------------------- | ------------------------------------------------ |
-| Commande chat `!np Titre - Artiste`           | Twitch → Chat Message → Command `!np`            |
-| Mise à jour automatique via fichier texte OBS | Core → Timer (toutes les 10 s) + lecture fichier |
-| Contrôle manuel                               | Aucun trigger — gérer depuis la page de config   |
-
-**Arguments à passer (Set Argument) :**
+**Arguments :**
 
 | Argument   | Valeur                   | Description                 |
 | ---------- | ------------------------ | --------------------------- |
@@ -279,94 +241,43 @@ Affiche le titre et l'artiste en cours de lecture.
 | `npArtist` | `%input1%` ou texte fixe | Artiste (optionnel)         |
 | `npActive` | `true` / `false`         | `false` = masquer l'overlay |
 
-**Exemple avec commande chat `!np` :**
-
-```
-Trigger  : Twitch → Chat Message → Command : !np  (mod uniquement)
-Sub-actions :
-  1. Set Argument  →  npTitle   = %input0%
-  2. Set Argument  →  npArtist  = %input1%
-  3. Set Argument  →  npActive  = true
-  4. Execute C#    →  WriteNowPlaying.cs
-```
-
-**Pour masquer :** créer une action `[StreamAlerts] Stop Music` avec `npActive = false`.
-
----
-
 ### Queue (WriteQueue.cs)
 
-Gère la file d'attente des viewers via des commandes chat.
-
-**Où le placer :** créer **une action par commande** (ou une action centrale appelée par plusieurs).
-
-**Actions à créer :**
-
-| Action                       | Trigger                               | Arguments                                                                            |
-| ---------------------------- | ------------------------------------- | ------------------------------------------------------------------------------------ |
-| `[StreamAlerts] Queue Join`  | Chat Command : `!join`                | `queueCommand=join` · `user=%user%`                                                  |
-| `[StreamAlerts] Queue Leave` | Chat Command : `!leave`               | `queueCommand=leave` · `user=%user%`                                                 |
-| `[StreamAlerts] Queue Next`  | Chat Command : `!next` _(mod)_        | `queueCommand=next` · `isModerator=%isModerator%` · `isBroadcaster=%isBroadcaster%`  |
-| `[StreamAlerts] Queue Open`  | Chat Command : `!queue open` _(mod)_  | `queueCommand=open` · `isModerator=%isModerator%` · `isBroadcaster=%isBroadcaster%`  |
-| `[StreamAlerts] Queue Close` | Chat Command : `!queue close` _(mod)_ | `queueCommand=close` · `isModerator=%isModerator%` · `isBroadcaster=%isBroadcaster%` |
-| `[StreamAlerts] Queue Clear` | Chat Command : `!queue clear` _(mod)_ | `queueCommand=clear` · `isModerator=%isModerator%` · `isBroadcaster=%isBroadcaster%` |
-
-> **Astuce :** `!queue open` / `!queue close` / `!queue clear` peuvent être configurés comme une seule commande `!queue` avec `%input0%` comme valeur de `queueCommand`.
-
-**Structure type d'une action (ex: `!join`) :**
-
-```
-Trigger  : Twitch → Chat Message → Command : !join
-Sub-actions :
-  1. Set Argument  →  queueCommand  = join
-  2. Set Argument  →  user          = %user%
-  3. Execute C#    →  WriteQueue.cs
-```
-
-> Les commandes `next`, `open`, `close`, `clear` sont automatiquement rejetées si l'utilisateur n'est pas modérateur ou broadcaster.
-
----
+| Action                       | Trigger                               | `queueCommand` |
+| ---------------------------- | ------------------------------------- | -------------- |
+| `[StreamAlerts] Queue Join`  | Chat Command : `!join`                | `join`         |
+| `[StreamAlerts] Queue Leave` | Chat Command : `!leave`               | `leave`        |
+| `[StreamAlerts] Queue Next`  | Chat Command : `!next` _(mod)_        | `next`         |
+| `[StreamAlerts] Queue Open`  | Chat Command : `!queue open` _(mod)_  | `open`         |
+| `[StreamAlerts] Queue Close` | Chat Command : `!queue close` _(mod)_ | `close`        |
+| `[StreamAlerts] Queue Clear` | Chat Command : `!queue clear` _(mod)_ | `clear`        |
 
 ### Visibilité (WriteVisibility.cs)
 
-**Optionnel** — les commandes `!show`/`!hide`/`!toggle` sont déjà détectées directement via le WebSocket dans l'overlay. Ce script sert de **fallback** si le WebSocket est indisponible (mode polling uniquement).
-
-**Où le placer :** créer une action `[StreamAlerts] Visibility`, déclenchée par 3 commandes chat.
-
-**Actions à créer :**
-
-| Action                      | Trigger                  | Arguments                                                                             |
-| --------------------------- | ------------------------ | ------------------------------------------------------------------------------------- |
-| `[StreamAlerts] Visibility` | Chat Command : `!show`   | `rawInput=%rawInput%` · `isModerator=%isModerator%` · `isBroadcaster=%isBroadcaster%` |
-| _(même action)_             | Chat Command : `!hide`   | idem                                                                                  |
-| _(même action)_             | Chat Command : `!toggle` | idem                                                                                  |
-
-**Structure de l'action :**
-
-```
-Triggers : !show  /  !hide  /  !toggle
-Sub-actions :
-  1. Set Argument  →  rawInput       = %rawInput%
-  2. Set Argument  →  isModerator    = %isModerator%
-  3. Set Argument  →  isBroadcaster  = %isBroadcaster%
-  4. Execute C#    →  WriteVisibility.cs
-```
-
-> Le script vérifie lui-même les permissions. Une commande d'un viewer lambda est ignorée silencieusement.
+**Optionnel** — les commandes `!show`/`!hide`/`!toggle` sont déjà détectées directement via le WebSocket. Ce script sert de fallback si le WebSocket est indisponible.
 
 ---
 
 ## Composants de l'overlay
 
-| Touche test | Composant   | Fichier JSON                                  | Description                             |
-| ----------- | ----------- | --------------------------------------------- | --------------------------------------- |
-| **T**       | Alertes     | `alert.json`                                  | Follow, sub, raid, bits, donation…      |
-| **C**       | Chat        | `chat.json`                                   | Messages Twitch temps réel              |
-| **L**       | Last Events | `last_follower.json` / `last_subscriber.json` | Dernier follow et dernier sub           |
-| **G**       | Goal        | `goal.json`                                   | Barre de progression vers un objectif   |
-| **S**       | Sub Train   | `subtrain.json`                               | Compteur de subs avec barre de décompte |
-| **N**       | Musique     | `nowplaying.json`                             | Titre et artiste en cours               |
-| **U**       | Queue       | `queue.json`                                  | File d'attente des viewers              |
+| Touche test | Composant       | Fichier JSON               | Description                             |
+| ----------- | --------------- | -------------------------- | --------------------------------------- |
+| **T**       | Alertes         | `alert.json`               | Follow, sub, raid, bits, donation…      |
+| **C**       | Chat            | `chat.json`                | Messages Twitch temps réel              |
+| **L**       | Dernier follow  | `last_follower.json`       | Dernier viewer à avoir follow           |
+| **L**       | Dernier sub     | `last_subscriber.json`     | Dernier viewer à s'être abonné          |
+| **G**       | Objectif        | `goal.json`                | Barre de progression vers un objectif   |
+| **S**       | Sub Train       | `subtrain.json`            | Compteur de subs avec barre de décompte |
+| **N**       | Musique         | `nowplaying.json`          | Titre et artiste en cours               |
+| **U**       | File d'attente  | `queue.json`               | File d'attente des viewers              |
+| **V**       | Spectateurs     | `viewers.json`             | Nombre de viewers en direct             |
+| **I**       | Uptime          | `uptime.json`              | Durée du stream depuis le début         |
+| **E**       | Stats session   | `session.json`             | Follows, subs, bits, raids, dons        |
+| **D**       | Compte à rebours| `countdown.json`           | Timer vers une heure cible              |
+| **B**       | Classement      | `leaderboard.json`         | Top donateurs / bits du stream          |
+| **O**       | Sondage         | `poll.json`                | Sondage Twitch actif en temps réel      |
+| **P**       | Prédiction      | `prediction.json`          | Paris Twitch (bleu vs rose)             |
+| **H**       | Hype Train      | `hypetrain.json`           | Barre de progression du Hype Train      |
 
 ---
 
@@ -384,16 +295,24 @@ Les modérateurs et le broadcaster peuvent afficher/masquer n'importe quel compo
 
 ### Alias acceptés
 
-| Composant   | Mots clés acceptés                                     |
-| ----------- | ------------------------------------------------------ |
-| Alertes     | `alerts` `alertes` `alerte` `alert`                    |
-| Chat        | `chat`                                                 |
-| Last Follow | `follower` `follow` `lastfollow` `lastfollower`        |
-| Last Sub    | `sub` `subscriber` `lastsub` `lastsubscriber` `abonne` |
-| Goal        | `goal` `objectif`                                      |
-| Sub Train   | `train` `subtrain`                                     |
-| Musique     | `music` `musique` `nowplaying` `chanson`               |
-| Queue       | `queue` `file`                                         |
+| Composant       | Mots clés acceptés                                     |
+| --------------- | ------------------------------------------------------ |
+| Alertes         | `alerts` `alertes` `alerte` `alert`                    |
+| Chat            | `chat`                                                 |
+| Dernier follow  | `follower` `follow` `lastfollow` `lastfollower`        |
+| Dernier sub     | `sub` `subscriber` `lastsub` `lastsubscriber` `abonne` |
+| Objectif        | `goal` `objectif`                                      |
+| Sub Train       | `train` `subtrain`                                     |
+| Musique         | `music` `musique` `nowplaying` `chanson`               |
+| File d'attente  | `queue` `file`                                         |
+| Spectateurs     | `viewers` `spectateurs`                                |
+| Uptime          | `uptime` `duree` `direct`                              |
+| Stats session   | `session` `stats`                                      |
+| Compte à rebours| `countdown` `compte` `timer`                           |
+| Classement      | `leaderboard` `top` `classement`                       |
+| Sondage         | `poll` `vote` `sondage`                                |
+| Prédiction      | `prediction` `pari`                                    |
+| Hype Train      | `hypetrain` `hype`                                     |
 
 ### Exemples
 
@@ -402,11 +321,10 @@ Les modérateurs et le broadcaster peuvent afficher/masquer n'importe quel compo
 !hide   alertes      → masque les alertes
 !show   chat         → affiche le chat
 !toggle subtrain     → bascule le sub train
+!hide   hype         → masque le hype train
 ```
 
 La commande n'apparaît pas dans le chat overlay. L'état est persisté dans `data/visibility.json`.
-
-La page de config (onglet 📐 Layout) affiche les mêmes boutons et se synchronise automatiquement.
 
 ---
 
@@ -423,68 +341,39 @@ Tout se configure dans `overlay/data/config.json` — ou via la page de config (
 | `width`          | `number` (px)    | Largeur de la zone                                     |
 | `opacity`        | `number` (0-100) | Opacité globale du composant                           |
 | `enabled`        | `boolean`        | `false` = désactivé définitivement (non surchargeable) |
+| `pollInterval`   | `number` (ms)    | Fréquence de lecture du JSON (avancé)                  |
 
 ### Référence complète
 
 ```json
 {
   "alerts": {
-    "bottom": 500,
-    "left": 450,
-    "width": 600,
+    "bottom": 293, "left": 633, "width": 600,
     "displayDuration": 5500,
-    "opacity": 100,
-    "enabled": true
+    "opacity": 100, "enabled": true
   },
-
   "chat": {
-    "bottom": 60,
-    "right": 53,
-    "width": 360,
-    "maxHeight": 1500,
+    "bottom": 66, "right": 123, "width": 360, "maxHeight": 1500,
     "msgLifetime": 999999999,
     "maxMessages": 27,
     "websocket": "ws://127.0.0.1:8080",
-    "websocketPassword": "..."
+    "websocketPassword": "...",
+    "enabled": true
   },
-
-  "lastFollower": {
-    "bottom": 55,
-    "left": 245,
-    "width": 230
-  },
-
-  "lastSubscriber": {
-    "bottom": 48,
-    "left": 695,
-    "width": 230
-  },
-
-  "goal": {
-    "top": 20,
-    "left": 760,
-    "width": 400
-  },
-
-  "subtrain": {
-    "top": 20,
-    "right": 20,
-    "width": 260,
-    "duration": 60
-  },
-
-  "nowplaying": {
-    "bottom": 20,
-    "left": 20,
-    "width": 380
-  },
-
-  "queue": {
-    "top": 20,
-    "left": 20,
-    "width": 230,
-    "maxVisible": 8
-  }
+  "lastFollower":   { "bottom": 325, "left": 770, "width": 230, "enabled": true },
+  "lastSubscriber": { "bottom": 342, "left": 837, "width": 230, "enabled": true },
+  "goal":      { "top": 395, "left": 680, "width": 400, "enabled": true },
+  "subtrain":  { "top": 411, "right": 877, "width": 260, "duration": 60, "enabled": true },
+  "nowplaying":{ "bottom": 380, "left": 642, "width": 380, "enabled": true },
+  "queue":     { "top": 369, "left": 753, "width": 230, "maxVisible": 8, "enabled": true },
+  "viewers":   { "top": 331, "right": 913, "width": 160, "enabled": true },
+  "uptime":    { "top": 396, "right": 938, "width": 160, "enabled": true },
+  "session":   { "top": 464, "left": 656, "width": 230, "enabled": true },
+  "countdown": { "top": 450, "left": 660, "width": 300, "enabled": true },
+  "leaderboard":{ "top": 422, "left": 695, "width": 230, "enabled": true },
+  "poll":      { "top": 283, "left": 904, "width": 380, "enabled": true },
+  "prediction":{ "top": 415, "right": 650, "width": 320, "enabled": true },
+  "hypetrain": { "top": 520, "right": 704, "width": 300, "enabled": true }
 }
 ```
 
@@ -504,15 +393,40 @@ Exemples :
 
 Ouvre `http://localhost/StreamAlerts/overlay/` dans ton navigateur.
 
-| Touche | Effet                                                                                                        |
-| ------ | ------------------------------------------------------------------------------------------------------------ |
+| Touche | Effet                                                                                                         |
+| ------ | ------------------------------------------------------------------------------------------------------------- |
 | **T**  | Alerte suivante : `follow → sub → resub → giftsub → raid → bits → donation → channelpoints → hype_train → …` |
-| **C**  | Message de chat simulé (cycle de 8 messages)                                                                 |
-| **L**  | Simule un last follower et un last subscriber                                                                |
-| **G**  | Affiche un goal de test                                                                                      |
-| **S**  | Démarre un sub train de test                                                                                 |
-| **N**  | Affiche une musique de test                                                                                  |
-| **U**  | Affiche une queue de test                                                                                    |
+| **C**  | Message de chat simulé (cycle de 8 messages)                                                                  |
+| **L**  | Simule un last follower + un last subscriber                                                                  |
+| **G**  | Affiche un goal de test (47/100 subs)                                                                         |
+| **S**  | Démarre un sub train de test (×7)                                                                             |
+| **N**  | Affiche une musique de test                                                                                    |
+| **U**  | Affiche une file d'attente de test (4 joueurs)                                                                |
+| **V**  | Affiche 142 spectateurs                                                                                       |
+| **I**  | Affiche l'uptime (2h34m simulées)                                                                             |
+| **E**  | Affiche les stats de session (12 follows, 5 subs…)                                                            |
+| **D**  | Démarre un compte à rebours de 5 minutes                                                                      |
+| **B**  | Affiche un classement de test (5 entrées)                                                                     |
+| **O**  | Affiche un sondage de test (60 secondes)                                                                      |
+| **P**  | Affiche une prédiction de test (90 secondes)                                                                  |
+| **H**  | Affiche un Hype Train niveau 2 (3 minutes)                                                                    |
+
+---
+
+## Mode debug
+
+Ajoute `?debug=1` à l'URL de l'overlay pour activer le panneau de diagnostic :
+
+```
+http://localhost/StreamAlerts/overlay/?debug=1
+```
+
+Le panneau affiche en temps réel :
+- **État du WebSocket** Streamer.bot (connecté / déconnecté)
+- **Liste des polls actifs** avec leur fréquence
+- **Logs détaillés** de tous les composants
+
+Utile pour diagnostiquer une alerte qui ne s'affiche pas ou un problème de connexion WebSocket.
 
 ---
 
@@ -522,13 +436,11 @@ Ouvre `http://localhost/StreamAlerts/overlay/` dans ton navigateur.
 StreamAlerts/
 ├── README.md
 ├── CLAUDE.md
+├── index.html                     ← tableau de bord principal
 │
 ├── config/                        ← OBS Browser Dock
 │   ├── index.html                 ← interface de configuration
 │   └── api.php                    ← API PHP lecture/écriture JSON
-│
-├── offline/
-│   └── index.html                 ← page "Stream Offline" (scène OBS dédiée)
 │
 ├── streamerbot/                   ← scripts C# à coller dans Streamer.bot
 │   ├── WriteAlert.cs              ← alertes + last follower/sub
@@ -537,36 +449,83 @@ StreamAlerts/
 │   ├── WriteSubTrain.cs           ← sub train
 │   ├── WriteNowPlaying.cs         ← musique en cours
 │   ├── WriteQueue.cs              ← queue viewers
+│   ├── WriteViewers.cs            ← nombre de spectateurs
+│   ├── WriteUptime.cs             ← durée du stream
+│   ├── WriteSession.cs            ← stats de session
+│   ├── WriteCountdown.cs          ← compte à rebours
+│   ├── WriteLeaderboard.cs        ← classement donateurs
+│   ├── WritePoll.cs               ← sondages Twitch
+│   ├── WritePrediction.cs         ← prédictions Twitch
+│   ├── WriteHypeTrain.cs          ← hype train
 │   └── WriteVisibility.cs         ← show/hide composants (optionnel)
 │
 └── overlay/                       ← URL OBS Browser Source
-    ├── index.html
-    ├── style.css
-    ├── script.js                  ← charge config.json + visibility.json, init composants
-    ├── components/
-    │   ├── alerts.js              ← alertes Twitch
-    │   ├── chat.js                ← chat WebSocket + polling fallback
-    │   ├── lastevents.js          ← last follower / last subscriber
-    │   ├── goals.js               ← goal tracker
-    │   ├── subtrain.js            ← sub train avec décompte
-    │   ├── nowplaying.js          ← musique en cours
-    │   └── queue.js               ← queue viewers
+    ├── index.html                 ← point d'entrée
+    ├── style.css                  ← tous les styles
+    ├── script.js                  ← bootstrap (charge config + init composants)
+    │
+    ├── core/                      ← fondations (chargées en premier)
+    │   ├── logger.js              ← logs centralisés
+    │   ├── event-bus.js           ← communication entre composants
+    │   ├── config-manager.js      ← chargement config.json + defaults
+    │   ├── state-store.js         ← état partagé
+    │   └── base-component.js      ← classe parente de tous les widgets
+    │
+    ├── services/                  ← services partagés
+    │   ├── polling-manager.js     ← gestionnaire centralisé des polls JSON
+    │   ├── websocket-manager.js   ← connexion WebSocket Streamer.bot
+    │   └── visibility-manager.js  ← show/hide des zones
+    │
+    ├── utils/                     ← fonctions utilitaires
+    │   ├── dom.js                 ← esc() (protection XSS)
+    │   ├── time.js                ← formatCountdown(), formatUptime()
+    │   └── color.js               ← gestion couleurs chat
+    │
+    ├── dev/                       ← outils de développement
+    │   ├── keyboard-tester.js     ← raccourcis clavier centralisés
+    │   └── debug-panel.js         ← panneau debug (?debug=1)
+    │
+    ├── components/                ← un fichier = un widget
+    │   ├── alerts.js
+    │   ├── chat.js
+    │   ├── last-follower.js
+    │   ├── last-subscriber.js
+    │   ├── goals.js
+    │   ├── subtrain.js
+    │   ├── nowplaying.js
+    │   ├── queue.js
+    │   ├── viewers.js
+    │   ├── uptime.js
+    │   ├── session.js
+    │   ├── countdown.js
+    │   ├── leaderboard.js
+    │   ├── poll.js
+    │   ├── prediction.js
+    │   └── hypetrain.js
+    │
     ├── assets/
     │   ├── sounds/                ← fichiers .mp3 (follow.mp3, sub.mp3…)
-    │   ├── fonts/                 ← polices locales
-    │   └── images/
-    └── data/
-        ├── config.json            ← positions, tailles, durées, WebSocket   ← À ÉDITER
+    │   └── fonts/                 ← polices locales
+    │
+    └── data/                      ← JSON écrits par Streamer.bot  ← NE PAS ÉDITER
+        ├── config.json            ← positions, tailles, durées  ← PEUT ÊTRE ÉDITÉ
         ├── visibility.json        ← état affiché/masqué de chaque composant
-        ├── alert.json             ← écrit par Streamer.bot
-        ├── chat.json              ← écrit par Streamer.bot (fallback)
-        ├── last_follower.json     ← écrit par Streamer.bot
-        ├── last_subscriber.json   ← écrit par Streamer.bot
-        ├── goal.json              ← écrit par Streamer.bot ou la page config
-        ├── subtrain.json          ← écrit par Streamer.bot
-        ├── nowplaying.json        ← écrit par Streamer.bot ou la page config
-        ├── queue.json             ← écrit par Streamer.bot ou la page config
-        └── examples/             ← JSONs d'exemple par type
+        ├── alert.json
+        ├── chat.json
+        ├── last_follower.json
+        ├── last_subscriber.json
+        ├── goal.json
+        ├── subtrain.json
+        ├── nowplaying.json
+        ├── queue.json
+        ├── viewers.json
+        ├── uptime.json
+        ├── session.json
+        ├── countdown.json
+        ├── leaderboard.json
+        ├── poll.json
+        ├── prediction.json
+        └── hypetrain.json
 ```
 
 ---
@@ -590,8 +549,8 @@ StreamAlerts/
 **WebSocket (méthode principale) :**
 
 1. Streamer.bot → `Servers/Clients → WebSocket Server` → serveur démarré ?
-2. URL et mot de passe corrects dans la page de config (onglet 📐 Layout → 💬 Chat) ?
-3. Console du navigateur (F12) → chercher `[Chat] Authentification échouée`.
+2. URL et mot de passe corrects dans la page de config ?
+3. Ouvre l'overlay avec `?debug=1` → le panneau doit afficher "WS connecté".
 
 **Fallback polling :**
 
@@ -602,7 +561,7 @@ StreamAlerts/
 
 1. Vérifie `http://localhost/StreamAlerts/overlay/data/visibility.json` — la valeur doit être `true`.
 2. Dans la page de config (onglet 📐 Layout → Visibilité), le bouton est-il vert ?
-3. Si `enabled: false` est dans `config.json` pour ce composant, il est désactivé définitivement — retire la propriété ou mets `true`.
+3. Si `"enabled": false` est dans `config.json` pour ce composant, il est désactivé définitivement — mets `true`.
 
 ### La page de config ne sauvegarde pas
 
@@ -610,8 +569,16 @@ StreamAlerts/
 2. Ouvre `http://localhost/StreamAlerts/config/api.php?action=read&file=config` — doit retourner du JSON.
 3. Vérifie les permissions d'écriture sur `overlay/data/`.
 
+### Je veux diagnostiquer un problème précis
+
+Ouvre l'overlay avec `?debug=1` dans l'URL :
+```
+http://localhost/StreamAlerts/overlay/?debug=1
+```
+Le panneau en bas de l'écran affiche tous les logs en temps réel.
+
 ### Les positions ne s'appliquent pas
 
 1. Vérifie `http://localhost/StreamAlerts/overlay/data/config.json` — JSON valide ?
 2. Recharge la Browser Source OBS (clic droit → Actualiser).
-3. Console du navigateur (F12) → erreurs de parsing JSON ?
+3. Ouvre l'overlay avec `?debug=1` → chercher une erreur de parsing dans les logs.

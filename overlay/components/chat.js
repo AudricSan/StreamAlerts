@@ -54,9 +54,20 @@ class ChatComponent extends BaseComponent {
     this._restoreFromLS();
 
     // Écouter les événements WebSocket distribués par WSManager
-    Bus.on('ws:message',      (msg) => this._onWsMessage(msg));
-    Bus.on('ws:connected',    ()    => Log.info('Chat', 'WebSocket actif — polling suspendu'));
-    Bus.on('ws:disconnected', ()    => Log.info('Chat', 'WebSocket KO — polling repris'));
+    Bus.on('ws:message', (msg) => this._onWsMessage(msg));
+    Bus.on('ws:connected', () => {
+      Log.info('Chat', 'WebSocket actif — polling suspendu');
+      Poller.unregister('chat');
+    });
+    Bus.on('ws:disconnected', () => {
+      Log.info('Chat', 'WebSocket KO — polling repris');
+      Poller.register({
+        id:       this.name,
+        file:     this.dataFile,
+        interval: this.cfg.pollInterval || this.pollInterval,
+        onData:   (data) => this.onData(data),
+      });
+    });
 
     // Démarrer la connexion WebSocket si configurée
     if (cfg.websocket) {

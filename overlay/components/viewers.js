@@ -28,7 +28,7 @@ class ViewersComponent extends BaseComponent {
           <span class="viewers-icon" aria-hidden="true">👁</span>
           <div class="viewers-text">
             <div class="viewers-label">SPECTATEURS</div>
-            <div class="viewers-count">${data.count ?? 0}</div>
+            <div class="viewers-count">${esc(data.count ?? 0)}</div>
           </div>
         </div>
       </div>

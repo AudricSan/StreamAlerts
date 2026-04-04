@@ -11,9 +11,10 @@
 
 const Visibility = (() => {
   // Rempli par init() depuis ZONE_DEFS de script.js
-  let _zoneMap  = {}; // { cfgKey: 'zone-id' }
-  let _aliasMap = {}; // { 'alias': 'cfgKey' }
-  let _current  = {};
+  let _zoneMap    = {}; // { cfgKey: 'zone-id' }
+  let _aliasMap   = {}; // { 'alias': 'cfgKey' }
+  let _current    = {};
+  let _pollTimer  = null;
 
   /**
    * Initialise avec la définition des zones et démarre le polling.
@@ -28,7 +29,7 @@ const Visibility = (() => {
     });
 
     _poll();
-    setInterval(_poll, 1500);
+    _pollTimer = setInterval(_poll, 1500);
 
     // Écouter les commandes depuis le chat
     Bus.on('visibility:cmd', ({ action, name }) => handleCmd(action, name));

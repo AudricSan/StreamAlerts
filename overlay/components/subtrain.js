@@ -70,7 +70,7 @@ class SubTrainComponent extends BaseComponent {
 
   _tick() {
     if (!this._currentData) return;
-    const fill = document.getElementById('subtrain-fill');
+    const fill = this.zone.querySelector('#subtrain-fill');
     if (!fill) { this._stopTick(); return; }
 
     const remaining = Math.max(0, this._currentData.expiresAt - Date.now());

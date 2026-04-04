@@ -63,8 +63,8 @@ class CountdownComponent extends BaseComponent {
 
   _tick() {
     if (!this._currentData) return;
-    const el   = document.getElementById('countdown-value');
-    const fill = document.getElementById('countdown-fill');
+    const el   = this.zone.querySelector('#countdown-value');
+    const fill = this.zone.querySelector('#countdown-fill');
     if (!el) { this._stopTick(); return; }
 
     const remaining = Math.max(0, this._currentData.endsAt - Date.now());

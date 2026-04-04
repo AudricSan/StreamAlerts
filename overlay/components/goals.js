@@ -40,7 +40,7 @@ class GoalsComponent extends BaseComponent {
         <div class="goal-inner">
           <div class="goal-header">
             <span class="goal-label">${esc(data.label || 'OBJECTIF')}</span>
-            <span class="goal-count">${data.current}<span class="goal-sep">/</span>${data.target}</span>
+            <span class="goal-count">${esc(data.current)}<span class="goal-sep">/</span>${esc(data.target)}</span>
           </div>
           <div class="goal-bar-track">
             <div class="goal-bar-fill" style="width:${pct}%"></div>

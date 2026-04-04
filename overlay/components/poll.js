@@ -91,7 +91,7 @@ class PollComponent extends BaseComponent {
 
   _tick() {
     if (!this._currentData) return;
-    const fill = document.getElementById('poll-timer-fill');
+    const fill = this.zone.querySelector('#poll-timer-fill');
     if (!fill) return;
 
     if (!this._currentData.endsAt) { fill.style.width = '100%'; return; }

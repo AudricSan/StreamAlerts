@@ -1,7 +1,10 @@
 {
   "permissions": {
     "allow": [
-      "Bash(cp:*)"
+      "Bash(cp:*)",
+      "Bash(xargs grep:*)"
     ]
-  }
+  },
+  "outputStyle": "Explanatory",
+  "prefersReducedMotion": true
 }
