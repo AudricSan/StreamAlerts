@@ -1,6 +1,6 @@
 # Composant — Sub train (`subtrain.json`, touche S)
 
-- Status: Backlog
+- Status: Done
 - Priorite: Moyenne
 - Complexite: M
 - Tags: rebuild-from-zero, widget, twitch

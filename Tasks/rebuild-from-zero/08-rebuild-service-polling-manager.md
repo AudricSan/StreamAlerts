@@ -1,6 +1,6 @@
 # Service — Polling centralisé (`window.Poller`)
 
-- Status: Backlog
+- Status: Done
 - Priorité: 🔴 Haute
 - Complexité: M
 - Tags: rebuild-from-zero, services, json
@@ -15,10 +15,19 @@ Toutes les lectures périodiques de fichiers JSON dans `overlay/data/` passent p
 - `register` / `unregister` pour permettre au chat de couper le poll quand le WS est actif.
 - Gestion fetch erreur réseau sans crash.
 
-## Critères d'acceptation
+## Critères d’acceptation
 
-- [ ] Impossible d’enregistrer deux pollers avec le même `id` sans comportement défini documenté.
-- [ ] JSON invalide : log + pas de throw vers le haut.
+- [x] Impossible d’enregistrer deux pollers avec le même `id` — le second est ignoré avec `Log.warn`.
+- [x] JSON invalide : `Log.debug` + pas de throw vers le haut.
+
+## Résumé (implémentation)
+
+Fichier `overlay/services/polling-manager.js` réécrit proprement.
+- `catch (_)` → `catch (e) + Log.debug` — visible en mode `?debug=1`, silencieux en prod.
+- Destructuring paramètre → `options.x` explicite (plus défensif).
+- `Math.max(500, interval)` — intervalle minimum 500 ms enforced.
+- `Object.values()` → `Object.keys() + map` (un poil plus compatible).
+- Template literals → concaténation de strings.
 
 ## Dépendances
 

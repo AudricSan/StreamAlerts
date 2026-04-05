@@ -6,6 +6,16 @@
   font-style: normal;
 }
 
+/* === ÉCHELLE DE POLICE === */
+html {
+  font-size: calc(16px * var(--global-font-scale, 1));
+}
+
+#zone-chat,
+.zone-chat {
+  font-size: calc(1rem * var(--chat-font-scale, 1));
+}
+
 /* === VARIABLES GLOBALES === */
 :root {
   --font-display: 'Regular Brush Personal Use Only', cursive;
@@ -50,7 +60,6 @@ html, body {
 
 #zone-goal,
 #zone-nowplaying,
-#zone-counter,
 #zone-subtrain,
 #zone-queue,
 #zone-last-follower,
@@ -62,9 +71,35 @@ html, body {
 #zone-leaderboard,
 #zone-poll,
 #zone-prediction,
-#zone-hypetrain {
+#zone-hypetrain,
+#zone-last-raid,
+#zone-channel-info,
+#zone-quote,
+#zone-stream-label,
+#zone-sticker,
+#zone-ticker {
   position: fixed;
   pointer-events: none;
+}
+
+/* UTILITAIRE : Indicateur mode dégradé */
+#stale-indicator {
+  position: fixed;
+  top: 10px;
+  left: 50%;
+  transform: translateX(-50%);
+  font-family: var(--font-body);
+  font-size: 0.7rem;
+  font-weight: 700;
+  color: rgba(255, 220, 60, 0.9);
+  background: rgba(30, 20, 0, 0.75);
+  padding: 4px 12px;
+  border-radius: 20px;
+  border: 1px solid rgba(255, 200, 0, 0.3);
+  pointer-events: none;
+  user-select: none;
+  letter-spacing: 0.04em;
+  z-index: 9999;
 }
 
 /* UTILITAIRE : Hint de test */
@@ -93,4 +128,46 @@ html, body {
   border-radius: 3px;
   padding: 1px 6px;
   font-size: 0.7rem;
+}
+
+/* === REDUCED MOTION === */
+/* Déclenché par la préférence système ou par body.reduce-motion (config layout.reduceMotion) */
+
+@media (prefers-reduced-motion: reduce) {
+  .alert-card,
+  .alert-card.exiting,
+  .alert-card.visible::after,
+  .chat-msg,
+  .chat-msg.expiring,
+  .chat-msg.visible {
+    animation-duration: 0.01ms !important;
+    transition-duration: 0.01ms !important;
+  }
+
+  /* Couvre les animations dans les composants inclus via d'autres feuilles de style */
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
+body.reduce-motion .alert-card,
+body.reduce-motion .alert-card.exiting,
+body.reduce-motion .alert-card.visible::after,
+body.reduce-motion .chat-msg,
+body.reduce-motion .chat-msg.expiring,
+body.reduce-motion .chat-msg.visible {
+  animation-duration: 0.01ms !important;
+  transition-duration: 0.01ms !important;
+}
+
+body.reduce-motion *,
+body.reduce-motion *::before,
+body.reduce-motion *::after {
+  animation-duration: 0.01ms !important;
+  animation-iteration-count: 1 !important;
+  transition-duration: 0.01ms !important;
 }

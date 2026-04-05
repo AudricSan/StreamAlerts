@@ -1,6 +1,6 @@
 # Noyau — Store d’état runtime (`window.Store`)
 
-- Status: Backlog
+- Status: Done
 - Priorité: 🟢 Basse
 - Complexité: S
 - Tags: rebuild-from-zero, core, state
@@ -16,8 +16,17 @@ Fournir un **objet partagé** pour l’état volatile entre modules (pas un subs
 
 ## Critères d'acceptation
 
-- [ ] Initialisation sans erreur si aucune donnée.
-- [ ] Documenté comme « temporaire uniquement » dans CLAUDE.
+- [x] Initialisation sans erreur si aucune donnée.
+- [x] Documenté comme « temporaire uniquement » dans CLAUDE.
+
+## Résumé (implémentation)
+
+Fichier `overlay/core/state-store.js` réécrit proprement.
+- `?.` optionnel remplacé par vérification explicite (`if (!_data[namespace])`).
+- `catch (_) {}` silencieux → `Log.warn` pour traçabilité.
+- `clear(namespace)` ajouté (vide un namespace ou tout le store).
+- Template literals → concaténation de strings (plus défensif, pas de dépendance syntaxique).
+- `dump()` utilise `Object.assign` au lieu de spread.
 
 ## Dépendances
 

@@ -1,6 +1,6 @@
 # Composant — Uptime (`uptime.json`, touche I)
 
-- Status: Backlog
+- Status: Done
 - Priorite: Moyenne
 - Complexite: S
 - Tags: rebuild-from-zero, widget, twitch

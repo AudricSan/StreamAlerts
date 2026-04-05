@@ -867,3 +867,67 @@ input[type=range]::-webkit-slider-thumb {
   border-radius: 4px;
   white-space: nowrap;
 }
+
+/* ── Quick links footer ── */
+.quick-links {
+  position: fixed;
+  bottom: 0; left: 0; right: 0;
+  background: rgba(10,10,15,0.95);
+  border-top: 1px solid rgba(255,255,255,0.06);
+  padding: 6px 16px;
+  display: flex;
+  gap: 16px;
+  font-size: 0.75rem;
+  z-index: 100;
+}
+
+.quick-links a { color: #58a6ff; text-decoration: none; }
+.quick-links a:hover { text-decoration: underline; }
+
+/* ── WS status dot ── */
+.ws-dot {
+  display: inline-block;
+  width: 8px; height: 8px;
+  border-radius: 50%;
+  margin-right: 4px;
+  flex-shrink: 0;
+}
+
+.ws-dot--ok      { background: #3fb950; }
+.ws-dot--error   { background: #f85149; }
+.ws-dot--unknown { background: #6e7681; }
+
+.ws-status-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 0.8rem;
+}
+
+/* Danger button */
+.btn-danger {
+  color: var(--red);
+  border-color: rgba(231,76,60,0.35);
+}
+
+.btn-danger:hover { background: var(--red-bg); }
+
+/* Dock search */
+#dock-search {
+  width: 100%;
+  margin-bottom: 6px;
+  padding: 6px 10px;
+  background: rgba(255,255,255,0.06);
+  border: 1px solid rgba(255,255,255,0.12);
+  border-radius: 4px;
+  color: #c9d1d9;
+  font-size: 0.8rem;
+  outline: none;
+  flex: 0 0 auto;
+  align-self: center;
+}
+
+#dock-search:focus { border-color: var(--accent); }
+
+/* Push main content above fixed footer */
+main { padding-bottom: 36px; }

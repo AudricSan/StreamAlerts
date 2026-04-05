@@ -1,11 +1,13 @@
 'use strict';
 
 /* ============================================================
-   core/event-bus.js — Bus d'événements global
+   core/event-bus.js — Bus d'événements global (pub/sub)
    Expose : window.Bus
 
    Événements standard :
      'config:loaded'       { config }
+     'config:saved'        { config }
+     'component:ready'     { name }
      'ws:connected'        {}
      'ws:disconnected'     {}
      'ws:message'          { source, type, data, raw }
@@ -13,7 +15,7 @@
      'chat:clear'          {}
      'visibility:cmd'      { action, name }
      'visibility:changed'  { key, visible }
-     'component:ready'     { name }
+     'scene:changed'       { scene, profile }
      'log:entry'           { ts, level, scope, args }
    ============================================================ */
 
@@ -22,8 +24,8 @@ const Bus = (() => {
 
   /**
    * S'abonne à un événement.
-   * @param {string}   event
-   * @param {Function} fn
+   * @param   {string}   event
+   * @param   {Function} fn
    * @returns {Function} unsubscribe
    */
   function on(event, fn) {
@@ -34,6 +36,8 @@ const Bus = (() => {
 
   /**
    * Se désabonne.
+   * @param {string}   event
+   * @param {Function} fn
    */
   function off(event, fn) {
     if (!_listeners[event]) return;
@@ -41,29 +45,37 @@ const Bus = (() => {
   }
 
   /**
-   * Émet un événement.
-   * Les exceptions dans les handlers sont loguées mais n'interrompent pas les autres.
+   * Émet un événement vers tous ses abonnés.
+   * Une exception dans un handler est loguée mais n'interrompt pas les autres.
    * @param {string} event
    * @param {*}      payload
    */
   function emit(event, payload) {
     if (!_listeners[event]) return;
-    [..._listeners[event]].forEach(fn => {
-      try { fn(payload); }
-      catch (e) {
-        // Éviter une récursion si l'erreur vient d'un handler 'log:entry'
+    _listeners[event].slice().forEach(fn => {
+      try {
+        fn(payload);
+      } catch (e) {
+        // Éviter la récursion si l'erreur vient d'un handler 'log:entry'
         if (event !== 'log:entry') {
-          console.error(`[Bus] Exception dans handler "${event}":`, e);
+          Log.warn('bus', 'Exception dans handler "' + event + '":', e);
         }
       }
     });
   }
 
   /**
-   * S'abonne une seule fois.
+   * S'abonne une seule fois — se désabonne automatiquement après le premier appel.
+   * @param   {string}   event
+   * @param   {Function} fn
+   * @returns {Function} unsubscribe
    */
   function once(event, fn) {
-    const unsub = on(event, (payload) => { fn(payload); unsub(); });
+    const unsub = on(event, function(payload) {
+      fn(payload);
+      unsub();
+    });
+    return unsub;
   }
 
   return { on, off, emit, once };

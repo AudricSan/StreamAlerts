@@ -1,6 +1,6 @@
 # Composant — Compte a rebours (`countdown.json`, touche D)
 
-- Status: Backlog
+- Status: Done
 - Priorite: Moyenne
 - Complexite: M
 - Tags: rebuild-from-zero, widget, timer

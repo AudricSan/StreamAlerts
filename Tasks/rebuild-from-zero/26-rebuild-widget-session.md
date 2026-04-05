@@ -1,6 +1,6 @@
 # Composant — Stats de session (`session.json`, touche E)
 
-- Status: Backlog
+- Status: Done
 - Priorite: Moyenne
 - Complexite: M
 - Tags: rebuild-from-zero, widget, stats

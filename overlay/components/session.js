@@ -1,18 +1,18 @@
 'use strict';
 
 /* ============================================================
-   Composant : Session Stats
-   Expose : window.Session  →  { init() }
-   Zone    : #zone-session  |  Données : data/session.json
-   Test    : touche E
+   components/session.js — Statistiques de session
+   Expose : window.Session  (étend BaseComponent)
+   Zone   : #zone-session   Données : data/session.json
+   Test   : touche E
    ============================================================ */
 
-const _SESSION_STATS = [
-  { icon: '♥',  label: 'Follows',   key: 'follows'   },
-  { icon: '⭐', label: 'Subs',      key: 'subs'      },
-  { icon: '💎', label: 'Bits',      key: 'bits'      },
-  { icon: '⚔️', label: 'Raids',     key: 'raids'     },
-  { icon: '💰', label: 'Dons',      key: 'donations' },
+var _SESSION_STATS = [
+  { icon: '\u2665', label: 'Follows',   key: 'follows'   },
+  { icon: '\u2B50', label: 'Subs',      key: 'subs'      },
+  { icon: '\uD83D\uDC8E', label: 'Bits', key: 'bits'     },
+  { icon: '\u2694\uFE0F', label: 'Raids', key: 'raids'   },
+  { icon: '\uD83D\uDCB0', label: 'Dons', key: 'donations'},
 ];
 
 class SessionComponent extends BaseComponent {
@@ -23,34 +23,45 @@ class SessionComponent extends BaseComponent {
       dataFile:     'session.json',
       pollInterval: 3000,
       testKey:      'e',
-      testData:     [{ follows: 12, subs: 5, bits: 750, raids: 2, donations: 3, timestamp: 1 }],
     });
   }
 
+  test() {
+    this.onData({ follows: 12, subs: 5, bits: 750, raids: 2, donations: 3, timestamp: Date.now() });
+  }
+
   onData(data) {
-    if (!data.timestamp) { this.clear(); return; }
+    if (!data || !data.timestamp) { this.clear(); return; }
 
-    const visible = _SESSION_STATS.filter(s =>
-      (data[s.key] ?? 0) > 0 || s.key === 'follows' || s.key === 'subs'
-    );
+    // Afficher toujours follows et subs, les autres uniquement si > 0
+    var visible = [];
+    for (var i = 0; i < _SESSION_STATS.length; i++) {
+      var s = _SESSION_STATS[i];
+      var val = data[s.key] != null ? data[s.key] : 0;
+      if (val > 0 || s.key === 'follows' || s.key === 'subs') {
+        visible.push({ stat: s, value: val });
+      }
+    }
 
-    this.zone.innerHTML = `
-      <div class="session-card">
-        <div class="session-accent"></div>
-        <div class="session-inner">
-          <div class="session-label">SESSION</div>
-          <div class="session-grid">
-            ${visible.map(s => `
-              <div class="session-stat">
-                <span class="session-stat-icon">${s.icon}</span>
-                <span class="session-stat-value">${esc(data[s.key] ?? 0)}</span>
-                <span class="session-stat-name">${s.label}</span>
-              </div>
-            `).join('')}
-          </div>
-        </div>
-      </div>
-    `;
+    var gridHtml = '';
+    for (var j = 0; j < visible.length; j++) {
+      var item = visible[j];
+      gridHtml +=
+        '<div class="session-stat">' +
+          '<span class="session-stat-icon">'  + item.stat.icon  + '</span>' +
+          '<span class="session-stat-value">' + esc(item.value) + '</span>' +
+          '<span class="session-stat-name">'  + item.stat.label + '</span>' +
+        '</div>';
+    }
+
+    this.zone.innerHTML =
+      '<div class="session-card">' +
+        '<div class="session-accent"></div>' +
+        '<div class="session-inner">' +
+          '<div class="session-label">SESSION</div>' +
+          '<div class="session-grid">' + gridHtml + '</div>' +
+        '</div>' +
+      '</div>';
   }
 }
 

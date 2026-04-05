@@ -1,10 +1,10 @@
 'use strict';
 
 /* ============================================================
-   Composant : Poll (Sondage Twitch)
-   Expose : window.Poll  →  { init() }
-   Zone    : #zone-poll  |  Données : data/poll.json
-   Test    : touche O
+   components/poll.js — Sondage Twitch
+   Expose : window.Poll  (étend BaseComponent)
+   Zone   : #zone-poll   Données : data/poll.json
+   Test   : touche O
    ============================================================ */
 
 class PollComponent extends BaseComponent {
@@ -20,9 +20,9 @@ class PollComponent extends BaseComponent {
     this._tickTimer   = null;
   }
 
-  getTestData() {
-    const ts = Date.now();
-    return {
+  test() {
+    var ts = Date.now();
+    this.onData({
       title:     'Quelle map on joue ?',
       active:    true,
       startedAt: ts,
@@ -33,10 +33,11 @@ class PollComponent extends BaseComponent {
         { title: 'Inferno', votes: 15 },
       ],
       timestamp: ts,
-    };
+    });
   }
 
   onData(data) {
+    if (!data) return;
     this._currentData = data;
     if (data.active) {
       this._render(data);
@@ -47,42 +48,50 @@ class PollComponent extends BaseComponent {
   }
 
   _render(data) {
-    const total = (data.choices || []).reduce((s, c) => s + (c.votes || 0), 0);
+    var choices = data.choices || [];
+    var total   = 0;
+    for (var i = 0; i < choices.length; i++) {
+      total += choices[i].votes || 0;
+    }
 
-    this.zone.innerHTML = `
-      <div class="poll-card">
-        <div class="poll-header">
-          <span class="poll-label">SONDAGE</span>
-          <span class="poll-votes">${total} vote${total !== 1 ? 's' : ''}</span>
-        </div>
-        <div class="poll-title">${esc(data.title || '')}</div>
-        <div class="poll-choices">
-          ${(data.choices || []).map(c => {
-            const pct = total > 0 ? Math.round((c.votes / total) * 100) : 0;
-            return `
-              <div class="poll-choice">
-                <div class="poll-choice-bar-track">
-                  <div class="poll-choice-bar-fill" style="width:${pct}%"></div>
-                  <div class="poll-choice-info">
-                    <span class="poll-choice-title">${esc(c.title)}</span>
-                    <span class="poll-choice-pct">${pct}%</span>
-                  </div>
-                </div>
-              </div>
-            `;
-          }).join('')}
-        </div>
-        <div class="poll-timer-track">
-          <div class="poll-timer-fill" id="poll-timer-fill"></div>
-        </div>
-      </div>
-    `;
-    this._tick(); // mise à jour immédiate de la barre de temps
+    var votesLabel = total + ' vote' + (total !== 1 ? 's' : '');
+
+    var choicesHtml = '';
+    for (var j = 0; j < choices.length; j++) {
+      var c   = choices[j];
+      var pct = total > 0 ? Math.round(((c.votes || 0) / total) * 100) : 0;
+      choicesHtml +=
+        '<div class="poll-choice">' +
+          '<div class="poll-choice-bar-track">' +
+            '<div class="poll-choice-bar-fill" style="width:' + pct + '%"></div>' +
+            '<div class="poll-choice-info">' +
+              '<span class="poll-choice-title">' + esc(c.title) + '</span>' +
+              '<span class="poll-choice-pct">'   + pct + '%</span>' +
+            '</div>' +
+          '</div>' +
+        '</div>';
+    }
+
+    this.zone.innerHTML =
+      '<div class="poll-card">' +
+        '<div class="poll-header">' +
+          '<span class="poll-label">SONDAGE</span>' +
+          '<span class="poll-votes">' + votesLabel + '</span>' +
+        '</div>' +
+        '<div class="poll-title">'   + esc(data.title || '') + '</div>' +
+        '<div class="poll-choices">' + choicesHtml           + '</div>' +
+        '<div class="poll-timer-track">' +
+          '<div class="poll-timer-fill" id="poll-timer-fill"></div>' +
+        '</div>' +
+      '</div>';
+
+    this._tick();
   }
 
   _startTick() {
+    var self = this;
     this._stopTick();
-    this._tickTimer = setInterval(() => this._tick(), 200);
+    this._tickTimer = setInterval(function() { self._tick(); }, 200);
   }
 
   _stopTick() {
@@ -91,13 +100,13 @@ class PollComponent extends BaseComponent {
 
   _tick() {
     if (!this._currentData) return;
-    const fill = this.zone.querySelector('#poll-timer-fill');
+    var fill = this.zone.querySelector('#poll-timer-fill');
     if (!fill) return;
 
     if (!this._currentData.endsAt) { fill.style.width = '100%'; return; }
 
-    const remaining = Math.max(0, this._currentData.endsAt - Date.now());
-    const duration  = this._currentData.endsAt - (this._currentData.startedAt || (this._currentData.endsAt - 120000));
+    var remaining = Math.max(0, this._currentData.endsAt - Date.now());
+    var duration  = this._currentData.endsAt - (this._currentData.startedAt || (this._currentData.endsAt - 120000));
     fill.style.width = (duration > 0 ? Math.round((remaining / duration) * 100) : 0) + '%';
 
     if (remaining <= 0 && this._currentData.active) {

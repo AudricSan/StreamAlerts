@@ -4,31 +4,26 @@
    services/websocket-manager.js — Connexion WebSocket Streamer.bot
    Expose : window.WSManager
 
-   Connexion unique à l'API WebSocket Streamer.bot.
-   Gère Hello → Auth (SHA-256) → Subscribe.
-   Distribue tous les événements via Bus.emit('ws:message', ...).
-   Reconnexion automatique toutes les 3s si déconnexion.
+   Flux : Connect → Hello → Authenticate (SHA-256) → Subscribe → Events
+   Distribue les événements via Bus.emit('ws:message', { source, type, data, raw }).
+   Reconnexion automatique toutes les 3 s sur déconnexion.
 
-   Composants clients : écouter Bus.on('ws:message', fn)
+   Les composants n'ouvrent PAS leur propre WebSocket.
+   Ils écoutent : Bus.on('ws:message', fn)
    ============================================================ */
 
 const WSManager = (() => {
-  let _ws        = null;
-  let _url       = null;
-  let _password  = '';
-  let _retryTimer = null;
+  let _ws          = null;
+  let _url         = '';
+  let _password    = '';
+  let _retryTimer  = null;
+  let _intentional = false; // true = disconnect volontaire (pas de retry)
 
-  /** Calcule base64(SHA-256(str)) via Web Crypto API. */
-  async function _sha256b64(str) {
-    const buf = await crypto.subtle.digest(
-      'SHA-256', new TextEncoder().encode(str)
-    );
-    return btoa(String.fromCharCode(...new Uint8Array(buf)));
-  }
+  /* ---------------------------------------------------------- */
+  /* API publique                                                */
+  /* ---------------------------------------------------------- */
 
-  /**
-   * Initializes connection using configuration.
-   */
+  /** Lit la config (section env) et démarre la connexion. */
   function init() {
     const cfg = Config.get('env');
     connect(cfg.websocket, cfg.websocketPassword);
@@ -36,87 +31,154 @@ const WSManager = (() => {
 
   /**
    * Démarre la connexion WebSocket.
-   * @param {string} url      — ex: 'ws://127.0.0.1:8080'
-   * @param {string} password — mot de passe Streamer.bot
+   * @param {string} url      ex: 'ws://127.0.0.1:8080'
+   * @param {string} password Mot de passe Streamer.bot (peut être vide)
    */
   function connect(url, password) {
-    if (!url) return;
-    _url      = url;
-    _password = password || '';
+    if (!url) {
+      Log.warn('ws', 'URL manquante — connexion ignorée');
+      return;
+    }
+    _url         = url;
+    _password    = password || '';
+    _intentional = false;
     _tryConnect();
   }
 
+  /** Déconnecte sans relancer. */
+  function disconnect() {
+    _intentional = true;
+    clearTimeout(_retryTimer);
+    if (_ws) _ws.close();
+  }
+
+  /** @returns {boolean} */
+  function isConnected() {
+    return Store.get('ws', 'connected', false);
+  }
+
+  /* ---------------------------------------------------------- */
+  /* Connexion interne                                           */
+  /* ---------------------------------------------------------- */
+
   function _tryConnect() {
     clearTimeout(_retryTimer);
+    if (_ws) { try { _ws.close(); } catch (e) {} }
+
     let ws;
-    try { ws = new WebSocket(_url); }
-    catch (_) { _scheduleRetry(); return; }
+    try {
+      ws = new WebSocket(_url);
+    } catch (e) {
+      Log.warn('ws', 'Impossible d\'ouvrir la socket:', e.message);
+      _scheduleRetry();
+      return;
+    }
     _ws = ws;
 
-    ws.onopen  = () => Log.debug('WS', 'socket ouverte, attente Hello...');
-    ws.onerror = () => ws.close();
+    ws.onopen  = function() { Log.debug('ws', 'socket ouverte, attente Hello...'); };
+    ws.onerror = function() { ws.close(); };
 
-    ws.onclose = () => {
+    ws.onclose = function() {
       Store.set('ws', 'connected', false);
       Bus.emit('ws:disconnected', {});
-      Log.warn('WS', 'déconnecté — retry dans 3s');
-      _scheduleRetry();
+      if (!_intentional) {
+        Log.warn('ws', 'déconnecté — retry dans 3 s');
+        _scheduleRetry();
+      }
     };
 
-    ws.onmessage = async (event) => {
+    ws.onmessage = function(event) {
       let msg;
-      try { msg = JSON.parse(event.data); }
-      catch (_) { return; }
-
-      const src  = msg.event?.source;
-      const type = msg.event?.type;
-
-      // ── Hello : authentification ou souscription directe ──
-      if (src === 'General' && type === 'Hello') {
-        const authData = msg.data?.authentication;
-        if (authData && _password.trim()) {
-          const secret = await _sha256b64(_password.trim() + authData.salt);
-          const hash   = await _sha256b64(secret + authData.challenge);
-          ws.send(JSON.stringify({
-            request: 'Authenticate', id: 'auth', authentication: hash,
-          }));
-        } else {
-          _subscribe(ws);
-        }
+      try {
+        msg = JSON.parse(event.data);
+      } catch (e) {
+        Log.debug('ws', 'message non-JSON ignoré:', e.message);
         return;
       }
 
-      // ── Réponse authentification ──
-      if (msg.id === 'auth') {
-        if (msg.status === 'ok') {
-          _subscribe(ws);
-        } else {
-          Log.error('WS', 'Authentification échouée — vérifier le mot de passe');
-          ws.close();
-        }
-        return;
-      }
-
-      // ── Souscription confirmée ──
-      if (msg.id === 'sub-all' && msg.status === 'ok') {
-        Store.set('ws', 'connected', true);
-        Bus.emit('ws:connected', {});
-        Log.info('WS', `connecté à ${_url}`);
-        return;
-      }
-
-      // ── Distribuer tous les événements Twitch via le Bus ──
-      if (src && type) {
-        Bus.emit('ws:message', { source: src, type, data: msg.data, raw: msg });
-      }
+      _handleMessage(ws, msg);
     };
   }
+
+  function _handleMessage(ws, msg) {
+    const evtObj = msg.event && typeof msg.event === 'object' ? msg.event : null;
+    const src    = evtObj ? evtObj.source : null;
+    const type   = evtObj ? evtObj.type   : null;
+    const mdata  = msg.data && typeof msg.data === 'object' ? msg.data : null;
+
+    // ── Hello : authentification ou souscription directe ──────
+    if (src === 'General' && type === 'Hello') {
+      const authData = mdata ? mdata.authentication : null;
+      if (authData && _password.trim()) {
+        _authenticate(ws, authData);
+      } else {
+        _subscribe(ws);
+      }
+      return;
+    }
+
+    // ── Réponse Authenticate ───────────────────────────────────
+    if (msg.id === 'auth') {
+      if (msg.status === 'ok') {
+        _subscribe(ws);
+      } else {
+        Log.error('ws', 'Authentification échouée — vérifier le mot de passe');
+        ws.close();
+      }
+      return;
+    }
+
+    // ── Souscription confirmée ─────────────────────────────────
+    if (msg.id === 'sub-all' && msg.status === 'ok') {
+      Store.set('ws', 'connected', true);
+      Bus.emit('ws:connected', {});
+      Log.info('ws', 'connecté à ' + _url);
+      return;
+    }
+
+    // ── Distribuer tous les événements via le Bus ──────────────
+    if (src && type) {
+      Bus.emit('ws:message', { source: src, type: type, data: mdata, raw: msg });
+    }
+  }
+
+  /* ---------------------------------------------------------- */
+  /* Authentification SHA-256                                    */
+  /* ---------------------------------------------------------- */
+
+  async function _authenticate(ws, authData) {
+    try {
+      const secret = await _sha256b64(_password.trim() + authData.salt);
+      const hash   = await _sha256b64(secret + authData.challenge);
+      ws.send(JSON.stringify({
+        request: 'Authenticate', id: 'auth', authentication: hash,
+      }));
+    } catch (e) {
+      Log.error('ws', 'Erreur calcul hash auth:', e.message);
+      ws.close();
+    }
+  }
+
+  /** Calcule base64(SHA-256(str)) via Web Crypto API (localhost = contexte sécurisé). */
+  async function _sha256b64(str) {
+    const buf   = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(str));
+    const bytes = new Uint8Array(buf);
+    let binary  = '';
+    for (let i = 0; i < bytes.length; i++) {
+      binary += String.fromCharCode(bytes[i]);
+    }
+    return btoa(binary);
+  }
+
+  /* ---------------------------------------------------------- */
+  /* Souscription et retry                                       */
+  /* ---------------------------------------------------------- */
 
   function _subscribe(ws) {
     ws.send(JSON.stringify({
       request: 'Subscribe',
       id:      'sub-all',
-      events: {
+      events:  {
         Twitch: ['ChatMessage', 'ClearChat', 'ChatCleared'],
       },
     }));
@@ -126,11 +188,7 @@ const WSManager = (() => {
     _retryTimer = setTimeout(_tryConnect, 3000);
   }
 
-  function isConnected() {
-    return Store.get('ws', 'connected', false);
-  }
-
-  return { init, connect, isConnected };
+  return { init, connect, disconnect, isConnected };
 })();
 
 window.WSManager = WSManager;

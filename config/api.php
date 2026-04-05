@@ -17,13 +17,19 @@ const ALLOWED = [
     'viewers', 'uptime', 'session', 'countdown',
     'leaderboard', 'poll', 'prediction', 'hypetrain',
     'current-scene',
+    'last_raid',
+    'channel_info',
+    'heartbeat',
 ];
 
 $DATA_DIR = realpath(__DIR__ . '/../overlay/data');
-$file     = preg_replace('/[^a-z_\-]/', '', strtolower($_GET['file'] ?? ''));
+$file     = preg_replace('/[^a-z0-9_\-]/', '', strtolower($_GET['file'] ?? ''));
 $action   = $_GET['action'] ?? 'read';
 
-if (!in_array($file, ALLOWED)) {
+// Autoriser config + config-{profil} (profil : lettres minuscules, chiffres, tirets, max 32 chars)
+$isConfigProfile = preg_match('/^config(-[a-z0-9\-]{1,32})?$/', $file);
+
+if (!in_array($file, ALLOWED) && !$isConfigProfile) {
     http_response_code(400);
     echo json_encode(['error' => 'fichier non autorisé']);
     exit;

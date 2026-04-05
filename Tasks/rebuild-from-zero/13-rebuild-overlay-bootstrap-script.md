@@ -1,6 +1,6 @@
 # Bootstrap overlay — `script.js` (orchestration)
 
-- Status: Backlog
+- Status: Done
 - Priorité: 🔴 Haute
 - Complexité: M
 - Tags: rebuild-from-zero, overlay, bootstrap
@@ -16,8 +16,20 @@ Couche finale qui : définit **`ZONE_DEFS`** (id + alias visibilité), mappe **`
 
 ## Critères d'acceptation
 
-- [ ] Désactiver un composant dans config ne charge pas son `init` inutilement.
-- [ ] `enabled: false` masque la zone et pose `data-disabled`.
+- [x] Désactiver un composant dans config saute `instance.init()` (check avant + dans BaseComponent).
+- [x] `enabled: false` masque la zone DOM et pose `data-disabled="1"` via `_applyLayout`.
+
+## Résumé (implémentation)
+
+Fichier `overlay/script.js` réécrit proprement.
+- `Object.entries` + destructuring → `Object.keys` + accès explicite.
+- Arrow functions → fonctions anonymes.
+- Template literals → concaténation.
+- Regex CSS camelCase→kebab → liste explicite `LAYOUT_PROPS` + `maxHeight` séparé.
+- `Config.load().then(...)` au lieu de `async/await` sur le handler DOM.
+- `window.Keyboard`, `window.SceneManager`, `window.WSManager` vérifiés défensivement.
+- `try/catch` autour de chaque `instance.init()` — un composant cassé n'arrête pas les autres.
+- `ZONE_DEFS` et `COMPONENTS` exposés en `var` de portée globale script (référencés par Visibility).
 
 ## Dépendances
 

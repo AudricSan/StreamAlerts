@@ -1,6 +1,6 @@
 # Widget « dernier raid » (shoutout)
 
-- Status: Backlog
+- Status: Done
 - Priorité: 🟡 Moyenne
 - Complexité: M
 - Tags: overlay, streamerbot, json, widget, twitch

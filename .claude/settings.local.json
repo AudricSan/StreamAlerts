@@ -1,0 +1,8 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(grep -l \"Status: Done\\\\|Status: En cours\\\\|Status: Terminé\\\\|Status: Complete\" D:/audri/Xamp/htdocs/StreamAlerts/Tasks/rebuild-from-zero/*.md)",
+      "Bash(grep:*)"
+    ]
+  }
+}

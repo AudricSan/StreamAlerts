@@ -1,6 +1,6 @@
 # Index — reconstruction StreamAlerts from scratch
 
-- Status: Backlog
+- Status: Done
 - Priorité: 🟢 Basse (méta)
 - Complexité: S
 - Tags: rebuild-from-zero, index
@@ -33,7 +33,7 @@ Liste ordonnee des fiches pour **repartir de zero** en conservant le perimetre f
 
 ## Critères d acceptation
 
-- [ ] Toutes les fiches numerotees sont presentes dans ce dossier.
+- [x] Toutes les fiches numerotees sont presentes dans ce dossier.
 
 ## Dependances
 
@@ -42,3 +42,7 @@ Liste ordonnee des fiches pour **repartir de zero** en conservant le perimetre f
 ## Notes techniques
 
 - Apres reconstruction, mettre a jour README et CLAUDE.md pour refleter tout ecart volontaire par rapport a l ancienne version.
+
+## Résumé (clôture)
+
+Les fiches **01** à **50** sont présentes ; l’implémentation correspondante vit dans `overlay/`, `config/`, `streamerbot/` et la doc racine. L’index sert de carte ; le détail d’acceptation par brique reste dans chaque fiche numérotée.

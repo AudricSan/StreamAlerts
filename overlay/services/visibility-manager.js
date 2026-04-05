@@ -4,73 +4,107 @@
    services/visibility-manager.js — Visibilité runtime des zones
    Expose : window.Visibility
 
-   Poll data/visibility.json toutes les 1.5s.
-   Répond aux commandes !show / !hide / !toggle du chat
-   (via Bus.on('visibility:cmd', ...)).
+   Sources de visibilité (par priorité décroissante) :
+     1. Commandes chat !show / !hide / !toggle (via Bus 'visibility:cmd')
+        → émises par chat.js (mod ou broadcaster uniquement)
+     2. Polling data/visibility.json toutes les 1.5 s
+        → fallback si WriteVisibility.cs est configuré
+
+   Règle : un composant avec enabled:false dans config.json
+   NE PEUT PAS être affiché par commande chat.
    ============================================================ */
 
 const Visibility = (() => {
-  // Rempli par init() depuis ZONE_DEFS de script.js
-  let _zoneMap    = {}; // { cfgKey: 'zone-id' }
-  let _aliasMap   = {}; // { 'alias': 'cfgKey' }
-  let _current    = {};
-  let _pollTimer  = null;
+  let _zoneMap   = {}; // { cfgKey: 'zone-id' }
+  let _aliasMap  = {}; // { 'alias': 'cfgKey' }
+
+  /* ---------------------------------------------------------- */
+  /* Initialisation                                              */
+  /* ---------------------------------------------------------- */
 
   /**
-   * Initialise avec la définition des zones et démarre le polling.
-   * @param {object} zoneDefs — { cfgKey: { id, aliases[] } }
+   * @param {object} zoneDefs  { cfgKey: { id, aliases: [] } }
+   *   Passé par script.js depuis ZONE_DEFS.
    */
   function init(zoneDefs) {
     _zoneMap  = {};
     _aliasMap = {};
-    Object.entries(zoneDefs).forEach(([key, { id, aliases }]) => {
-      _zoneMap[key] = id;
-      (aliases || []).forEach(a => { _aliasMap[a.toLowerCase()] = key; });
+
+    Object.keys(zoneDefs).forEach(function(key) {
+      var def = zoneDefs[key];
+      _zoneMap[key] = def.id;
+      var aliases = def.aliases || [];
+      aliases.forEach(function(a) {
+        _aliasMap[a.toLowerCase()] = key;
+      });
     });
 
+    // Chargement initial de l'état + polling fallback
     _poll();
-    _pollTimer = setInterval(_poll, 1500);
+    setInterval(_poll, 1500);
 
-    // Écouter les commandes depuis le chat
-    Bus.on('visibility:cmd', ({ action, name }) => handleCmd(action, name));
+    // Écouter les commandes chat (émises par chat.js)
+    Bus.on('visibility:cmd', function(payload) {
+      handleCmd(payload.action, payload.name);
+    });
 
-    Log.info('Visibility', 'initialisé');
+    Log.info('visibility', 'initialisé (' + Object.keys(_zoneMap).length + ' zones)');
   }
+
+  /* ---------------------------------------------------------- */
+  /* Application de la visibilité                               */
+  /* ---------------------------------------------------------- */
 
   /**
    * Applique un objet de visibilité { cfgKey: bool } sur les zones DOM.
-   * Ne surcharge jamais une zone désactivée en dur (data-disabled).
+   * Les composants disabled (Config.isEnabled = false) sont toujours ignorés.
+   * @param {object} vis  { cfgKey: boolean }
    */
   function apply(vis) {
-    _current = { ..._current, ...vis };
-    Object.entries(_zoneMap).forEach(([key, id]) => {
-      const el = document.getElementById(id);
-      if (!el || el.dataset.disabled) return;
-      if (vis[key] !== undefined) {
-        const visible = vis[key] !== false;
-        el.hidden = !visible;
-        Bus.emit('visibility:changed', { key, visible });
-      }
+    Object.keys(_zoneMap).forEach(function(key) {
+      if (vis[key] === undefined) return;
+      // Composant désactivé en dur → intouchable
+      if (!Config.isEnabled(key)) return;
+
+      var el = document.getElementById(_zoneMap[key]);
+      if (!el) return;
+
+      var visible = vis[key] !== false;
+      el.hidden = !visible;
+      Bus.emit('visibility:changed', { key: key, visible: visible });
     });
-    // Barre de test
-    const hint = document.getElementById('test-hint');
-    if (hint && vis.hint !== undefined) hint.hidden = (vis.hint === false);
+
+    // Barre de test (hint) — gérée séparément, pas dans la config composants
+    var hint = document.getElementById('test-hint');
+    if (hint && vis.hint !== undefined) {
+      hint.hidden = (vis.hint === false);
+    }
   }
 
+  /* ---------------------------------------------------------- */
+  /* Commandes chat                                              */
+  /* ---------------------------------------------------------- */
+
   /**
-   * Traite une commande !show / !hide / !toggle depuis le chat.
-   * @param {string} action — 'show', 'hide', 'toggle'
-   * @param {string} name   — alias ou clé de composant
+   * Traite une commande !show / !hide / !toggle.
+   * @param {string} action  'show' | 'hide' | 'toggle'
+   * @param {string} name    alias ou cfgKey (déjà en lowercase)
    */
   async function handleCmd(action, name) {
-    const cfgKey = _aliasMap[name.toLowerCase()];
+    var cfgKey = _aliasMap[name.toLowerCase()];
     if (!cfgKey) return;
 
-    try {
-      const res = await fetch(`data/visibility.json?t=${Date.now()}`);
-      const vis = res.ok ? await res.json() : {};
+    // Vérification enabled : impossible d'afficher un composant désactivé en dur
+    if (!Config.isEnabled(cfgKey)) {
+      Log.warn('visibility', '"' + cfgKey + '" est disabled en config — commande ignorée');
+      return;
+    }
 
-      const current = vis[cfgKey] !== false;
+    try {
+      var res = await fetch('data/visibility.json?t=' + Date.now());
+      var vis = res.ok ? await res.json() : {};
+
+      var current  = vis[cfgKey] !== false;
       if      (action === 'show')   vis[cfgKey] = true;
       else if (action === 'hide')   vis[cfgKey] = false;
       else                          vis[cfgKey] = !current;
@@ -83,16 +117,22 @@ const Visibility = (() => {
         body:    JSON.stringify(vis),
       });
     } catch (e) {
-      Log.error('Visibility', 'handleCmd échoué', String(e.message || e));
+      Log.error('visibility', 'handleCmd échoué:', e.message);
     }
   }
 
+  /* ---------------------------------------------------------- */
+  /* Polling fallback                                            */
+  /* ---------------------------------------------------------- */
+
   async function _poll() {
     try {
-      const res = await fetch(`data/visibility.json?t=${Date.now()}`);
+      var res = await fetch('data/visibility.json?t=' + Date.now());
       if (!res.ok) return;
       apply(await res.json());
-    } catch (_) {}
+    } catch (e) {
+      Log.debug('visibility', 'poll échoué:', e.message);
+    }
   }
 
   return { init, apply, handleCmd };

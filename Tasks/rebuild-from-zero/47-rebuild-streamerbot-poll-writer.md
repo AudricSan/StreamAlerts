@@ -1,6 +1,6 @@
 # Streamer.bot — script sondage Twitch
 
-- Status: Backlog
+- Status: Done
 - Priorite: Moyenne
 - Complexite: M
 - Tags: rebuild-from-zero, streamerbot, csharp, twitch

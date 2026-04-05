@@ -1,6 +1,6 @@
 # Presets de visibilité selon la scène OBS
 
-- Status: Backlog
+- Status: Done
 - Priorité: 🟡 Moyenne
 - Complexité: L
 - Tags: overlay, scene-manager, visibility, obs, config

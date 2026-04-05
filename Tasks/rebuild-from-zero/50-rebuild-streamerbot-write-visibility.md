@@ -1,6 +1,6 @@
 # Streamer.bot — WriteVisibility.cs
 
-- Status: Backlog
+- Status: Done
 - Priorite: Basse
 - Complexite: S
 - Tags: rebuild-from-zero, streamerbot, csharp, visibility

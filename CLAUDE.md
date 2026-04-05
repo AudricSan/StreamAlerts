@@ -61,7 +61,7 @@ StreamAlerts/
 Contains the OBS dock configuration UI.
 
 * `index.html` → config UI
-* `api.php` → reads/writes JSON files
+* `api.php` → reads/writes JSON files (whitelist des noms sans extension dans la constante `ALLOWED` — à garder alignée avec les fichiers réellement utilisés sous `overlay/data/`, voir aussi l’arborescence dans `README.md`)
 
 ### `streamerbot/`
 
@@ -82,8 +82,8 @@ Contains the full OBS overlay.
 ```text
 overlay/
 ├── index.html
-├── style.css
 ├── script.js
+├── styles/           ← CSS global (main.css) + un fichier par composant
 ├── core/
 ├── services/
 ├── utils/
@@ -157,6 +157,7 @@ chat:message
 chat:clear
 visibility:cmd
 visibility:changed
+scene:changed
 log:entry
 ```
 
@@ -202,6 +203,18 @@ Responsibilities:
 ### `window.Visibility`
 
 Handles visibility state and `!show` / `!hide` / `!toggle` commands.
+
+### `window.SceneManager`
+
+Defined in `services/scene-manager.js`.
+
+Detects the active OBS scene and applies CSS classes on `body` (prefix `scene-`).
+
+Two modes:
+* `window.obsstudio` API if available inside the Browser Source
+* fallback polling of `data/current-scene.json` (`timestamp` field required)
+
+API: `init`, `getScene`, `getProfile`, `onChange`, `isScene`, `isProfile`.
 
 ---
 

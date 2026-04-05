@@ -1,6 +1,6 @@
 # Noyau — Event Bus (`window.Bus`)
 
-- Status: Backlog
+- Status: Done
 - Priorité: 🔴 Haute
 - Complexité: S
 - Tags: rebuild-from-zero, core, events
@@ -17,8 +17,16 @@ Implémenter un **pub/sub global** minimal : `on`, `off` (ou équivalent), `emit
 
 ## Critères d'acceptation
 
-- [ ] Plusieurs abonnés sur le même événement reçoivent tous le payload.
-- [ ] Erreur dans un handler ne fait pas planter les autres (try/catch ou garde-fou documenté).
+- [x] Plusieurs abonnés sur le même événement reçoivent tous le payload.
+- [x] Erreur dans un handler ne fait pas planter les autres (try/catch + Log.warn).
+
+## Résumé (implémentation)
+
+Fichier `overlay/core/event-bus.js` réécrit proprement.
+- `console.error` → `Log.warn` (Log chargé avant Bus, pas de dépendance circulaire).
+- `once()` retourne désormais le unsubscribe (cohérence avec `on()`).
+- `slice()` au lieu de spread `[...]` pour copier le tableau avant itération (évite mutation pendant emit).
+- `scene:changed` ajouté à la liste des événements documentés en en-tête.
 
 ## Dépendances
 

@@ -1,6 +1,6 @@
 # Page ou endpoint de healthcheck (diagnostic local)
 
-- Status: Backlog
+- Status: Done
 - Priorité: 🟡 Moyenne
 - Complexité: S
 - Tags: devops, diagnostic, xampp, json, ux

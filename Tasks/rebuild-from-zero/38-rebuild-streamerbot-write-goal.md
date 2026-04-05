@@ -1,6 +1,6 @@
 # Streamer.bot — WriteGoal.cs
 
-- Status: Backlog
+- Status: Done
 - Priorite: Haute
 - Complexite: M
 - Tags: rebuild-from-zero, streamerbot, csharp, goal

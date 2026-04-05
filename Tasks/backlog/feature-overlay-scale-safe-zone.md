@@ -1,6 +1,6 @@
 # Échelle globale et zone sûre (résolutions / ultrawide)
 
-- Status: Backlog
+- Status: Done
 - Priorité: 🟡 Moyenne
 - Complexité: M
 - Tags: overlay, layout, obs, responsive, config

@@ -1,6 +1,6 @@
 # Composant — Dernier abonne (`last_subscriber.json`, touche L partagee)
 
-- Status: Backlog
+- Status: Done
 - Priorite: Moyenne
 - Complexite: S
 - Tags: rebuild-from-zero, widget, twitch
@@ -16,8 +16,8 @@ Afficher le **dernier abonne** (sub / resub / gift selon donnees ecrites), sourc
 
 ## Criteres d acceptation
 
-- [ ] Contenu utilisateur echappe.
-- [ ] Coexistence avec last-follower au clavier (cycle L ou comportement documente).
+- [x] Contenu utilisateur echappe.
+- [x] Coexistence avec last-follower au clavier (cycle L ou comportement documente).
 
 ## Dependances
 

@@ -1,6 +1,6 @@
 # Composant — Musique (`nowplaying.json`, touche N)
 
-- Status: Backlog
+- Status: Done
 - Priorite: Moyenne
 - Complexite: S
 - Tags: rebuild-from-zero, widget, music

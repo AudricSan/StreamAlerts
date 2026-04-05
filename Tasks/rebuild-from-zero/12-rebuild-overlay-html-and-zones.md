@@ -1,6 +1,6 @@
 # Page overlay — HTML, zones et chargement des CSS
 
-- Status: Backlog
+- Status: Done
 - Priorite: Haute
 - Complexite: M
 - Tags: rebuild-from-zero, overlay, html, css
@@ -17,8 +17,14 @@ Construire `overlay/index.html` : conteneur plein ecran (reference 1920x1080), u
 
 ## Criteres d acceptation
 
-- [ ] Toutes les zones referencees par les composants existent dans le DOM.
-- [ ] Ordre des balises `script` strictement respecte.
+- [x] Toutes les zones référencées par les composants existent dans le DOM (16 zones + test-hint).
+- [x] Ordre des balises `script` strictement respecté : core → utils → services → components → dev → script.js.
+
+## Résumé (implémentation)
+
+- `overlay/index.html` : scripts `dev/` déplacés APRÈS `components/` (correction ordre CLAUDE.md).
+- `styles/last-events.css` supprimé (composant legacy hors périmètre rebuild).
+- `styles/main.css` : `#zone-counter` retiré du sélecteur CSS (n'existe pas dans le DOM, doublon de `#zone-countdown`).
 
 ## Dependances
 

@@ -1,6 +1,6 @@
 # Couche donnees — fichiers JSON dans `overlay/data/`
 
-- Status: Backlog
+- Status: Done
 - Priorite: Haute
 - Complexite: S
 - Tags: rebuild-from-zero, json, data
@@ -16,8 +16,14 @@ Fournir des **fichiers initiaux** ou templates pour chaque JSON consomme (`confi
 
 ## Criteres d acceptation
 
-- [ ] Premier demarrage : aucun throw dans la console pour fichiers vides ou `{}` si geres.
-- [ ] Liste des fichiers synchronisee README / CLAUDE / api.php.
+- [x] Premier demarrage : aucun throw dans la console pour fichiers vides ou `{}` si geres.
+- [x] Liste des fichiers synchronisee README / CLAUDE / api.php.
+
+## Résumé (implémentation)
+
+- Fichiers initiaux présents sous `overlay/data/` (dont `current-scene.json` pour le fallback SceneManager).
+- `README.md` : arborescence `data/` complétée avec `current-scene.json` ; note sur la touche **L** partagée (follow + sub).
+- `CLAUDE.md` : renvoi explicite à la whitelist `ALLOWED` dans `config/api.php`.
 
 ## Dependances
 

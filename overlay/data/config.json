@@ -1,18 +1,22 @@
 {
+    "env": {
+        "websocket": "ws:\/\/127.0.0.1:8080",
+        "websocketPassword": "uZS0LLd2W6eL5y1m"
+    },
     "alerts": {
-        "displayDuration": 5500,
         "enabled": true,
+        "displayDuration": 5500,
+        "pollInterval": 500,
         "opacity": 100,
         "left": 628,
         "bottom": 216,
         "width": 600
     },
     "chat": {
+        "enabled": true,
         "msgLifetime": 999999999,
         "maxMessages": 27,
-        "websocket": "ws:\/\/127.0.0.1:8080",
-        "websocketPassword": "uZS0LLd2W6eL5y1m",
-        "enabled": true,
+        "pollInterval": 300,
         "opacity": 100,
         "right": 0,
         "bottom": 19,
@@ -21,6 +25,7 @@
     },
     "lastFollower": {
         "enabled": true,
+        "pollInterval": 2000,
         "opacity": 100,
         "left": 0,
         "bottom": 224,
@@ -28,6 +33,7 @@
     },
     "lastSubscriber": {
         "enabled": true,
+        "pollInterval": 2000,
         "opacity": 100,
         "left": 0,
         "bottom": 309,
@@ -35,28 +41,33 @@
     },
     "goal": {
         "enabled": true,
+        "pollInterval": 2000,
         "opacity": 100,
         "left": 1212,
         "top": 15,
         "width": 400
     },
-    "nowplaying": {
-        "enabled": true,
-        "opacity": 100,
-        "left": 405,
-        "bottom": 884,
-        "width": 380
-    },
     "subtrain": {
-        "duration": 60,
         "enabled": true,
+        "duration": 60,
+        "pollInterval": 500,
         "opacity": 100,
         "right": 856,
         "top": 128,
         "width": 260
     },
+    "nowplaying": {
+        "enabled": true,
+        "pollInterval": 3000,
+        "opacity": 100,
+        "left": 405,
+        "bottom": 884,
+        "width": 380
+    },
     "queue": {
         "enabled": true,
+        "maxVisible": 8,
+        "pollInterval": 1000,
         "opacity": 100,
         "left": 0,
         "top": 453,
@@ -64,6 +75,7 @@
     },
     "viewers": {
         "enabled": true,
+        "pollInterval": 30000,
         "opacity": 100,
         "right": 1361,
         "top": 25,
@@ -71,6 +83,7 @@
     },
     "uptime": {
         "enabled": true,
+        "pollInterval": 60000,
         "opacity": 100,
         "right": 1184,
         "top": 26,
@@ -78,6 +91,7 @@
     },
     "session": {
         "enabled": true,
+        "pollInterval": 3000,
         "opacity": 100,
         "left": 946,
         "top": 21,
@@ -85,6 +99,7 @@
     },
     "countdown": {
         "enabled": true,
+        "pollInterval": 2000,
         "opacity": 100,
         "left": 1620,
         "top": 17,
@@ -92,6 +107,7 @@
     },
     "leaderboard": {
         "enabled": true,
+        "pollInterval": 5000,
         "opacity": 100,
         "left": 0,
         "top": 255,
@@ -99,6 +115,7 @@
     },
     "poll": {
         "enabled": true,
+        "pollInterval": 2000,
         "opacity": 100,
         "left": 0,
         "top": 30,
@@ -106,6 +123,7 @@
     },
     "prediction": {
         "enabled": true,
+        "pollInterval": 2000,
         "opacity": 100,
         "right": 1600,
         "top": 865,
@@ -113,12 +131,14 @@
     },
     "hypetrain": {
         "enabled": true,
+        "pollInterval": 1000,
         "opacity": 100,
         "right": 548,
         "top": 125,
         "width": 300
     },
     "scene": {
+        "enabled": true,
         "defaultScene": "",
         "pollInterval": 2000,
         "profiles": {

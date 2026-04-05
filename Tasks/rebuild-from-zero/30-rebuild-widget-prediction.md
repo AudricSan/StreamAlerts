@@ -1,6 +1,6 @@
 # Composant — Prediction Twitch (`prediction.json`, touche P)
 
-- Status: Backlog
+- Status: Done
 - Priorite: Moyenne
 - Complexite: M
 - Tags: rebuild-from-zero, widget, twitch, prediction

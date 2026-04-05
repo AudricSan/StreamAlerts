@@ -4,13 +4,21 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=1920, height=1080">
   <title>StreamAlerts — Overlay OBS</title>
+
+  <!--
+    Police locale (assets/fonts/).
+    La police Nunito est chargée depuis Google Fonts.
+    Si l'overlay doit fonctionner hors ligne, télécharger la police
+    dans assets/fonts/ et remplacer ce lien par un @font-face local.
+  -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&display=swap" rel="stylesheet">
+
+  <!-- CSS global + par composant -->
   <link rel="stylesheet" href="styles/main.css">
   <link rel="stylesheet" href="styles/alerts.css">
   <link rel="stylesheet" href="styles/chat.css">
-  <link rel="stylesheet" href="styles/last-events.css">
   <link rel="stylesheet" href="styles/goals.css">
   <link rel="stylesheet" href="styles/subtrain.css">
   <link rel="stylesheet" href="styles/nowplaying.css">
@@ -23,6 +31,11 @@
   <link rel="stylesheet" href="styles/poll.css">
   <link rel="stylesheet" href="styles/prediction.css">
   <link rel="stylesheet" href="styles/hypetrain.css">
+  <link rel="stylesheet" href="styles/channel-info.css">
+  <link rel="stylesheet" href="styles/quote.css">
+  <link rel="stylesheet" href="styles/stream-label.css">
+  <link rel="stylesheet" href="styles/sticker.css">
+  <link rel="stylesheet" href="styles/ticker.css">
 </head>
 <body>
 
@@ -36,7 +49,7 @@
 
   <!-- ═══════════════════════════════════════════════════
        ZONE : Chat overlay
-       Données : data/chat.json (fallback WebSocket)
+       Données : WebSocket (fallback data/chat.json)
   ════════════════════════════════════════════════════ -->
   <div id="zone-chat"></div>
 
@@ -124,17 +137,55 @@
   ════════════════════════════════════════════════════ -->
   <div id="zone-hypetrain"></div>
 
-  <!-- Barre de raccourcis (generée par Keyboard.updateHint) -->
+  <!-- ═══════════════════════════════════════════════════
+       ZONE : Dernier raid (shoutout)
+       Données : data/last_raid.json
+  ════════════════════════════════════════════════════ -->
+  <div id="zone-last-raid"></div>
+
+  <!-- ═══════════════════════════════════════════════════
+       ZONE : Infos chaîne (titre + catégorie)
+       Données : data/channel_info.json
+  ════════════════════════════════════════════════════ -->
+  <div id="zone-channel-info"></div>
+
+  <!-- ═══════════════════════════════════════════════════
+       ZONE : Citation du jour
+       Données : data/quote.json
+  ════════════════════════════════════════════════════ -->
+  <div id="zone-quote"></div>
+
+  <!-- ═══════════════════════════════════════════════════
+       ZONE : Texte libre / Stream Label
+       Données : data/stream_label.json
+  ════════════════════════════════════════════════════ -->
+  <div id="zone-stream-label"></div>
+
+  <!-- ═══════════════════════════════════════════════════
+       ZONE : Image dynamique / Sticker
+       Données : data/sticker.json
+  ════════════════════════════════════════════════════ -->
+  <div id="zone-sticker"></div>
+
+  <!-- ═══════════════════════════════════════════════════
+       ZONE : Ticker d'annonces défilant
+       Données : data/ticker.json
+  ════════════════════════════════════════════════════ -->
+  <div id="zone-ticker"></div>
+
+  <!-- Barre de raccourcis clavier (générée par keyboard-tester.js) -->
   <div id="test-hint"></div>
 
   <!-- ══════════════════════════════════════════════════════
-       SCRIPTS — ordre de chargement obligatoire :
-         1. core/      fondations (Log, Bus, Config, Store, BaseComponent)
-         2. utils/     fonctions pures (esc, formatCountdown, color)
-         3. services/  I/O partagée (Poller, WS, Visibility)
-         4. dev/       outils de debug (chargés toujours, actifs si ?debug=1)
-         5. components/  logique métier + rendu
-         6. script.js  bootstrap final
+       SCRIPTS — ordre de chargement OBLIGATOIRE :
+         1. core/       fondations  (Log, Bus, Config, Store, BaseComponent)
+         2. utils/      fonctions pures (esc, formatCountdown, color)
+         3. services/   I/O partagée (Poller, WS, Visibility, Scene)
+         4. components/ logique métier + rendu DOM
+         5. dev/        outils debug (toujours chargés, actifs si ?debug=1)
+         6. script.js   bootstrap final
+
+       Ne jamais inverser l'ordre. Voir CLAUDE.md §Overlay Boot Sequence.
   ════════════════════════════════════════════════════════ -->
 
   <!-- 1. CORE -->
@@ -154,12 +205,9 @@
   <script src="services/websocket-manager.js"></script>
   <script src="services/visibility-manager.js"></script>
   <script src="services/scene-manager.js"></script>
+  <script src="services/stale-monitor.js"></script>
 
-  <!-- 4. DEV (actif uniquement si ?debug=1 dans l'URL) -->
-  <script src="dev/keyboard-tester.js"></script>
-  <script src="dev/debug-panel.js"></script>
-
-  <!-- 5. COMPONENTS -->
+  <!-- 4. COMPONENTS -->
   <script src="components/alerts.js"></script>
   <script src="components/chat.js"></script>
   <script src="components/last-follower.js"></script>
@@ -176,6 +224,16 @@
   <script src="components/poll.js"></script>
   <script src="components/prediction.js"></script>
   <script src="components/hypetrain.js"></script>
+  <script src="components/last-raid.js"></script>
+  <script src="components/channel-info.js"></script>
+  <script src="components/quote.js"></script>
+  <script src="components/stream-label.js"></script>
+  <script src="components/sticker.js"></script>
+  <script src="components/ticker.js"></script>
+
+  <!-- 5. DEV (toujours chargés — actifs uniquement si ?debug=1) -->
+  <script src="dev/keyboard-tester.js"></script>
+  <script src="dev/debug-panel.js"></script>
 
   <!-- 6. BOOTSTRAP -->
   <script src="script.js"></script>

@@ -1,6 +1,6 @@
 # Dock OBS — interface de configuration (`config/`)
 
-- Status: Backlog
+- Status: Done
 - Priorite: Haute
 - Complexite: L
 - Tags: rebuild-from-zero, config, ui, obs

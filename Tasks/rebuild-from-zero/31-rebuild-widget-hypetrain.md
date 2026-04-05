@@ -1,6 +1,6 @@
 # Composant — Hype Train (`hypetrain.json`, touche H)
 
-- Status: Backlog
+- Status: Done
 - Priorite: Moyenne
 - Complexite: M
 - Tags: rebuild-from-zero, widget, twitch, hypetrain

@@ -1,6 +1,6 @@
 # Streamer.bot — WriteUptime.cs
 
-- Status: Backlog
+- Status: Done
 - Priorite: Moyenne
 - Complexite: S
 - Tags: rebuild-from-zero, streamerbot, csharp, twitch

@@ -1,6 +1,6 @@
 # Indicateur de mode dégradé (données / WebSocket obsolètes)
 
-- Status: Backlog
+- Status: Done
 - Priorité: 🟡 Moyenne
 - Complexité: M
 - Tags: overlay, websocket, polling, ux, reliability

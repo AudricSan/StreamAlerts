@@ -1,6 +1,6 @@
 # Streamer.bot — WriteHypeTrain.cs
 
-- Status: Backlog
+- Status: Done
 - Priorite: Moyenne
 - Complexite: M
 - Tags: rebuild-from-zero, streamerbot, csharp, twitch

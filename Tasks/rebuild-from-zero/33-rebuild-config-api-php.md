@@ -1,6 +1,6 @@
 # API locale PHP — lecture / ecriture JSON (`config/api.php`)
 
-- Status: Backlog
+- Status: Done
 - Priorite: Haute
 - Complexite: M
 - Tags: rebuild-from-zero, php, security, json

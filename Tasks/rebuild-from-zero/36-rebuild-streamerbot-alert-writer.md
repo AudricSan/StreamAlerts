@@ -1,6 +1,6 @@
 # Streamer.bot — script alertes et last follow sub
 
-- Status: Backlog
+- Status: Done
 - Priorite: Haute
 - Complexite: L
 - Tags: rebuild-from-zero, streamerbot, csharp, twitch

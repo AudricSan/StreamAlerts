@@ -1,6 +1,6 @@
 # Composant — Classement (`leaderboard.json`, touche B)
 
-- Status: Backlog
+- Status: Done
 - Priorite: Moyenne
 - Complexite: M
 - Tags: rebuild-from-zero, widget, bits, donation

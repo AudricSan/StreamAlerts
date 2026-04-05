@@ -437,5 +437,145 @@ async function apiRead(f) { const r = await fetch(`${API}?action=read&file=${f}&
 async function apiWrite(f, d) { const r = await fetch(`${API}?action=write&file=${f}`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(d) }); return r.json(); }
 function esc(v) { if (v == null) return ''; return String(v).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
 
+// ════════════════════════════════════════════════════════════
+//  FEATURE: WS STATUS TEST
+// ════════════════════════════════════════════════════════════
+
+function testDockWS() {
+  var url = document.getElementById('env-websocket').value.trim();
+  if (!url) { _setWsDot('error', 'URL vide'); return; }
+  _setWsDot('unknown', 'Test en cours…');
+  var ws;
+  try { ws = new WebSocket(url); } catch (e) { _setWsDot('error', 'URL invalide'); return; }
+  var timer = setTimeout(function() {
+    try { ws.close(); } catch (_) {}
+    _setWsDot('error', 'Délai dépassé (5s)');
+  }, 5000);
+  ws.onopen = function() {
+    clearTimeout(timer);
+    _setWsDot('ok', 'Connecté');
+    try { ws.close(); } catch (_) {}
+  };
+  ws.onerror = function() {
+    clearTimeout(timer);
+    _setWsDot('error', 'Impossible de se connecter');
+  };
+}
+
+function _setWsDot(state, label) {
+  var dot = document.getElementById('dock-ws-dot');
+  var lbl = document.getElementById('dock-ws-label');
+  if (dot) { dot.className = 'ws-dot ws-dot--' + state; }
+  if (lbl) { lbl.textContent = label; }
+}
+
+// ════════════════════════════════════════════════════════════
+//  FEATURE: EXPORT / IMPORT CONFIG
+// ════════════════════════════════════════════════════════════
+
+function exportConfig() {
+  fetch('./api.php?action=read&file=config')
+    .then(function(r) { return r.json(); })
+    .then(function(data) {
+      var blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+      var url = URL.createObjectURL(blob);
+      var a = document.createElement('a');
+      a.href = url; a.download = 'streamalerts-config.json';
+      document.body.appendChild(a); a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+    })
+    .catch(function() { toast('Erreur export', 'err'); });
+}
+
+function importConfig(input) {
+  var file = input.files[0];
+  if (!file) return;
+  if (file.size > 500000) { toast('Fichier trop volumineux (max 500 Ko)', 'err'); return; }
+  var reader = new FileReader();
+  reader.onload = function(e) {
+    var data;
+    try { data = JSON.parse(e.target.result); } catch (err) { toast('JSON invalide', 'err'); return; }
+    if (typeof data !== 'object' || Array.isArray(data) || !data) { toast('Structure invalide', 'err'); return; }
+    if (!confirm('Remplacer la configuration actuelle par ce fichier ?')) return;
+    fetch('./api.php?action=write&file=config', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(data),
+    })
+    .then(function(r) { return r.json(); })
+    .then(function(res) {
+      if (res.ok) {
+        toast('Config importée');
+        Config.load().then(function() { layoutCfg = Config.all(); });
+      } else {
+        toast('Erreur : ' + res.error, 'err');
+      }
+    })
+    .catch(function() { toast('Erreur import', 'err'); });
+    input.value = '';
+  };
+  reader.readAsText(file);
+}
+
+// ════════════════════════════════════════════════════════════
+//  FEATURE: DOCK SEARCH
+// ════════════════════════════════════════════════════════════
+
+function dockSearch(query) {
+  query = (query || '').trim().toLowerCase();
+  var emptyEl = document.getElementById('dock-search-empty');
+  if (!query) {
+    var allRows = document.querySelectorAll('#main-content label, #main-content .section-head');
+    for (var i = 0; i < allRows.length; i++) {
+      var row = allRows[i].closest('div');
+      if (row) row.style.removeProperty('display');
+    }
+    if (emptyEl) emptyEl.hidden = true;
+    return;
+  }
+  var allLabels = document.querySelectorAll('#main-content label, #main-content .section-head');
+  var found = 0;
+  for (var j = 0; j < allLabels.length; j++) {
+    var text = allLabels[j].textContent.toLowerCase();
+    var rowEl = allLabels[j].closest('div');
+    if (!rowEl) continue;
+    if (text.indexOf(query) !== -1) { rowEl.style.removeProperty('display'); found++; }
+    else { rowEl.style.display = 'none'; }
+  }
+  if (emptyEl) emptyEl.hidden = found > 0;
+}
+
+// ════════════════════════════════════════════════════════════
+//  FEATURE: RESET COMPONENT TO DEFAULTS
+// ════════════════════════════════════════════════════════════
+
+function resetCurrentComponent() {
+  if (!currentComp) return;
+  var label = currentComp.label;
+  var cfgKey = currentComp.cfgKey;
+  if (!confirm('Remettre ' + label + ' aux valeurs par défaut ?')) return;
+  fetch('./api.php?action=read&file=config')
+    .then(function(r) { return r.json(); })
+    .then(function(cfg) {
+      delete cfg[cfgKey];
+      return fetch('./api.php?action=write&file=config', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(cfg),
+      });
+    })
+    .then(function(r) { return r.json(); })
+    .then(function(res) {
+      if (res.ok) {
+        toast(label + ' remis aux défauts');
+        Config.load().then(function() { layoutCfg = Config.all(); initComponentEditor(cfgKey); });
+      } else {
+        toast('Erreur : ' + res.error, 'err');
+      }
+    })
+    .catch(function() { toast('Erreur reset', 'err'); });
+}
+
 // Global Exports
-window.switchTab = switchTab; window.saveEnv = saveEnv; window.saveCurrentComponent = saveCurrentComponent; window.testCurrentComponent = testCurrentComponent; window.incrementGoal = incrementGoal; window.resetGoal = resetGoal; window.toggleQueue = toggleQueue; window.addToQueue = addToQueue; window.removeFromQueue = removeFromQueue; window.clearQueue = clearQueue; window.saveNowPlaying = saveNowPlaying; window.setHAnchor = setHAnchor; window.setVAnchor = setVAnchor; window.obsConnect = obsConnect; window.obsDisconnect = obsDisconnect; window.saveSceneConfig = saveSceneConfig; window.clearHistory = clearHistory;
+window.switchTab = switchTab; window.saveEnv = saveEnv; window.saveCurrentComponent = saveCurrentComponent; window.testCurrentComponent = testCurrentComponent; window.incrementGoal = incrementGoal; window.resetGoal = resetGoal; window.toggleQueue = toggleQueue; window.addToQueue = addToQueue; window.removeFromQueue = removeFromQueue; window.clearQueue = clearQueue; window.saveNowPlaying = saveNowPlaying; window.setHAnchor = setHAnchor; window.setVAnchor = setVAnchor; window.obsConnect = obsConnect; window.obsDisconnect = obsDisconnect; window.saveSceneConfig = saveSceneConfig; window.clearHistory = clearHistory; window.testDockWS = testDockWS; window.exportConfig = exportConfig; window.importConfig = importConfig; window.dockSearch = dockSearch; window.resetCurrentComponent = resetCurrentComponent; window.forceScene = forceScene;

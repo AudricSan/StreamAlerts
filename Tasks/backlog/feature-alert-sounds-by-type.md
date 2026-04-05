@@ -1,6 +1,6 @@
 # Sons d’alerte par type d’événement
 
-- Status: Backlog
+- Status: Done
 - Priorité: 🟡 Moyenne
 - Complexité: M
 - Tags: overlay, audio, alerts, config, obs

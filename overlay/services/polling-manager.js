@@ -1,57 +1,66 @@
 'use strict';
 
 /* ============================================================
-   services/polling-manager.js — Gestionnaire centralisé des polls
+   services/polling-manager.js — Gestionnaire centralisé des polls JSON
    Expose : window.Poller
 
-   Remplace les ~13 setInterval(poll, X) individuels.
-   Un seul endroit pour voir, pauseer, relancer tous les polls.
+   Toutes les lectures périodiques de overlay/data/ passent ici.
+   Jamais de setInterval() individuel dans les composants.
 
    Usage :
-     Poller.register({ id:'viewers', file:'viewers.json',
-                       interval:30000, onData: fn });
+     Poller.register({
+       id:       'viewers',
+       file:     'viewers.json',
+       interval: 30000,
+       onData:   function(data) { ... }
+     });
+     Poller.unregister('viewers');
+     Poller.status();  // debug panel
    ============================================================ */
 
 const Poller = (() => {
-  /**
-   * Structure d'une entrée :
-   * {
-   *   id         : string
-   *   file       : string
-   *   interval   : number (ms)
-   *   skipFirst  : boolean
-   *   onData     : Function(data)
-   *   _timer     : number (setInterval handle)
-   *   _lastTs    : number
-   *   _initialized: boolean
-   * }
-   */
-  const _registry = {};
+  const _registry = {}; // { id: entry }
+
+  /* ---------------------------------------------------------- */
+  /* API publique                                                */
+  /* ---------------------------------------------------------- */
 
   /**
    * Enregistre un poll et le démarre immédiatement.
-   * @param {object} options
-   * @param {string}   options.id
-   * @param {string}   options.file       — nom du fichier dans data/ (ex: 'alert.json')
-   * @param {number}   options.interval   — ms entre chaque lecture
-   * @param {Function} options.onData     — fn(data) appelée sur nouvelles données
-   * @param {boolean}  [options.skipFirst=false] — ignorer la 1re lecture
+   * Si un poll avec le même id existe déjà, il est ignoré.
+   *
+   * @param {object}   options
+   * @param {string}   options.id         Identifiant unique
+   * @param {string}   options.file       Fichier dans data/ (ex: 'alert.json')
+   * @param {number}   options.interval   Intervalle en ms (minimum 500)
+   * @param {Function} options.onData     Callback fn(data) — appelé si timestamp change
+   * @param {boolean}  [options.skipFirst=false] Ignorer la 1re lecture
    */
-  function register({ id, file, interval, onData, skipFirst = false }) {
+  function register(options) {
+    const id        = options.id;
+    const file      = options.file;
+    const interval  = Math.max(500, options.interval || 2000);
+    const onData    = options.onData;
+    const skipFirst = options.skipFirst === true;
+
     if (_registry[id]) {
-      Log.warn('Poller', `"${id}" déjà enregistré — ignoré`);
+      Log.warn('poller', '"' + id + '" déjà enregistré — ignoré');
       return;
     }
 
     const entry = {
-      id, file, interval, skipFirst, onData,
-      _timer: null, _lastTs: -1, _initialized: false,
+      id:           id,
+      file:         file,
+      interval:     interval,
+      _timer:       null,
+      _lastTs:      -1,
+      _initialized: false,
     };
     _registry[id] = entry;
 
-    const tick = async () => {
+    async function tick() {
       try {
-        const res = await fetch(`data/${file}?t=${Date.now()}`);
+        const res = await fetch('data/' + file + '?t=' + Date.now());
         if (!res.ok) return;
         const data = await res.json();
         if (!data || typeof data.timestamp !== 'number') return;
@@ -67,35 +76,39 @@ const Poller = (() => {
           entry._lastTs = data.timestamp;
           onData(data);
         }
-      } catch (_) {
-        // Fichier absent ou JSON invalide → silence
+      } catch (e) {
+        // Fichier absent au démarrage = normal ; JSON invalide = loggué en debug
+        Log.debug('poller', '"' + id + '" fetch/parse échoué:', e.message);
       }
-    };
+    }
 
-    // Premier appel immédiat puis cycle
+    // Premier appel immédiat, puis cycle
     tick();
     entry._timer = setInterval(tick, interval);
-    Log.debug('Poller', `"${id}" → data/${file} (${interval}ms)`);
+    Log.debug('poller', '"' + id + '" enregistré → data/' + file + ' (' + interval + 'ms)');
   }
 
   /**
-   * Arrête un poll et le retire du registre.
+   * Arrête un poll et le supprime du registre.
+   * @param {string} id
    */
   function unregister(id) {
     const entry = _registry[id];
     if (!entry) return;
     clearInterval(entry._timer);
     delete _registry[id];
-    Log.debug('Poller', `"${id}" arrêté`);
+    Log.debug('poller', '"' + id + '" arrêté');
   }
 
   /**
-   * Retourne l'état de tous les polls (pour le debug panel).
+   * Snapshot de tous les polls actifs — utilisé par le debug panel.
+   * @returns {Array}
    */
   function status() {
-    return Object.values(_registry).map(e => ({
-      id: e.id, file: e.file, interval: e.interval, lastTs: e._lastTs,
-    }));
+    return Object.keys(_registry).map(function(id) {
+      const e = _registry[id];
+      return { id: e.id, file: e.file, interval: e.interval, lastTs: e._lastTs };
+    });
   }
 
   return { register, unregister, status };

@@ -1,6 +1,6 @@
 # Service — Visibilite des zones (`window.Visibility`)
 
-- Status: Backlog
+- Status: Done
 - Priorite: Haute
 - Complexite: M
 - Tags: rebuild-from-zero, services, visibility, chat
@@ -17,8 +17,18 @@ Gerer l affichage runtime des zones overlay : etat lu depuis `visibility.json` (
 
 ## Criteres d acceptation
 
-- [ ] Un composant `enabled: false` dans config ne peut pas etre affiche par commande chat.
-- [ ] Etats coherents apres reload de la Browser Source.
+- [x] Un composant `enabled: false` dans config ne peut pas être affiché par commande chat (check dans `handleCmd` ET dans `apply`).
+- [x] États cohérents après reload — `_poll()` applique l'état dès `init()`.
+
+## Résumé (implémentation)
+
+Fichier `overlay/services/visibility-manager.js` réécrit proprement.
+- `Config.isEnabled(cfgKey)` ajouté dans `handleCmd()` (early return) et dans `apply()` (skip).
+- `el.dataset.disabled` remplacé par `Config.isEnabled()` — source de vérité unique.
+- `Object.entries` + destructuring → `Object.keys + accès explicite`.
+- `catch (_)` → `catch (e) + Log.debug / Log.error`.
+- Object spread → pas de spread (accès par clé).
+- visibility.json sans `timestamp` → `setInterval` direct (Poller exige timestamp).
 
 ## Dependances
 

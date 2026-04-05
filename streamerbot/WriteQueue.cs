@@ -78,7 +78,7 @@ public class CPHInline
         }
 
         queue["entries"]   = entries;
-        queue["timestamp"] = DateTimeOffset.UtcNow.ToUnixTimeSeconds();
+        queue["timestamp"] = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds();
 
         File.WriteAllText(FILE_PATH, queue.ToString(Formatting.Indented), System.Text.Encoding.UTF8);
         return true;

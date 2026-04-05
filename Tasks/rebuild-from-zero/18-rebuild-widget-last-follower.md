@@ -1,6 +1,6 @@
 # Composant — Dernier follower (`last_follower.json`, touche L partagee)
 
-- Status: Backlog
+- Status: Done
 - Priorite: Moyenne
 - Complexite: S
 - Tags: rebuild-from-zero, widget, twitch
@@ -17,8 +17,8 @@ Afficher le **dernier pseudo** ayant suivi la chaine, mis a jour via `last_follo
 
 ## Criteres d acceptation
 
-- [ ] Pseudo echappe.
-- [ ] Fichier absent : zone vide ou message neutre sans erreur JS.
+- [x] Pseudo echappe.
+- [x] Fichier absent : zone vide ou message neutre sans erreur JS.
 
 ## Dependances
 

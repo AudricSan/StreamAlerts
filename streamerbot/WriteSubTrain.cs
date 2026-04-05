@@ -43,7 +43,7 @@ public class CPHInline
         count++;
         long now       = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds();
         long expiresAt = now + (duration * 1000L);
-        long ts        = DateTimeOffset.UtcNow.ToUnixTimeSeconds();
+        long ts        = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds();
 
         string json =
             "{\n" +

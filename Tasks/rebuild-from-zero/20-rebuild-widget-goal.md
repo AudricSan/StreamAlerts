@@ -1,6 +1,6 @@
 # Composant — Objectif (`goal.json`, touche G)
 
-- Status: Backlog
+- Status: Done
 - Priorite: Haute
 - Complexite: M
 - Tags: rebuild-from-zero, widget, goal

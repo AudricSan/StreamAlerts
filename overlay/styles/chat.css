@@ -61,3 +61,19 @@
   color: rgba(255, 255, 255, 0.9);
   font-weight: 600;
 }
+
+.chat-msg--dim {
+  opacity: 0.45;
+  font-size: 0.85em;
+}
+
+.chat-msg--highlight {
+  background: rgba(255, 200, 0, 0.12);
+  border-left: 2px solid rgba(255, 200, 0, 0.6);
+}
+
+.chat-msg-extra {
+  margin-top: 2px;
+  padding-left: 0.2em;
+  color: rgba(255, 255, 255, 0.85);
+}

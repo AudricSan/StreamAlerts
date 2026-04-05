@@ -1,6 +1,6 @@
 # Composant — Chat (`chat.json`, WebSocket, touche C)
 
-- Status: Backlog
+- Status: Done
 - Priorite: Haute
 - Complexite: L
 - Tags: rebuild-from-zero, widget, chat, websocket

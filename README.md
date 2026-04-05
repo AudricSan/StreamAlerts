@@ -20,6 +20,7 @@ Fonctionne avec **Streamer.bot** + **XAMPP** + **OBS Studio**.
 - [Mode debug](#mode-debug)
 - [Structure des fichiers](#structure-des-fichiers)
 - [Dépannage](#dépannage)
+- [Documentation technique](#documentation-technique)
 
 ---
 
@@ -279,6 +280,8 @@ Le WebSocket gère le chat en temps réel. `WriteChat.cs` sert uniquement de fal
 | **P**       | Prédiction      | `prediction.json`          | Paris Twitch (bleu vs rose)             |
 | **H**       | Hype Train      | `hypetrain.json`           | Barre de progression du Hype Train      |
 
+La touche **L** déclenche en une fois les données de test du **dernier follow** et du **dernier sub** (les deux composants partagent la même touche ; voir commentaires dans `last-follower.js` / `last-subscriber.js`).
+
 ---
 
 ## Visibilité — commandes chat
@@ -461,8 +464,8 @@ StreamAlerts/
 │
 └── overlay/                       ← URL OBS Browser Source
     ├── index.html                 ← point d'entrée
-    ├── style.css                  ← tous les styles
     ├── script.js                  ← bootstrap (charge config + init composants)
+    ├── styles/                    ← CSS global (main.css) + un fichier par composant
     │
     ├── core/                      ← fondations (chargées en premier)
     │   ├── logger.js              ← logs centralisés
@@ -474,7 +477,8 @@ StreamAlerts/
     ├── services/                  ← services partagés
     │   ├── polling-manager.js     ← gestionnaire centralisé des polls JSON
     │   ├── websocket-manager.js   ← connexion WebSocket Streamer.bot
-    │   └── visibility-manager.js  ← show/hide des zones
+    │   ├── visibility-manager.js  ← show/hide des zones
+    │   └── scene-manager.js       ← détection scène OBS active
     │
     ├── utils/                     ← fonctions utilitaires
     │   ├── dom.js                 ← esc() (protection XSS)
@@ -525,7 +529,8 @@ StreamAlerts/
         ├── leaderboard.json
         ├── poll.json
         ├── prediction.json
-        └── hypetrain.json
+        ├── hypetrain.json
+        └── current-scene.json      ← scène OBS active (SceneManager, fallback hors API obsstudio)
 ```
 
 ---
@@ -582,3 +587,13 @@ Le panneau en bas de l'écran affiche tous les logs en temps réel.
 1. Vérifie `http://localhost/StreamAlerts/overlay/data/config.json` — JSON valide ?
 2. Recharge la Browser Source OBS (clic droit → Actualiser).
 3. Ouvre l'overlay avec `?debug=1` → chercher une erreur de parsing dans les logs.
+
+---
+
+## Documentation technique
+
+| Document | Description |
+|---|---|
+| [`docs/json-contracts.md`](docs/json-contracts.md) | Contrats JSON entre Streamer.bot et l'overlay — champs requis, optionnels et exemples pour chaque fichier |
+| [`docs/testing-checklist.md`](docs/testing-checklist.md) | Checklist de tests manuels — démarrage, widgets, JSON manquant/malformé, WebSocket, visibilité, reload OBS |
+| [`docs/obs-hotkeys-scenes.md`](docs/obs-hotkeys-scenes.md) | SceneManager — scènes reconnues, profils, classes CSS, modes de détection, tests sans OBS |

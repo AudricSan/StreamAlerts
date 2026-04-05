@@ -30,7 +30,7 @@ public class CPHInline
         string title  = Arg("npTitle");
         string artist = Arg("npArtist");
         bool   active = Arg("npActive", "true").ToLower() != "false" && title != "";
-        long   ts     = DateTimeOffset.UtcNow.ToUnixTimeSeconds();
+        long   ts     = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds();
 
         string json =
             "{\n" +

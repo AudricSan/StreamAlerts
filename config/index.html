@@ -14,6 +14,7 @@
 </header>
 
 <nav id="main-nav">
+  <input type="search" id="dock-search" placeholder="Rechercher un paramètre…" oninput="dockSearch(this.value)">
   <!-- General -->
   <button class="tab active" data-tab="env">🌐 Env</button>
   <button class="tab" data-tab="layout">📐 Layout</button>
@@ -39,8 +40,21 @@
       <label>Mot de passe WebSocket</label>
       <input type="password" id="env-websocketPassword" placeholder="Facultatif">
     </div>
+    <div class="ws-status-row">
+      <span id="dock-ws-dot" class="ws-dot ws-dot--unknown"></span>
+      <span id="dock-ws-label">Non testé</span>
+      <button class="btn-ghost" onclick="testDockWS()">Tester la connexion WS</button>
+    </div>
     <div class="btn-row">
       <button class="btn-primary btn-block" onclick="saveEnv()">Sauvegarder l'environnement</button>
+    </div>
+    <div class="section-head" style="margin-top:4px">Sauvegarde de configuration</div>
+    <div class="btn-row">
+      <button class="btn-ghost" onclick="exportConfig()">⬇ Exporter config.json</button>
+      <label class="btn-ghost" style="cursor:pointer;flex:1;text-align:center">
+        ⬆ Importer config.json
+        <input type="file" accept=".json" id="import-file-input" style="display:none" onchange="importConfig(this)">
+      </label>
     </div>
   </section>
 
@@ -144,13 +158,22 @@
 
     <div class="btn-row" style="margin-top:12px">
       <button class="btn-ghost" onclick="testCurrentComponent()">🧪 Tester</button>
+      <button class="btn-ghost btn-danger" onclick="resetCurrentComponent()" title="Remet ce composant à ses valeurs par défaut">↺ Réinitialiser</button>
       <button class="btn-primary" onclick="saveCurrentComponent()">✓ Appliquer</button>
     </div>
   </section>
 
+  <div id="dock-search-empty" hidden style="color:#6e7681;font-size:0.8rem;padding:12px">Aucun résultat pour cette recherche.</div>
+
 </main>
 
 <div id="toast"></div>
+
+<footer class="quick-links">
+  <a href="/StreamAlerts/overlay/" target="_blank">Overlay</a>
+  <a href="/StreamAlerts/overlay/?debug=1" target="_blank">Overlay (debug)</a>
+  <a href="/StreamAlerts/health/" target="_blank">Diagnostic</a>
+</footer>
 
 <!-- Core Scripts -->
 <script src="../overlay/core/logger.js"></script>

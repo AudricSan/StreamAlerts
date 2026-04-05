@@ -1,6 +1,6 @@
 # Composant — File d attente (`queue.json`, touche U)
 
-- Status: Backlog
+- Status: Done
 - Priorite: Moyenne
 - Complexite: M
 - Tags: rebuild-from-zero, widget, queue

@@ -1,6 +1,6 @@
 # Composant — Sondage Twitch (`poll.json`, touche O)
 
-- Status: Backlog
+- Status: Done
 - Priorite: Moyenne
 - Complexite: M
 - Tags: rebuild-from-zero, widget, twitch, poll

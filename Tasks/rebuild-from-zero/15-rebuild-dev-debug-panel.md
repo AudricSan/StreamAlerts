@@ -1,6 +1,6 @@
 # Outils dev — panneau debug (`?debug=1`)
 
-- Status: Backlog
+- Status: Done
 - Priorité: 🟡 Moyenne
 - Complexité: M
 - Tags: rebuild-from-zero, dev, debug
@@ -15,10 +15,18 @@ Si l’URL contient **`debug=1`**, afficher un panneau (état WebSocket, pollers
 - S’abonner au Bus / Store pour les mises à jour.
 - Activer le niveau `Log.debug` ou équivalent.
 
-## Critères d'acceptation
+## Critères d’acceptation
 
-- [ ] `?debug=1` n’est pas requis pour un stream normal.
-- [ ] Panneau ne masque pas les alertes critiques (z-index documenté).
+- [x] Sans `?debug=1` : zéro code exécuté, zéro DOM créé.
+- [x] z-index 9999 documenté ; zones overlay sans z-index fixé → pas de masquage.
+
+## Résumé (implémentation)
+
+- `URLSearchParams` → `location.search.indexOf(‘debug=1’)` (aligné sur logger.js).
+- Arrow IIFE → `(function() { ... })()`.
+- Template literals → concaténation.
+- `function addEntry({ ts, level, scope, args })` → `function _addEntry(entry)` + accès explicites.
+- `updateStatus()` appelé immédiatement (pas seulement après 2 s).
 
 ## Dépendances
 

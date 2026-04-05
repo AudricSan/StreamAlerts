@@ -1,6 +1,6 @@
 # Site racine — tableau de bord (`index.html`)
 
-- Status: Backlog
+- Status: Done
 - Priorite: Basse
 - Complexite: M
 - Tags: rebuild-from-zero, marketing, ux

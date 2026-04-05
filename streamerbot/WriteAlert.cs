@@ -49,7 +49,7 @@ public class CPHInline
         int months = Int("cumulative"); // total des mois abonnés
 
         // ── TIMESTAMP — doit être unique à chaque alerte ─────────
-        long ts = DateTimeOffset.UtcNow.ToUnixTimeSeconds();
+        long ts = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds();
 
         // ── JSON ──────────────────────────────────────────────────
         string json =

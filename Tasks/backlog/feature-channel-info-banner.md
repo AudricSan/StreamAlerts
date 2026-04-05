@@ -1,6 +1,6 @@
 # Bandeau infos chaîne (titre + jeu / catégorie)
 
-- Status: Backlog
+- Status: Done
 - Priorité: 🟡 Moyenne
 - Complexité: M
 - Tags: overlay, streamerbot, json, twitch, metadata

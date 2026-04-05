@@ -1,6 +1,6 @@
 # Service — WebSocket Streamer.bot (`window.WSManager`)
 
-- Status: Backlog
+- Status: Done
 - Priorité: 🔴 Haute
 - Complexité: L
 - Tags: rebuild-from-zero, services, websocket, chat
@@ -17,8 +17,18 @@ Une **connexion WebSocket** unique vers le serveur Streamer.bot : connexion, aut
 
 ## Critères d'acceptation
 
-- [ ] Reconnexion ne spam pas le serveur.
-- [ ] Chat et visibilité peuvent consommer les événements sans dupliquer la logique de connexion.
+- [x] Reconnexion ne spam pas le serveur (délai fixe 3 s, flag `_intentional` pour `disconnect()` volontaire).
+- [x] Chat et visibilité consomment `Bus.on('ws:message', ...)` — zéro logique de connexion dupliquée.
+
+## Résumé (implémentation)
+
+Fichier `overlay/services/websocket-manager.js` réécrit proprement.
+- `?.` optional chaining → checks explicites (`evtObj ? evtObj.source : null`).
+- `catch (_)` silencieux → `catch (e) + Log.debug` sur parse JSON.
+- `String.fromCharCode(...bytes)` → boucle `for` (pas de spread, sûr quelle que soit la taille du buffer).
+- `_intentional` flag : `disconnect()` public ne relance pas le retry.
+- `_handleMessage` extrait en fonction nommée (lisibilité).
+- `_authenticate` wrappé dans try/catch — erreur crypto ferme proprement la socket.
 
 ## Dépendances
 

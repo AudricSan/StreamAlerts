@@ -1,6 +1,6 @@
 # Composant — Alertes (`alert.json`, touche T)
 
-- Status: Backlog
+- Status: Done
 - Priorite: Haute
 - Complexite: L
 - Tags: rebuild-from-zero, widget, alerts, twitch

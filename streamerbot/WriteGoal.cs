@@ -65,7 +65,7 @@ public class CPHInline
         else
             current += Int("goalIncrement", 1);
 
-        long ts = DateTimeOffset.UtcNow.ToUnixTimeSeconds();
+        long ts = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds();
 
         string json =
             "{\n" +

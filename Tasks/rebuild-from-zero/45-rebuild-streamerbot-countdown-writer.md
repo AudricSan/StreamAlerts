@@ -1,6 +1,6 @@
 # Streamer.bot — script compte a rebours
 
-- Status: Backlog
+- Status: Done
 - Priorite: Moyenne
 - Complexite: M
 - Tags: rebuild-from-zero, streamerbot, csharp, timer

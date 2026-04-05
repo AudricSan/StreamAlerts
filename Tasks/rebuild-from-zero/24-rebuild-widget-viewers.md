@@ -1,6 +1,6 @@
 # Composant — Spectateurs (`viewers.json`, touche V)
 
-- Status: Backlog
+- Status: Done
 - Priorite: Moyenne
 - Complexite: S
 - Tags: rebuild-from-zero, widget, twitch

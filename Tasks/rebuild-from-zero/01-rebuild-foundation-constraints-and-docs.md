@@ -1,6 +1,6 @@
 # Fondation — contraintes projet, arborescence et documentation
 
-- Status: Backlog
+- Status: Done
 - Priorité: 🔴 Haute
 - Complexité: S
 - Tags: rebuild-from-zero, architecture, documentation
@@ -17,11 +17,19 @@ Cette tâche couvre aussi la **structure de dossiers** cible (`config/`, `overla
 - Définir la séquence de bootstrap : `core/` → `utils/` → `services/` → `components/` → `dev/` → `script.js`.
 - Lister les fichiers JSON autorisés côté API et leur rôle.
 
-## Critères d'acceptation
+## Critères d’acceptation
 
-- [ ] Un développeur peut reconstruire le projet sans ambiguïté sur les interdits techniques.
-- [ ] Les chemins d’URL (`/StreamAlerts/overlay/`, `/config/`) sont documentés.
-- [ ] Les événements Bus minimaux sont nommés (ex. `config:loaded`, `ws:connected`).
+- [x] Un développeur peut reconstruire le projet sans ambiguïté sur les interdits techniques.
+- [x] Les chemins d’URL (`/StreamAlerts/overlay/`, `/config/`) sont documentés.
+- [x] Les événements Bus minimaux sont nommés (ex. `config:loaded`, `ws:connected`).
+
+## Résumé (implémentation)
+
+CLAUDE.md et README.md étaient déjà substantiels. Corrections apportées :
+- `styles/` ajouté dans la structure overlay (CLAUDE.md + README.md) — remplace l’ancien `style.css` racine.
+- `scene-manager.js` ajouté dans la liste des services (CLAUDE.md + README.md).
+- `window.SceneManager` documenté dans la section Core Globals de CLAUDE.md.
+- Événement Bus `scene:changed` ajouté à la liste des événements communs.
 
 ## Dépendances
 

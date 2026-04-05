@@ -1,10 +1,10 @@
 'use strict';
 
 /* ============================================================
-   Composant : Viewer Count
-   Expose : window.ViewerCount  →  { init() }
-   Zone    : #zone-viewers  |  Données : data/viewers.json
-   Test    : touche V
+   components/viewers.js — Nombre de spectateurs
+   Expose : window.ViewerCount  (étend BaseComponent)
+   Zone   : #zone-viewers       Données : data/viewers.json
+   Test   : touche V
    ============================================================ */
 
 class ViewersComponent extends BaseComponent {
@@ -15,24 +15,29 @@ class ViewersComponent extends BaseComponent {
       dataFile:     'viewers.json',
       pollInterval: 30000,
       testKey:      'v',
-      testData:     [{ count: 142, timestamp: 1 }],
     });
   }
 
+  test() {
+    this.onData({ count: 142, timestamp: Date.now() });
+  }
+
   onData(data) {
-    if (!data.timestamp) { this.clear(); return; }
-    this.zone.innerHTML = `
-      <div class="viewers-card">
-        <div class="viewers-accent"></div>
-        <div class="viewers-inner">
-          <span class="viewers-icon" aria-hidden="true">👁</span>
-          <div class="viewers-text">
-            <div class="viewers-label">SPECTATEURS</div>
-            <div class="viewers-count">${esc(data.count ?? 0)}</div>
-          </div>
-        </div>
-      </div>
-    `;
+    if (!data || !data.timestamp) { this.clear(); return; }
+
+    var count = data.count != null ? data.count : 0;
+
+    this.zone.innerHTML =
+      '<div class="viewers-card">' +
+        '<div class="viewers-accent"></div>' +
+        '<div class="viewers-inner">' +
+          '<span class="viewers-icon" aria-hidden="true">\uD83D\uDC41</span>' +
+          '<div class="viewers-text">' +
+            '<div class="viewers-label">' + labelFor('viewers').toUpperCase() + '</div>' +
+            '<div class="viewers-count">' + esc(count) + '</div>' +
+          '</div>' +
+        '</div>' +
+      '</div>';
   }
 }
 
