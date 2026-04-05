@@ -11,6 +11,7 @@
 const Config = (() => {
 
   const DEFAULTS = {
+    env:            { websocket: 'ws://127.0.0.1:8080', websocketPassword: '' },
     alerts:         { enabled: true, displayDuration: 5500, pollInterval: 500  },
     chat:           { enabled: true, msgLifetime: 30000, maxMessages: 14, pollInterval: 300 },
     lastFollower:   { enabled: true, pollInterval: 2000 },

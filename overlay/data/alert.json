@@ -1,11 +1,6 @@
-﻿{
-  "type": "resub",
-  "user": "buildchampion18",
-  "message": "",
-  "avatar": "",
-  "sound": "resub.mp3",
-  "amount": 0,
-  "months": 42,
-  "tier": "",
-  "timestamp": 1775164779
+{
+    "type": "follow",
+    "user": "TestUser",
+    "message": "",
+    "timestamp": 1775365945
 }

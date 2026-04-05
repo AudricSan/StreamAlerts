@@ -27,6 +27,14 @@ const WSManager = (() => {
   }
 
   /**
+   * Initializes connection using configuration.
+   */
+  function init() {
+    const cfg = Config.get('env');
+    connect(cfg.websocket, cfg.websocketPassword);
+  }
+
+  /**
    * Démarre la connexion WebSocket.
    * @param {string} url      — ex: 'ws://127.0.0.1:8080'
    * @param {string} password — mot de passe Streamer.bot
@@ -122,7 +130,7 @@ const WSManager = (() => {
     return Store.get('ws', 'connected', false);
   }
 
-  return { connect, isConnected };
+  return { init, connect, isConnected };
 })();
 
 window.WSManager = WSManager;

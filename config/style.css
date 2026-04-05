@@ -28,10 +28,12 @@ body {
 
 /* ── Header ── */
 header {
-  padding: 12px 14px 0;
+  padding: 12px 14px 8px;
   display: flex;
   align-items: center;
   gap: 8px;
+  background: var(--surf);
+  border-bottom: 1px solid var(--border);
 }
 
 header h1 {
@@ -58,40 +60,56 @@ header .dot {
 /* ── Tabs ── */
 nav {
   display: flex;
-  gap: 2px;
-  padding: 10px 10px 0;
+  gap: 4px;
+  padding: 8px 10px;
+  background: var(--bg);
+  overflow-x: auto;
+  scrollbar-width: none; /* Firefox */
+  -ms-overflow-style: none;  /* IE and Edge */
+  border-bottom: 1px solid var(--border);
+}
+
+nav::-webkit-scrollbar {
+  display: none; /* Hide scrollbar for Chrome, Safari and Opera */
 }
 
 .tab {
-  flex: 1;
-  padding: 7px 2px;
+  flex: 0 0 auto;
+  padding: 6px 12px;
   background: var(--surf);
   border: 1px solid var(--border);
-  border-bottom: none;
-  border-radius: 5px 5px 0 0;
+  border-radius: 4px;
   color: var(--muted);
-  font-size: 10px;
+  font-size: 11px;
   font-weight: 700;
-  letter-spacing: 0.04em;
-  text-transform: uppercase;
+  letter-spacing: 0.02em;
   cursor: pointer;
-  transition: color 0.15s, background 0.15s;
+  transition: all 0.15s;
 }
 
-.tab:hover { color: var(--text); }
+.tab:hover { color: var(--text); border-color: rgba(255,255,255,0.15); }
 
 .tab.active {
-  background: var(--surf2);
-  color: var(--accent);
-  border-color: var(--border);
+  background: var(--accent);
+  color: #fff;
+  border-color: var(--accent);
+}
+
+.tab-group-label {
+  flex: 0 0 auto;
+  font-size: 9px;
+  font-weight: 800;
+  color: var(--muted);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  padding: 6px 4px 6px 8px;
+  border-left: 1px solid var(--border);
+  margin-left: 4px;
 }
 
 /* ── Content ── */
 main {
-  background: var(--surf2);
-  border: 1px solid var(--border);
-  border-radius: 0 0 6px 6px;
-  margin: 0 10px;
+  background: var(--bg);
   padding: 14px;
 }
 

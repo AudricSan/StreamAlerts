@@ -4,8 +4,6 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>StreamAlerts — Config</title>
-  
-  <!-- CSS -->
   <link rel="stylesheet" href="style.css">
 </head>
 <body>
@@ -15,382 +13,139 @@
   <h1>StreamAlerts Config</h1>
 </header>
 
-<nav>
-  <button class="tab active" data-tab="goal">🎯 Goal</button>
-  <button class="tab" data-tab="queue">👥 Queue</button>
-  <button class="tab" data-tab="music">🎵 Music</button>
+<nav id="main-nav">
+  <!-- General -->
+  <button class="tab active" data-tab="env">🌐 Env</button>
   <button class="tab" data-tab="layout">📐 Layout</button>
   <button class="tab" data-tab="scenes">🎬 Scènes</button>
-  <button class="tab" data-tab="cfg">⚙️ Config</button>
+  
+  <span class="tab-group-label">Composants</span>
+  <div id="nav-components" style="display:contents"></div>
+  
+  <span class="tab-group-label">Outils</span>
   <button class="tab" data-tab="history">📋 Historique</button>
 </nav>
 
-<main>
+<main id="main-content">
 
-  <!-- ══ TAB : GOAL ══════════════════════════════════════════ -->
-  <section id="tab-goal">
-
-    <div class="progress-wrap">
-      <div class="progress-header">
-        <span class="progress-label" id="goal-label-disp">—</span>
-        <span class="progress-count" id="goal-count-disp">0 / 0</span>
-      </div>
-      <div class="progress-track">
-        <div class="progress-fill" id="goal-bar" style="width:0%"></div>
-      </div>
-    </div>
-
+  <!-- 🌐 ENV ════════════════════════════════════════════════ -->
+  <section id="tab-env">
+    <div class="section-head">Variables d'environnement</div>
     <div>
-      <label>Label</label>
-      <input type="text" id="goal-label" placeholder="Objectif subs">
+      <label>WebSocket Streamer.bot</label>
+      <input type="text" id="env-websocket" placeholder="ws://127.0.0.1:8080">
     </div>
-
-    <div class="row">
-      <div>
-        <label>Actuel</label>
-        <input type="number" id="goal-current" min="0" value="0">
-      </div>
-      <div>
-        <label>Objectif</label>
-        <input type="number" id="goal-target" min="1" value="100">
-      </div>
-    </div>
-
     <div>
-      <label>Type</label>
-      <select id="goal-type">
-        <option value="sub">Subs</option>
-        <option value="follow">Follows</option>
-        <option value="bits">Bits</option>
-        <option value="donation">Dons</option>
-        <option value="custom">Personnalisé</option>
-      </select>
+      <label>Mot de passe WebSocket</label>
+      <input type="password" id="env-websocketPassword" placeholder="Facultatif">
     </div>
-
-    <div>
-      <label>Incrément rapide</label>
-      <div class="btn-incr-group">
-        <button onclick="incrementGoal(1)">+1</button>
-        <button onclick="incrementGoal(5)">+5</button>
-        <button onclick="incrementGoal(10)">+10</button>
-        <button onclick="incrementGoal(25)">+25</button>
-      </div>
-    </div>
-
     <div class="btn-row">
-      <button class="btn-primary" onclick="saveGoal()">Sauvegarder</button>
-      <button class="btn-ghost" onclick="resetGoal()">Reset à 0</button>
+      <button class="btn-primary btn-block" onclick="saveEnv()">Sauvegarder l'environnement</button>
     </div>
-
   </section>
 
-  <!-- ══ TAB : QUEUE ═════════════════════════════════════════ -->
-  <section id="tab-queue" hidden>
-
-    <button class="queue-toggle closed" id="queue-toggle" onclick="toggleQueue()">
-      ⏸ QUEUE FERMÉE
-    </button>
-
-    <div>
-      <label>Ajouter manuellement</label>
-      <div class="add-row">
-        <input type="text" id="queue-input" placeholder="Pseudo..." onkeydown="if(event.key==='Enter')addToQueue()">
-        <button onclick="addToQueue()">Ajouter</button>
-      </div>
-    </div>
-
-    <div>
-      <label id="queue-count-label">File d'attente — 0 joueur</label>
-      <div class="queue-list" id="queue-list">
-        <div class="queue-empty">File vide</div>
-      </div>
-    </div>
-
-    <button class="btn-ghost btn-block" onclick="clearQueue()">🗑 Vider la queue</button>
-
-  </section>
-
-  <!-- ══ TAB : MUSIQUE ════════════════════════════════════════ -->
-  <section id="tab-music" hidden>
-
-    <div class="np-active-indicator off" id="np-indicator">
-      <div class="dot-np"></div>
-      <span id="np-status-text">Masqué</span>
-    </div>
-
-    <div>
-      <label>Titre</label>
-      <input type="text" id="np-title" placeholder="Nom de la chanson">
-    </div>
-
-    <div>
-      <label>Artiste</label>
-      <input type="text" id="np-artist" placeholder="Nom de l'artiste">
-    </div>
-
-    <div class="btn-row">
-      <button class="btn-green" onclick="saveNowPlaying(true)">▶ Afficher</button>
-      <button class="btn-ghost" onclick="saveNowPlaying(false)">⏹ Masquer</button>
-    </div>
-
-  </section>
-
-  <!-- ══ TAB : LAYOUT ════════════════════════════════════════ -->
+  <!-- 📐 LAYOUT ═════════════════════════════════════════════ -->
   <section id="tab-layout" hidden>
-
-    <!-- Visibilité rapide -->
-    <div>
-      <label>Visibilité</label>
-      <div class="vis-grid" id="vis-grid"></div>
+    <div class="section-head">Aperçu Global</div>
+    <div class="preview-wrap" id="preview-wrap">
+      <div id="preview-inner"></div>
     </div>
+    <p class="canvas-hint" style="margin-top:8px">Glissez les éléments pour les repositionner.</p>
+  </section>
 
-    <!-- Aperçu de l'overlay (drag & drop) -->
-    <div>
-      <label style="display:flex;align-items:center;justify-content:space-between;margin-bottom:0">
-        Aperçu de l'overlay
-        <button class="btn-ghost" id="preview-toggle-btn" style="padding:3px 10px;font-size:10px" onclick="togglePreview()">Afficher</button>
+  <!-- 📋 HISTORY ════════════════════════════════════════════ -->
+  <section id="tab-history" hidden>
+    <div class="section-head" id="history-count">0 alerte enregistrée</div>
+    <div class="history-list" id="history-list">
+      <div class="queue-empty">Aucune alerte reçue.</div>
+    </div>
+    <div class="btn-row" style="margin-top:8px">
+      <button class="btn-ghost btn-block" onclick="clearHistory()">🗑 Effacer l'historique</button>
+    </div>
+  </section>
+
+  <!-- 🎬 SCÈNES ═════════════════════════════════════════════ -->
+  <section id="tab-scenes" hidden>
+    <div class="section-head">Connexion OBS WebSocket</div>
+    <div class="row">
+      <input type="text" id="obs-ws-url" value="ws://localhost:4455" placeholder="ws://localhost:4455">
+      <input type="password" id="obs-ws-pwd" placeholder="Mot de passe">
+    </div>
+    <div class="obs-connect-row">
+      <button class="btn-ghost" id="obs-ws-connect-btn" onclick="obsConnect()">Connecter</button>
+      <button class="btn-red" id="obs-ws-disconnect-btn" onclick="obsDisconnect()" hidden>Déconnecter</button>
+      <span class="obs-ws-status" id="obs-ws-status">Non connecté</span>
+    </div>
+    <div class="sep"></div>
+    <div class="scene-status">
+      <div class="scene-status-dot"></div>
+      <span class="scene-status-name" id="scene-active-name">—</span>
+      <span class="scene-status-profile" id="scene-active-profile">—</span>
+    </div>
+    <div id="scene-force-grid" class="scene-force-grid" style="margin-top:8px"></div>
+    <div class="sep"></div>
+    <div id="scene-cards-container"></div>
+    <button class="btn-primary btn-block" onclick="saveSceneConfig()">✓ Sauvegarder les scènes</button>
+  </section>
+
+  <!-- 🧩 COMPONENT EDITOR (Dynamic) ═════════════════════════ -->
+  <section id="tab-component-editor" hidden>
+    <div class="editor-header">
+      <h2 class="pos-editor-title" id="comp-title">Composant</h2>
+      <label class="toggle-switch">
+        <input type="checkbox" id="comp-enabled" onchange="updateCompState()">
+        <span class="toggle-track"></span>
+        <span class="toggle-label-text">ACTIF</span>
       </label>
-      <div class="preview-wrap" id="preview-wrap" hidden>
-        <div id="preview-inner"></div>
-      </div>
     </div>
+
+    <!-- Special Widgets (Goal, Queue, NowPlaying) will be injected here or shown based on comp -->
+    <div id="comp-special-ui"></div>
 
     <div class="sep"></div>
+    <div class="section-head">Paramètres</div>
+    <div id="comp-extras" style="display:flex;flex-direction:column;gap:10px;margin-bottom:12px"></div>
 
-    <!-- Éditeur position / taille / paramètres -->
-    <div>
-      <label>Modifier un composant</label>
-      <div class="comp-grid" id="comp-grid"></div>
-    </div>
-
-    <div class="pos-editor" id="pos-editor" hidden>
-
-      <!-- Titre + toggle actif/inactif -->
-      <div class="editor-header">
-        <div class="pos-editor-title" id="pos-editor-title">—</div>
-        <label class="toggle-switch">
-          <input type="checkbox" id="pos-enabled" checked>
-          <span class="toggle-track"></span>
-          <span class="toggle-label-text">ACTIF</span>
-        </label>
-      </div>
-
-      <div class="sep"></div>
-      <div class="section-head">Position</div>
-
-      <!-- Horizontal -->
+    <div class="sep"></div>
+    <div class="section-head">Position & Apparence</div>
+    
+    <div class="row">
       <div class="anchor-row">
         <label>Horizontal</label>
         <div class="anchor-controls">
           <div class="anchor-toggle">
-            <button id="h-left-btn"  onclick="setHAnchor('left')">◄ Gauche</button>
-            <button id="h-right-btn" onclick="setHAnchor('right')">Droite ►</button>
+            <button id="h-left-btn" onclick="setHAnchor('left')">G</button>
+            <button id="h-right-btn" onclick="setHAnchor('right')">D</button>
           </div>
-          <div class="anchor-val">
-            <input type="number" id="pos-h-val" min="0" max="1920" placeholder="—">
-            <span>px</span>
-          </div>
+          <div class="anchor-val"><input type="number" id="pos-h-val"></div>
         </div>
       </div>
-
-      <!-- Vertical -->
       <div class="anchor-row">
         <label>Vertical</label>
         <div class="anchor-controls">
           <div class="anchor-toggle">
-            <button id="v-top-btn"    onclick="setVAnchor('top')">▲ Haut</button>
-            <button id="v-bottom-btn" onclick="setVAnchor('bottom')">Bas ▼</button>
+            <button id="v-top-btn" onclick="setVAnchor('top')">H</button>
+            <button id="v-bottom-btn" onclick="setVAnchor('bottom')">B</button>
           </div>
-          <div class="anchor-val">
-            <input type="number" id="pos-v-val" min="0" max="1080" placeholder="—">
-            <span>px</span>
-          </div>
+          <div class="anchor-val"><input type="number" id="pos-v-val"></div>
         </div>
       </div>
-
-      <!-- Largeur -->
-      <div class="anchor-row">
-        <label>Largeur</label>
-        <div class="anchor-val">
-          <input type="number" id="pos-width" min="50" max="1920" placeholder="auto">
-          <span>px</span>
-        </div>
-      </div>
-
-      <!-- Hauteur max — chat uniquement -->
-      <div class="anchor-row" id="pos-maxheight-row" hidden>
-        <label>Hauteur maximale</label>
-        <div class="anchor-val">
-          <input type="number" id="pos-maxheight" min="100" max="1080" placeholder="—">
-          <span>px</span>
-        </div>
-      </div>
-
-      <p class="canvas-hint">Canvas OBS : 1920 × 1080 px</p>
-
-      <div class="sep"></div>
-      <div class="section-head">Apparence</div>
-
-      <!-- Opacité -->
-      <div class="opacity-row">
-        <label>Opacité — <span id="opacity-val">100</span>%</label>
-        <input type="range" id="pos-opacity" min="0" max="100" value="100"
-          oninput="document.getElementById('opacity-val').textContent=this.value">
-      </div>
-
-      <!-- Paramètres spécifiques (injectés dynamiquement) -->
-      <div id="pos-extras-section" hidden>
-        <div class="sep"></div>
-        <div class="section-head" style="margin-bottom:8px">Paramètres</div>
-        <div id="pos-extras" style="display:flex;flex-direction:column;gap:10px;"></div>
-      </div>
-
-      <!-- Boutons -->
-      <div class="btn-row" style="margin-top:2px">
-        <button class="btn-ghost" onclick="testComponent()">🧪 Tester</button>
-        <button class="btn-primary" onclick="savePosition()">✓ Appliquer</button>
-      </div>
-
     </div>
-
-  </section>
-
-  <!-- ══ TAB : CONFIG ════════════════════════════════════════ -->
-  <section id="tab-cfg" hidden>
-
-    <div>
-      <label>Durée des alertes (ms)</label>
-      <input type="number" id="cfg-alert-dur" min="1000" step="500" value="5500">
-    </div>
-
-    <div>
-      <label>Durée du sub train (secondes)</label>
-      <input type="number" id="cfg-train-dur" min="10" step="5" value="60">
-    </div>
-
-    <div class="sep"></div>
-
-    <div>
-      <label>Last Follower — affiché</label>
-      <div id="cfg-last-follower" style="padding:6px 10px;background:var(--surf);border-radius:4px;font-weight:600;">—</div>
-    </div>
-
-    <div>
-      <label>Last Subscriber — affiché</label>
-      <div id="cfg-last-subscriber" style="padding:6px 10px;background:var(--surf);border-radius:4px;font-weight:600;">—</div>
-    </div>
-
-    <div class="sep"></div>
-
-    <button class="btn-primary btn-block" onclick="saveConfig()">Sauvegarder la config</button>
-
-    <div class="sep"></div>
-    <div class="section-head">Profils</div>
-
-    <div class="profile-row">
-      <select id="profile-select"><option value="">— aucun profil —</option></select>
-      <button class="btn-ghost" onclick="loadProfile()" style="flex-shrink:0">Charger</button>
-    </div>
-    <div class="btn-row">
-      <button class="btn-ghost" onclick="saveProfile()">💾 Enregistrer</button>
-      <button class="btn-ghost" onclick="newProfile()">+ Nouveau</button>
-      <button class="btn-red"   onclick="deleteProfile()">🗑</button>
-    </div>
-
-    <div class="sep"></div>
-    <div class="section-head">Import / Export</div>
-
-    <div class="btn-row">
-      <button class="btn-ghost btn-block" onclick="exportConfig()">⬇ Exporter JSON</button>
-      <label class="btn-ghost btn-block" style="cursor:pointer;display:flex;align-items:center;justify-content:center">
-        ⬆ Importer JSON
-        <input type="file" accept=".json" style="display:none" onchange="importConfig(this)">
-      </label>
-    </div>
-
-  </section>
-
-  <!-- ══ TAB : SCÈNES OBS ══════════════════════════════════ -->
-  <section id="tab-scenes" hidden>
-
-    <!-- Connexion OBS WebSocket -->
-    <div class="section-head">Connexion OBS WebSocket</div>
 
     <div class="row">
-      <div>
-        <label>Adresse WebSocket</label>
-        <input type="text" id="obs-ws-url" value="ws://localhost:4455" placeholder="ws://localhost:4455">
-      </div>
-      <div>
-        <label>Mot de passe</label>
-        <input type="password" id="obs-ws-pwd" placeholder="vide si désactivé">
-      </div>
+      <div><label>Largeur (px)</label><input type="number" id="pos-width"></div>
+      <div id="pos-maxheight-row"><label>Hauteur Max (px)</label><input type="number" id="pos-maxheight"></div>
     </div>
 
-    <div class="obs-connect-row">
-      <button class="btn-ghost" id="obs-ws-connect-btn" onclick="obsConnect()" style="flex-shrink:0">Connecter</button>
-      <button class="btn-red"   id="obs-ws-disconnect-btn" onclick="obsDisconnect()" style="flex-shrink:0" hidden>Déconnecter</button>
-      <span class="obs-ws-status" id="obs-ws-status">Non connecté</span>
+    <div class="opacity-row">
+      <label>Opacité : <span id="opacity-val">100</span>%</label>
+      <input type="range" id="pos-opacity" min="0" max="100" value="100" oninput="document.getElementById('opacity-val').textContent=this.value">
     </div>
 
-    <div class="sep"></div>
-
-    <!-- Indicateur de scène active (live) -->
-    <div class="scene-status">
-      <div class="scene-status-dot"></div>
-      <span class="scene-status-label">En cours</span>
-      <span class="scene-status-name" id="scene-active-name">—</span>
-      <span class="scene-status-profile" id="scene-active-profile">—</span>
+    <div class="btn-row" style="margin-top:12px">
+      <button class="btn-ghost" onclick="testCurrentComponent()">🧪 Tester</button>
+      <button class="btn-primary" onclick="saveCurrentComponent()">✓ Appliquer</button>
     </div>
-
-    <!-- Forcer une scène (pour tester) -->
-    <div>
-      <label>Forcer une scène pour tester</label>
-      <div class="scene-force-grid" id="scene-force-grid"></div>
-    </div>
-
-    <div class="sep"></div>
-
-    <!-- Paramètres globaux -->
-    <div>
-      <label>Scène par défaut (si fichier absent)</label>
-      <select id="scene-default">
-        <option value="Gameplay">🎮 Gameplay</option>
-        <option value="Starting Soon">☀️ Starting Soon</option>
-        <option value="Just Chatting">💬 Just Chatting</option>
-        <option value="BRB">💤 BRB</option>
-        <option value="Ending">🏁 Ending</option>
-      </select>
-    </div>
-
-    <div>
-      <label>Fréquence de lecture OBS (ms)</label>
-      <input type="number" id="scene-poll-interval" min="500" step="500" value="2000">
-    </div>
-
-    <div class="sep"></div>
-    <div class="section-head">Comportement par scène</div>
-
-    <!-- Cartes de scène (générées par JS) -->
-    <div id="scene-cards-container"></div>
-
-    <button class="btn-primary btn-block" onclick="saveSceneConfig()">✓ Sauvegarder</button>
-
-  </section>
-
-  <!-- ══ TAB : HISTORIQUE ══════════════════════════════════ -->
-  <section id="tab-history" hidden>
-
-    <div class="section-head" id="history-count">0 alerte enregistrée</div>
-
-    <div class="history-list" id="history-list">
-      <div class="queue-empty">Aucune alerte — en attente d'événements Twitch…</div>
-    </div>
-
-    <div class="btn-row" style="margin-top:4px">
-      <button class="btn-ghost btn-block" onclick="clearHistory()">🗑 Effacer l'historique</button>
-    </div>
-
   </section>
 
 </main>
