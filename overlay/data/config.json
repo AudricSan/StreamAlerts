@@ -14,8 +14,8 @@
         "websocketPassword": "uZS0LLd2W6eL5y1m",
         "enabled": true,
         "opacity": 100,
-        "right": 90,
-        "bottom": 16,
+        "right": 0,
+        "bottom": 19,
         "width": 360,
         "maxHeight": 1500
     },
@@ -36,8 +36,8 @@
     "goal": {
         "enabled": true,
         "opacity": 100,
-        "left": 1003,
-        "top": 21,
+        "left": 1212,
+        "top": 15,
         "width": 400
     },
     "nowplaying": {
@@ -79,22 +79,22 @@
     "session": {
         "enabled": true,
         "opacity": 100,
-        "left": 757,
-        "top": 18,
+        "left": 946,
+        "top": 21,
         "width": 230
     },
     "countdown": {
         "enabled": true,
-        "left": 1533,
-        "top": 24,
-        "width": 300,
-        "opacity": 100
+        "opacity": 100,
+        "left": 1620,
+        "top": 17,
+        "width": 300
     },
     "leaderboard": {
         "enabled": true,
         "opacity": 100,
         "left": 0,
-        "top": 259,
+        "top": 255,
         "width": 230
     },
     "poll": {
@@ -117,5 +117,19 @@
         "right": 548,
         "top": 125,
         "width": 300
+    },
+    "scene": {
+        "defaultScene": "",
+        "pollInterval": 2000,
+        "profiles": {
+            "Start": {},
+            "Stop": {},
+            "BRB": {},
+            "Full": {},
+            "Half": {},
+            "Chatting": {},
+            "[CAM]": {}
+        },
+        "filterRules": {}
     }
 }

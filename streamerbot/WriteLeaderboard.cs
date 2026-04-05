@@ -25,8 +25,10 @@ using Newtonsoft.Json.Linq;
 
 public class CPHInline
 {
-    const string FILE_PATH =
-        @"D:\audri\Xamp\htdocs\StreamAlerts\overlay\data\leaderboard.json";
+    // Modifier ce chemin si StreamAlerts est installé ailleurs
+    const string BASE_PATH = @"D:\audri\Xamp\htdocs\StreamAlerts";
+
+    const string FILE_PATH = BASE_PATH + @"\overlay\data\leaderboard.json";
 
     const int MAX_ENTRIES = 10; // garder plus que l'affichage pour les remontées
 

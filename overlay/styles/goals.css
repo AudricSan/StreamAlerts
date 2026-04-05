@@ -1,0 +1,70 @@
+.goal-card {
+  position: relative;
+  background-color: rgba(47, 47, 47, 0.92);
+  background-image: url("data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' width='200' height='100'><path d='M0,25 C40,8 100,42 150,22 C175,12 190,28 200,25' fill='none' stroke='%23fff' stroke-opacity='0.07' stroke-width='1'/><path d='M0,55 C35,72 95,38 145,55 C172,64 190,48 200,55' fill='none' stroke='%23fff' stroke-opacity='0.05' stroke-width='1'/><path d='M0,85 C42,68 98,102 150,82 C175,72 190,88 200,85' fill='none' stroke='%23fff' stroke-opacity='0.07' stroke-width='1'/></svg>");
+  background-repeat: repeat;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-left: none;
+  border-radius: 6px;
+  overflow: hidden;
+  backdrop-filter: blur(14px) saturate(140%);
+  -webkit-backdrop-filter: blur(14px) saturate(140%);
+  box-shadow: 0 0 0 1px rgba(var(--goal-color-rgb), 0.10), 0 8px 24px rgba(0, 0, 0, 0.50);
+}
+
+.goal-accent {
+  position: absolute;
+  left: 0; top: 0; bottom: 0;
+  width: 4px;
+  background: var(--goal-color);
+  border-radius: 6px 0 0 6px;
+}
+
+.goal-inner {
+  padding: 11px 16px 13px 20px;
+}
+
+.goal-header {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  margin-bottom: 8px;
+}
+
+.goal-label {
+  font-family: var(--font-body);
+  font-size: 0.57rem;
+  font-weight: 900;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: rgba(var(--goal-color-rgb), 0.9);
+}
+
+.goal-count {
+  font-family: var(--font-display);
+  font-size: 1.25rem;
+  color: #ffffff;
+  line-height: 1;
+}
+
+.goal-sep {
+  font-family: var(--font-body);
+  font-size: 0.85rem;
+  color: rgba(255, 255, 255, 0.35);
+  margin: 0 4px;
+}
+
+.goal-bar-track {
+  height: 6px;
+  background: rgba(255, 255, 255, 0.10);
+  border-radius: 3px;
+  overflow: hidden;
+}
+
+.goal-bar-fill {
+  height: 100%;
+  background: linear-gradient(90deg, rgba(var(--goal-color-rgb), 0.65), var(--goal-color));
+  border-radius: 3px;
+  transition: width 0.9s cubic-bezier(0.34, 1.56, 0.64, 1);
+  box-shadow: 0 0 10px rgba(var(--goal-color-rgb), 0.55);
+}

@@ -27,9 +27,9 @@ The overlay is served locally by XAMPP:
 * Vanilla HTML / CSS / JavaScript only
 * No ES modules (`import` / `export`)
 * No bundler
-* No TypeScript
+* No PHP
 * No npm packages
-* No React / Vue / framework
+* No JavaScript Vanilla / Vue / framework
 * Global classes exposed through `window.*`
 * Must remain compatible with OBS Chromium engine (Chromium 90+)
 * Avoid unsupported syntax such as:

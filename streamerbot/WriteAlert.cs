@@ -15,13 +15,13 @@ using System.IO;
 
 public class CPHInline
 {
+    // Modifier ce chemin si StreamAlerts est installé ailleurs
+    const string BASE_PATH = @"D:\audri\Xamp\htdocs\StreamAlerts";
+
     // Chemins vers les fichiers lus par l'overlay OBS
-    const string FILE_PATH =
-        @"D:\audri\Xamp\htdocs\StreamAlerts\overlay\data\alert.json";
-    const string LAST_FOLLOWER_PATH =
-        @"D:\audri\Xamp\htdocs\StreamAlerts\overlay\data\last_follower.json";
-    const string LAST_SUBSCRIBER_PATH =
-        @"D:\audri\Xamp\htdocs\StreamAlerts\overlay\data\last_subscriber.json";
+    const string FILE_PATH = BASE_PATH + @"\overlay\data\alert.json";
+    const string LAST_FOLLOWER_PATH = BASE_PATH + @"\overlay\data\last_follower.json";
+    const string LAST_SUBSCRIBER_PATH = BASE_PATH + @"\overlay\data\last_subscriber.json";
 
     public bool Execute()
     {

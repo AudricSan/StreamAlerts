@@ -30,8 +30,10 @@ using System.Collections.Generic;
 
 public class CPHInline
 {
-    const string FILE_PATH =
-        @"D:\audri\Xamp\htdocs\StreamAlerts\overlay\data\prediction.json";
+    // Modifier ce chemin si StreamAlerts est installé ailleurs
+    const string BASE_PATH = @"D:\audri\Xamp\htdocs\StreamAlerts";
+
+    const string FILE_PATH = BASE_PATH + @"\overlay\data\prediction.json";
 
     public bool Execute()
     {

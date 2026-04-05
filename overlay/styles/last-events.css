@@ -1,0 +1,75 @@
+.last-event-card {
+  position: relative;
+  background-color: rgba(47, 47, 47, 0.90);
+  background-image: url("data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' width='200' height='100'><path d='M0,25 C40,8 100,42 150,22 C175,12 190,28 200,25' fill='none' stroke='%23fff' stroke-opacity='0.07' stroke-width='1'/><path d='M0,55 C35,72 95,38 145,55 C172,64 190,48 200,55' fill='none' stroke='%23fff' stroke-opacity='0.05' stroke-width='1'/><path d='M0,85 C42,68 98,102 150,82 C175,72 190,88 200,85' fill='none' stroke='%23fff' stroke-opacity='0.07' stroke-width='1'/></svg>");
+  background-repeat: repeat;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-left: none;
+  border-radius: 6px;
+  overflow: hidden;
+  backdrop-filter: blur(14px) saturate(140%);
+  -webkit-backdrop-filter: blur(14px) saturate(140%);
+  box-shadow: 0 0 0 1px rgba(var(--le-color-rgb), 0.10), 0 8px 24px rgba(0, 0, 0, 0.50);
+}
+
+.last-event-accent {
+  position: absolute;
+  left: 0; top: 0; bottom: 0;
+  width: 4px;
+  background: var(--le-color);
+  border-radius: 6px 0 0 6px;
+}
+
+.last-event-inner {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 9px 14px 9px 18px;
+}
+
+.last-event-avatar {
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 2px solid rgba(var(--le-color-rgb), 0.40);
+  flex-shrink: 0;
+}
+
+.last-event-text {
+  flex: 1;
+  min-width: 0;
+}
+
+.last-event-label {
+  font-family: var(--font-body);
+  font-size: 0.52rem;
+  font-weight: 900;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: rgba(var(--le-color-rgb), 0.9);
+  margin-bottom: 1px;
+}
+
+.last-event-username {
+  font-family: var(--font-display);
+  font-size: 1.4rem;
+  letter-spacing: 0.04em;
+  color: #ffffff;
+  line-height: 1.1;
+  text-shadow: 0 0 16px rgba(var(--le-color-rgb), 0.4);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.last-event-sub {
+  font-family: var(--font-body);
+  font-size: 0.72rem;
+  font-weight: 600;
+  color: rgba(255, 255, 255, 0.50);
+  margin-top: 1px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}

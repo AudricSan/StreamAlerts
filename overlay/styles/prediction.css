@@ -1,0 +1,114 @@
+.prediction-card {
+  position: relative;
+  background-color: rgba(47, 47, 47, 0.92);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 6px;
+  overflow: hidden;
+  backdrop-filter: blur(14px) saturate(140%);
+  -webkit-backdrop-filter: blur(14px) saturate(140%);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.50);
+}
+
+.prediction-locked { border-color: rgba(255, 255, 255, 0.14); }
+
+.prediction-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 8px 12px 0;
+}
+
+.prediction-label {
+  font-family: var(--font-body);
+  font-size: 0.52rem;
+  font-weight: 900;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: rgba(255, 255, 255, 0.6);
+}
+
+.prediction-locked .prediction-label { color: rgba(241, 196, 15, 0.9); }
+
+.prediction-points {
+  font-family: var(--font-body);
+  font-size: 0.62rem;
+  font-weight: 700;
+  color: rgba(255, 255, 255, 0.40);
+}
+
+.prediction-title {
+  font-family: var(--font-display);
+  font-size: 0.95rem;
+  color: #ffffff;
+  padding: 5px 12px 8px;
+  line-height: 1.2;
+}
+
+.prediction-options {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: 0 10px 8px;
+}
+
+.prediction-opt { position: relative; }
+
+.prediction-opt-name {
+  font-family: var(--font-body);
+  font-size: 0.62rem;
+  font-weight: 700;
+  color: var(--opt-color);
+  margin-bottom: 2px;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.prediction-opt-bar-track {
+  height: 18px;
+  background: rgba(255, 255, 255, 0.06);
+  border-radius: 3px;
+  overflow: hidden;
+  position: relative;
+}
+
+.prediction-opt-bar-fill {
+  height: 100%;
+  background: var(--opt-color);
+  opacity: 0.45;
+  border-radius: 3px;
+  transition: width 0.5s ease;
+}
+
+.prediction-opt-stats {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  position: absolute;
+  inset: 0;
+  padding: 0 6px;
+  pointer-events: none;
+}
+
+.prediction-opt-pct {
+  font-family: var(--font-display);
+  font-size: 0.72rem;
+  color: rgba(255, 255, 255, 0.9);
+}
+
+.prediction-opt-pts {
+  font-family: var(--font-body);
+  font-size: 0.6rem;
+  font-weight: 700;
+  color: rgba(255, 255, 255, 0.6);
+}
+
+.prediction-timer-track {
+  height: 3px;
+  background: rgba(255, 255, 255, 0.08);
+}
+
+.prediction-timer-fill {
+  height: 100%;
+  background: linear-gradient(90deg, #3498DB, #E91E8C);
+  transition: width 0.2s linear;
+}

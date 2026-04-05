@@ -1,0 +1,46 @@
+.viewers-card {
+  position: relative;
+  background-color: rgba(47, 47, 47, 0.90);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-left: none;
+  border-radius: 6px;
+  overflow: hidden;
+  backdrop-filter: blur(14px) saturate(140%);
+  -webkit-backdrop-filter: blur(14px) saturate(140%);
+  box-shadow: 0 0 0 1px rgba(145, 70, 255, 0.10), 0 8px 24px rgba(0, 0, 0, 0.50);
+}
+
+.viewers-accent {
+  position: absolute;
+  left: 0; top: 0; bottom: 0;
+  width: 4px;
+  background: #9146FF;
+  border-radius: 6px 0 0 6px;
+}
+
+.viewers-inner {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 9px 16px 9px 18px;
+}
+
+.viewers-icon { font-size: 1.2rem; flex-shrink: 0; }
+.viewers-text { flex: 1; }
+
+.viewers-label {
+  font-family: var(--font-body);
+  font-size: 0.52rem;
+  font-weight: 900;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: rgba(145, 70, 255, 0.9);
+}
+
+.viewers-count {
+  font-family: var(--font-display);
+  font-size: 1.8rem;
+  color: #ffffff;
+  line-height: 1;
+  text-shadow: 0 0 16px rgba(145, 70, 255, 0.4);
+}

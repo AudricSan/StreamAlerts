@@ -1,0 +1,105 @@
+.queue-card {
+  position: relative;
+  background-color: rgba(47, 47, 47, 0.90);
+  background-image: url("data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' width='200' height='100'><path d='M0,25 C40,8 100,42 150,22 C175,12 190,28 200,25' fill='none' stroke='%23fff' stroke-opacity='0.07' stroke-width='1'/><path d='M0,55 C35,72 95,38 145,55 C172,64 190,48 200,55' fill='none' stroke='%23fff' stroke-opacity='0.05' stroke-width='1'/><path d='M0,85 C42,68 98,102 150,82 C175,72 190,88 200,85' fill='none' stroke='%23fff' stroke-opacity='0.07' stroke-width='1'/></svg>");
+  background-repeat: repeat;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 6px;
+  overflow: hidden;
+  backdrop-filter: blur(14px) saturate(140%);
+  -webkit-backdrop-filter: blur(14px) saturate(140%);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.50);
+}
+
+.queue-header {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  padding: 8px 12px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+.queue-title {
+  font-family: var(--font-body);
+  font-size: 0.56rem;
+  font-weight: 900;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: rgba(255, 255, 255, 0.55);
+  flex: 1;
+}
+
+.queue-badge {
+  font-family: var(--font-body);
+  font-size: 0.48rem;
+  font-weight: 900;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  padding: 2px 6px;
+  border-radius: 3px;
+}
+
+.queue-open {
+  background: rgba(46, 204, 113, 0.18);
+  color: #2ECC71;
+  border: 1px solid rgba(46, 204, 113, 0.28);
+}
+
+.queue-closed {
+  background: rgba(231, 76, 60, 0.18);
+  color: #E74C3C;
+  border: 1px solid rgba(231, 76, 60, 0.28);
+}
+
+.queue-total {
+  font-family: var(--font-display);
+  font-size: 1rem;
+  color: rgba(255, 255, 255, 0.55);
+  line-height: 1;
+}
+
+.queue-list {
+  padding: 4px 0;
+}
+
+.queue-entry {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 4px 12px;
+}
+
+.queue-pos {
+  font-family: var(--font-body);
+  font-size: 0.65rem;
+  font-weight: 700;
+  color: rgba(255, 255, 255, 0.30);
+  width: 16px;
+  text-align: right;
+  flex-shrink: 0;
+}
+
+.queue-user {
+  font-family: var(--font-display);
+  font-size: 0.95rem;
+  color: rgba(255, 255, 255, 0.85);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.queue-first .queue-pos  { color: #F1C40F; }
+.queue-first .queue-user {
+  color: #F1C40F;
+  text-shadow: 0 0 12px rgba(241, 196, 15, 0.35);
+}
+
+.queue-empty,
+.queue-more {
+  padding: 6px 12px;
+  font-family: var(--font-body);
+  font-size: 0.68rem;
+  font-weight: 600;
+  color: rgba(255, 255, 255, 0.28);
+  text-align: center;
+}

@@ -32,9 +32,11 @@ using Newtonsoft.Json.Linq;
 
 public class CPHInline
 {
+    // Modifier ce chemin si StreamAlerts est installé ailleurs
+    const string BASE_PATH = @"D:\audri\Xamp\htdocs\StreamAlerts";
+
     // ── Chemin vers visibility.json ──────────────────────────────
-    private const string VIS_PATH =
-        @"D:\audri\Xamp\htdocs\StreamAlerts\overlay\data\visibility.json";
+    private const string VIS_PATH = BASE_PATH + @"\overlay\data\visibility.json";
 
     // ── Alias commande → clé JSON ────────────────────────────────
     private static readonly System.Collections.Generic.Dictionary<string, string> ALIASES =

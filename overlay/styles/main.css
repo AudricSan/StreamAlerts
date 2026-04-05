@@ -1,0 +1,96 @@
+/* === POLICE LOCALE === */
+@font-face {
+  font-family: 'Regular Brush Personal Use Only';
+  src: url('../assets/fonts/Regular Brush Personal Use Only.ttf') format('truetype');
+  font-weight: normal;
+  font-style: normal;
+}
+
+/* === VARIABLES GLOBALES === */
+:root {
+  --font-display: 'Regular Brush Personal Use Only', cursive;
+  --font-body:    'Nunito', sans-serif;
+  --alert-color:     #9B59B6;
+  --alert-color-rgb: 155, 89, 182;
+}
+
+*, *::before, *::after {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+html, body {
+  width: 1920px;
+  height: 1080px;
+  overflow: hidden;
+  background: transparent;
+  font-family: var(--font-body);
+}
+
+/* ZONES DE L'OVERLAY */
+#zone-alerts {
+  position: fixed;
+  left: 0;
+  right: 0;
+  display: flex;
+  flex-direction: column-reverse;
+  align-items: center;
+  pointer-events: none;
+}
+
+#zone-chat {
+  position: fixed;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+  pointer-events: none;
+  overflow: hidden;
+}
+
+#zone-goal,
+#zone-nowplaying,
+#zone-counter,
+#zone-subtrain,
+#zone-queue,
+#zone-last-follower,
+#zone-last-subscriber,
+#zone-viewers,
+#zone-uptime,
+#zone-session,
+#zone-countdown,
+#zone-leaderboard,
+#zone-poll,
+#zone-prediction,
+#zone-hypetrain {
+  position: fixed;
+  pointer-events: none;
+}
+
+/* UTILITAIRE : Hint de test */
+#test-hint {
+  position: fixed;
+  bottom: 12px;
+  left: 50%;
+  transform: translateX(-50%);
+  font-family: var(--font-body);
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: rgba(255, 255, 255, 0.3);
+  background: rgba(0, 0, 0, 0.4);
+  padding: 5px 14px;
+  border-radius: 20px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  pointer-events: none;
+  user-select: none;
+  letter-spacing: 0.04em;
+}
+
+#test-hint kbd {
+  font-family: var(--font-body);
+  background: rgba(255, 255, 255, 0.12);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: 3px;
+  padding: 1px 6px;
+  font-size: 0.7rem;
+}

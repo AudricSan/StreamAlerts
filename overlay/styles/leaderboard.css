@@ -1,0 +1,70 @@
+.leaderboard-card {
+  position: relative;
+  background-color: rgba(47, 47, 47, 0.90);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 6px;
+  overflow: hidden;
+  backdrop-filter: blur(14px) saturate(140%);
+  -webkit-backdrop-filter: blur(14px) saturate(140%);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.50);
+}
+
+.leaderboard-header {
+  display: flex;
+  align-items: center;
+  padding: 8px 12px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+.leaderboard-title {
+  font-family: var(--font-body);
+  font-size: 0.56rem;
+  font-weight: 900;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: rgba(241, 196, 15, 0.9);
+  flex: 1;
+}
+
+.leaderboard-list { padding: 4px 0; }
+
+.leaderboard-entry {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 4px 12px;
+}
+
+.leaderboard-rank {
+  font-size: 0.75rem;
+  width: 20px;
+  text-align: center;
+  flex-shrink: 0;
+  color: rgba(255, 255, 255, 0.40);
+}
+
+.leaderboard-first .leaderboard-rank { font-size: 0.9rem; }
+
+.leaderboard-user {
+  font-family: var(--font-display);
+  font-size: 0.95rem;
+  color: rgba(255, 255, 255, 0.85);
+  flex: 1;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.leaderboard-first .leaderboard-user {
+  color: #F1C40F;
+  text-shadow: 0 0 12px rgba(241, 196, 15, 0.35);
+}
+
+.leaderboard-score {
+  font-family: var(--font-body);
+  font-size: 0.72rem;
+  font-weight: 700;
+  color: rgba(255, 255, 255, 0.45);
+}
+
+.leaderboard-first .leaderboard-score { color: rgba(241, 196, 15, 0.8); }

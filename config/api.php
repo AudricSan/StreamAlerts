@@ -16,10 +16,11 @@ const ALLOWED = [
     'visibility',
     'viewers', 'uptime', 'session', 'countdown',
     'leaderboard', 'poll', 'prediction', 'hypetrain',
+    'current-scene',
 ];
 
 $DATA_DIR = realpath(__DIR__ . '/../overlay/data');
-$file     = preg_replace('/[^a-z_]/', '', strtolower($_GET['file'] ?? ''));
+$file     = preg_replace('/[^a-z_\-]/', '', strtolower($_GET['file'] ?? ''));
 $action   = $_GET['action'] ?? 'read';
 
 if (!in_array($file, ALLOWED)) {

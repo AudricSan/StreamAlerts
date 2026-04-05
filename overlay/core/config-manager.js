@@ -1,16 +1,15 @@
 'use strict';
 
-/* ============================================================
-   core/config-manager.js — Gestionnaire de configuration
-   Expose : window.Config
-
-   Charge data/config.json, fusionne avec les valeurs par défaut,
-   expose Config.get(key) pour chaque composant.
-   ============================================================ */
-
+/**
+ * core/config-manager.js — Centralized Configuration & Persistence
+ * 
+ * Responsibilities:
+ * - Load config.json and merge with defaults
+ * - Provide getter/setter for component configs
+ * - Persist changes back to local JSON files via api.php
+ */
 const Config = (() => {
 
-  // Valeurs par défaut pour chaque section (pollInterval en ms)
   const DEFAULTS = {
     alerts:         { enabled: true, displayDuration: 5500, pollInterval: 500  },
     chat:           { enabled: true, msgLifetime: 30000, maxMessages: 14, pollInterval: 300 },
@@ -28,25 +27,29 @@ const Config = (() => {
     poll:           { enabled: true, pollInterval: 2000 },
     prediction:     { enabled: true, pollInterval: 2000 },
     hypetrain:      { enabled: true, pollInterval: 1000 },
+    scene:          { enabled: true, defaultScene: 'Gameplay', pollInterval: 2000 },
   };
 
   let _cfg    = {};
   let _loaded = false;
 
   /**
-   * Charge config.json et fusionne avec les defaults.
-   * Émet 'config:loaded' via Bus.
-   * @returns {Promise<object>}
+   * Loads config.json from server.
    */
   async function load() {
     try {
-      const res = await fetch(`data/config.json?t=${Date.now()}`);
+      // Try to load from overlay/data/ (if called from overlay)
+      // or ../overlay/data/ (if called from config)
+      const isConfigUI = window.location.pathname.includes('/config/');
+      const path = isConfigUI ? '../overlay/data/config.json' : 'data/config.json';
+      
+      const res = await fetch(`${path}?t=${Date.now()}`);
       if (!res.ok) throw new Error(`HTTP ${res.status}`);
       const raw = await res.json();
       _cfg = _merge(raw);
-      Log.info('Config', 'config.json chargé');
+      Log.info('Config', 'Loaded successfully');
     } catch (e) {
-      Log.warn('Config', 'config.json introuvable — defaults utilisés', String(e.message || e));
+      Log.warn('Config', 'Using defaults', e.message);
       _cfg = _merge({});
     }
     _loaded = true;
@@ -55,29 +58,54 @@ const Config = (() => {
   }
 
   /**
-   * Retourne la section de configuration d'un composant.
-   * @param {string} key - 'alerts', 'chat', etc.
-   * @returns {object}
+   * Returns specific component config.
    */
   function get(key) {
     return _cfg[key] || DEFAULTS[key] || {};
   }
 
   /**
-   * Vérifie si un composant est activé.
-   * @param {string} key
-   * @returns {boolean}
+   * Checks if a component is enabled.
    */
   function isEnabled(key) {
     return get(key).enabled !== false;
   }
 
   /**
-   * Retourne la configuration complète.
-   * @returns {object}
+   * Persists the entire config object.
    */
-  function all() {
-    return { ..._cfg };
+  async function save(newCfg = null) {
+    const data = newCfg ? _merge(newCfg) : _cfg;
+    
+    // Basic validation
+    if (!data || typeof data !== 'object' || Object.keys(data).length === 0) {
+      throw new Error('Invalid configuration data');
+    }
+
+    try {
+      const isConfigUI = window.location.pathname.includes('/config/');
+      const apiPath = isConfigUI ? './api.php' : '../config/api.php';
+      
+      const res = await fetch(`${apiPath}?action=write&file=config`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(data)
+      });
+      
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
+      const result = await res.json();
+      
+      if (result.ok) {
+        _cfg = data; // Update local state only on success
+        Log.info('Config', 'Saved successfully');
+        Bus.emit('config:saved', { config: _cfg });
+        return true;
+      }
+      throw new Error(result.error || 'Unknown error');
+    } catch (e) {
+      Log.error('Config', 'Save failed', e.message);
+      throw e;
+    }
   }
 
   function _merge(raw) {
@@ -89,7 +117,7 @@ const Config = (() => {
     return result;
   }
 
-  return { load, get, isEnabled, all };
+  return { load, get, isEnabled, save, all: () => ({..._cfg}) };
 })();
 
 window.Config = Config;

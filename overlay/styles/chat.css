@@ -1,0 +1,63 @@
+.chat-msg {
+  display: flex;
+  align-items: baseline;
+  flex-wrap: wrap;
+  gap: 0 4px;
+  padding: 5px 10px 5px 9px;
+  background: rgba(40, 40, 40, 0.72);
+  border-radius: 4px;
+  border-left: 2px solid var(--msg-color, #9B59B6);
+  font-family: var(--font-body);
+  font-size: 0.83rem;
+  line-height: 1.45;
+  word-break: break-word;
+  max-height: 0;
+  overflow: hidden;
+  margin-top: 0;
+  opacity: 0;
+  transform: translateX(18px);
+  transition: max-height 0.28s ease, margin-top 0.28s ease, opacity 0.25s ease, transform 0.25s ease;
+}
+
+.chat-msg.visible {
+  opacity: 1;
+  transform: translateX(0);
+}
+
+.chat-msg.expiring {
+  opacity: 0;
+  transform: translateX(18px);
+  transition: max-height 0.6s ease, margin-top 0.6s ease, opacity 0.6s ease, transform 0.6s ease;
+}
+
+.chat-badges {
+  display: inline-flex;
+  gap: 2px;
+  align-items: center;
+  flex-shrink: 0;
+  margin-right: 2px;
+  vertical-align: middle;
+}
+
+.chat-badge {
+  font-size: 0.65rem;
+  line-height: 1;
+}
+
+.chat-username {
+  font-weight: 800;
+  color: var(--msg-color, #9B59B6);
+  flex-shrink: 0;
+  text-shadow: 0 0 12px rgba(0, 0, 0, 0.9);
+  white-space: nowrap;
+}
+
+.chat-sep {
+  color: rgba(255, 255, 255, 0.35);
+  flex-shrink: 0;
+}
+
+.chat-text {
+  color: rgba(255, 255, 255, 0.9);
+  font-weight: 600;
+}

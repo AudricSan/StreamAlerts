@@ -26,8 +26,10 @@ using System.Text.RegularExpressions;
 
 public class CPHInline
 {
-    const string FILE_PATH =
-        @"D:\audri\Xamp\htdocs\StreamAlerts\overlay\data\countdown.json";
+    // Modifier ce chemin si StreamAlerts est installé ailleurs
+    const string BASE_PATH = @"D:\audri\Xamp\htdocs\StreamAlerts";
+
+    const string FILE_PATH = BASE_PATH + @"\overlay\data\countdown.json";
 
     public bool Execute()
     {

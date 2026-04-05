@@ -1,0 +1,61 @@
+.session-card {
+  position: relative;
+  background-color: rgba(47, 47, 47, 0.90);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-left: none;
+  border-radius: 6px;
+  overflow: hidden;
+  backdrop-filter: blur(14px) saturate(140%);
+  -webkit-backdrop-filter: blur(14px) saturate(140%);
+  box-shadow: 0 0 0 1px rgba(189, 195, 199, 0.10), 0 8px 24px rgba(0, 0, 0, 0.50);
+}
+
+.session-accent {
+  position: absolute;
+  left: 0; top: 0; bottom: 0;
+  width: 4px;
+  background: #BDC3C7;
+  border-radius: 6px 0 0 6px;
+}
+
+.session-inner { padding: 10px 14px 12px 18px; }
+
+.session-label {
+  font-family: var(--font-body);
+  font-size: 0.52rem;
+  font-weight: 900;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: rgba(189, 195, 199, 0.9);
+  margin-bottom: 8px;
+}
+
+.session-grid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px 12px;
+}
+
+.session-stat {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.session-stat-icon { font-size: 0.85rem; }
+
+.session-stat-value {
+  font-family: var(--font-display);
+  font-size: 1.1rem;
+  color: #ffffff;
+  line-height: 1;
+}
+
+.session-stat-name {
+  font-family: var(--font-body);
+  font-size: 0.6rem;
+  font-weight: 700;
+  color: rgba(255, 255, 255, 0.45);
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+}
